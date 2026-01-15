@@ -1,0 +1,12 @@
+{
+  "name": "directus-extension-endpoint-mapa-lotes",
+  "version": "1.0.0",
+  "description": "Endpoint para obtener lotes en formato GeoJSON",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ]
+}

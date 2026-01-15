@@ -1,0 +1,38 @@
+{
+  "name": "quintas-crm-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
+    "mapbox-gl": "^3.7.0",
+    "next": "^14.2.0",
+    "proj4": "^2.20.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^3.4.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^16.1.2",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}
