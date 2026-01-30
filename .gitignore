@@ -43,3 +43,7 @@ Thumbs.db
 frontend/node_modules
 frontend/.next
 frontend/.env.local
+
+# Temporary / Backups
+*.zip
+80bdaf90-37b5-40e0-90d4-b2a27997c934/

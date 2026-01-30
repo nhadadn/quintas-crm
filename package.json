@@ -13,6 +13,8 @@
   "type": "commonjs",
   "dependencies": {
     "directus": "^11.14.0",
-    "mysql2": "^3.16.0"
+    "dotenv": "^17.2.3",
+    "mysql2": "^3.16.0",
+    "xml2js": "^0.6.2"
   }
 }

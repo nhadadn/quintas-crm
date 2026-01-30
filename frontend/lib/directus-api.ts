@@ -88,6 +88,7 @@ export interface Lote {
   cliente_id: string | null;
   vendedor_id: string | null;
   notas: string;
+  svg_path_id?: string; // Nuevo campo para mapeo SVG
   geometria?: unknown;
   p_coordenadas?: any; // Soporte para campo alternativo de geometría
   latitud?: number;

@@ -1,0 +1,12 @@
+{
+  "name": "directus-endpoint-svg-map",
+  "version": "1.0.0",
+  "description": "Endpoint para servir datos de lotes mapeados a SVG",
+  "main": "index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "svg-map",
+    "source": "index.js",
+    "host": "^10.0.0"
+  }
+}
