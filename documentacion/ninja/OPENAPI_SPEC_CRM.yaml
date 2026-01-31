@@ -1,0 +1,474 @@
+openapi: 3.0.0
+info:
+  title: Quintas de Otinapa ERP API
+  description: |
+    API personalizada para el ERP Inmobiliario Quintas de Otinapa.
+    Implementada como extensiones de Directus (Custom Endpoints).
+    
+    ## Autenticación
+    Requiere token JWT en header: `Authorization: Bearer <token>`
+    
+    ## Rate Limiting
+    - Límite: 100 requests/minuto por IP
+    - Header respuesta: `X-RateLimit-Limit`, `X-RateLimit-Remaining`
+  version: 2.0.0
+servers:
+  - url: https://api.quintasdeotinapa.com
+    description: Servidor de Producción
+  - url: http://localhost:8055
+    description: Servidor de Desarrollo Local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # --- Esqueletos Base ---
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+              code:
+                type: string
+
+    # --- Modelos de Negocio ---
+    Cliente:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        apellido_paterno:
+          type: string
+        apellido_materno:
+          type: string
+        email:
+          type: string
+          format: email
+        rfc:
+          type: string
+        telefono:
+          type: string
+        estatus:
+          type: string
+          enum: [prospecto, activo, inactivo]
+        fecha_registro:
+          type: string
+          format: date-time
+
+    Vendedor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        apellido_paterno:
+          type: string
+        email:
+          type: string
+        estatus:
+          type: boolean
+          description: 1=Activo, 0=Inactivo
+        comision_porcentaje:
+          type: number
+          format: float
+
+    Venta:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        lote_id:
+          type: integer
+        cliente_id:
+          type: string
+          format: uuid
+        vendedor_id:
+          type: string
+          format: uuid
+        fecha_venta:
+          type: string
+          format: date
+        monto_total:
+          type: number
+        enganche:
+          type: number
+        monto_financiado:
+          type: number
+        plazo_meses:
+          type: integer
+        tasa_interes:
+          type: number
+        estatus:
+          type: string
+          enum: [apartado, contrato, pagos, liquidado, cancelado]
+
+    Pago:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        venta_id:
+          type: string
+          format: uuid
+        numero_pago:
+          type: integer
+        fecha_vencimiento:
+          type: string
+          format: date
+        fecha_pago:
+          type: string
+          format: date-time
+          nullable: true
+        monto:
+          type: number
+          description: Monto programado de la cuota
+        monto_pagado:
+          type: number
+          description: Monto realmente abonado
+        mora:
+          type: number
+        estatus:
+          type: string
+          enum: [pendiente, pagado, atrasado, cancelado]
+        metodo_pago:
+          type: string
+        referencia:
+          type: string
+
+    LoteGeoJSON:
+      type: object
+      properties:
+        type:
+          type: string
+          example: FeatureCollection
+        features:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                example: Feature
+              properties:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  identificador:
+                    type: string
+                  estatus:
+                    type: string
+                  precio_lista:
+                    type: number
+                  area:
+                    type: number
+              geometry:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: Polygon
+                  coordinates:
+                    type: array
+
+paths:
+  # ==============================
+  # CLIENTES
+  # ==============================
+  /clientes:
+    get:
+      summary: Listar clientes
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Búsqueda por nombre, apellido o RFC
+        - in: query
+          name: estatus
+          schema: { type: string, enum: [prospecto, activo, inactivo] }
+      responses:
+        '200':
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Cliente' }
+    post:
+      summary: Crear cliente
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, apellido, email]
+              properties:
+                nombre: { type: string }
+                apellido: { type: string } # Nota: API espera 'apellido' mapeado a 'apellido_paterno' o similar
+                email: { type: string }
+                rfc: { type: string }
+                telefono: { type: string }
+      responses:
+        '200':
+          description: Cliente creado
+        '400':
+          description: Datos inválidos
+        '409':
+          description: Email o RFC duplicado
+
+  /clientes/{id}:
+    get:
+      summary: Obtener cliente por ID
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Detalle del cliente con ventas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Cliente'
+                  - type: object
+                    properties:
+                      ventas:
+                        type: array
+                        items: { $ref: '#/components/schemas/Venta' }
+
+  # ==============================
+  # VENDEDORES
+  # ==============================
+  /vendedores:
+    get:
+      summary: Listar vendedores
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: activo
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Lista de vendedores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Vendedor' }
+
+  # ==============================
+  # VENTAS
+  # ==============================
+  /ventas:
+    get:
+      summary: Listar ventas
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: estatus
+          schema: { type: string }
+        - in: query
+          name: fecha_venta
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Lista de ventas
+    post:
+      summary: Registrar Venta (Transaccional)
+      description: Crea venta, aparta lote, genera pagos y comisiones.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lote_id, cliente_id, vendedor_id, monto_total]
+              properties:
+                lote_id: { type: integer } # UUID en BD, pero API legacy puede usar INT si lote_id no migrado
+                cliente_id: { type: string, format: uuid }
+                vendedor_id: { type: string, format: uuid }
+                monto_total: { type: number }
+                enganche: { type: number }
+                plazo_meses: { type: integer }
+                tasa_interes: { type: number }
+                fecha_venta: { type: string, format: date }
+      responses:
+        '200':
+          description: Venta creada exitosamente
+        '400':
+          description: Error de validación (Lote no disponible, etc)
+
+  /ventas/{id}:
+    get:
+      summary: Detalle de venta
+      description: Incluye relaciones profundas (Pagos, Cliente, Lote)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Objeto venta completo
+    delete:
+      summary: Cancelar venta
+      description: Soft delete. Libera lote y cancela pagos pendientes.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Venta cancelada
+
+  # ==============================
+  # PAGOS
+  # ==============================
+  /pagos:
+    get:
+      summary: Listar pagos
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: venta_id
+          schema: { type: string, format: uuid }
+        - in: query
+          name: estatus
+          schema: { type: string, enum: [pendiente, pagado, atrasado] }
+      responses:
+        '200':
+          description: Calendario de pagos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Pago' }
+    post:
+      summary: Registrar Abono/Pago
+      description: Procesa un pago, calcula mora y actualiza saldos.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [monto]
+              properties:
+                venta_id: 
+                  type: string
+                  format: uuid
+                  description: Requerido si no se envía pago_id (busca el más antiguo)
+                pago_id:
+                  type: string
+                  format: uuid
+                  description: Opcional. ID específico de la cuota a pagar.
+                monto:
+                  type: number
+                fecha_pago:
+                  type: string
+                  format: date-time
+                metodo_pago:
+                  type: string
+                referencia:
+                  type: string
+                notas:
+                  type: string
+      responses:
+        '200':
+          description: Pago registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Pago' }
+                  meta:
+                    type: object
+                    properties:
+                      message: { type: string }
+                      saldo_restante_pago: { type: number }
+                      mora_aplicada: { type: boolean }
+
+  /pagos/{id}:
+    get:
+      summary: Obtener detalle de pago
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Detalle pago
+    patch:
+      summary: Actualizar pago (Administrativo)
+      description: Solo para pagos pendientes. Permite cambiar fecha vencimiento o notas.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fecha_vencimiento: { type: string, format: date }
+                notas: { type: string }
+      responses:
+        '200':
+          description: Pago actualizado
+
+  # ==============================
+  # MAPA
+  # ==============================
+  /mapa-lotes:
+    get:
+      summary: Obtener GeoJSON de lotes
+      description: Datos optimizados para renderizado de mapa.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: FeatureCollection GeoJSON
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoteGeoJSON' }

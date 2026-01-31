@@ -1,0 +1,7 @@
+{
+  "name": "directus-extension-hook-crm-logic",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "description": "Business logic hooks for CRM (Lotes, Ventas, Pagos, Comisiones)"
+}

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "npx -y --package node@22 --package directus@latest -- directus start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/validation_suite.mjs",
+    "test:integration": "node tests/validation_suite.mjs",
+    "test:triggers": "node tests/validation_suite.mjs"
   },
   "keywords": [],
   "author": "",

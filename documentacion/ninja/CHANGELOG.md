@@ -1,5 +1,21 @@
 # Changelog - Quintas CRM
 
+## 0.2.8 - Validación Integral de Backend (Seguridad y Calidad)
+
+- Implementación de suite de validación completa (`npm test`).
+- Cobertura de tests para flujos críticos:
+  - Ventas: Creación, amortización, triggers.
+  - Pagos: Mora automática, actualización de saldos, liquidación.
+  - Clientes: Validación de duplicados (Email/RFC).
+- Auditoría de Seguridad:
+  - Verificación de Rate Limiting (100 req/min).
+  - Protección contra SQL Injection validada.
+  - Contexto de Autenticación (JWT) asegurado.
+- Documentación técnica actualizada:
+  - `ESQUEMA_BASE_DATOS_ERP.md` creado.
+  - `API_BACKEND_ERP.md` estandarizado.
+  - `openapi-spec.yaml` sincronizado.
+
 ## 0.2.0 - Migración inicial a SVG (estructura)
 
 - Añadida estructura de componentes SVG en `frontend/components/mapa-svg/`.

@@ -1,6 +1,21 @@
 # Quintas CRM
 
+![Status](https://img.shields.io/badge/Estado-Transición%20Fase%203-blue)
+![Tests](https://img.shields.io/badge/Tests-Passing-success)
+![Version](https://img.shields.io/badge/Versión-0.2.9-green)
+
 Sistema de gestión para Quintas de Otinapa, integrando un backend headless (Directus) y un frontend moderno con Next.js y mapas interactivos.
+
+## ✨ Características Principales (Actualizado)
+
+### 🧠 Backend (Business Logic Layer)
+- **Validación Robusta**: Suite de pruebas automatizada (`npm test`) para flujos críticos.
+- **Automatización**: Triggers para gestión de estados de lotes, generación de amortizaciones y cálculo de comisiones.
+- **Seguridad**: Rate limiting, protección SQLi y validación de contextos JWT.
+
+### 🎨 Frontend
+- **Mapa Interactivo (En Migración)**: Transición de Mapbox a **SVG Nativo** para mejor rendimiento y control.
+- **Gestión Integral**: Módulos para ventas, clientes, pagos y comisiones.
 
 ## 🚀 Tecnologías
 

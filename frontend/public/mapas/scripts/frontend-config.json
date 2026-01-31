@@ -1,0 +1,10 @@
+{
+  "svgSource": "/mapas/mapa-quintas.svg",
+  "paths": [
+    {
+      "id": "sample1",
+      "d": "M10 10 H 990 V 990 H 10 Z",
+      "interactive": true
+    }
+  ]
+}

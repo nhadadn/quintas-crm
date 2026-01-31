@@ -4,7 +4,7 @@ import proj4 from 'proj4';
 import { 
   type LoteFeature, 
   type LoteFeatureCollection, 
-  type Lote, 
+  type Lote as LoteType, 
   type FiltrosMapa,
   EstatusLote 
 } from '@/types/lote';
@@ -81,22 +81,22 @@ export interface Lote {
   area_m2: number;
   frente_m: number;
   fondo_m: number;
-  estatus: LoteStatus;
+  estatus: EstatusLote | string;
   precio_lista: number;
   topografia: string;
   vista: string;
   cliente_id: string | null;
   vendedor_id: string | null;
   notas: string;
-  svg_path_id?: string; // Nuevo campo para mapeo SVG
+  svg_path_id?: string;
   geometria?: unknown;
-  p_coordenadas?: any; // Soporte para campo alternativo de geometría
+  p_coordenadas?: any;
   latitud?: number;
   longitud?: number;
 }
 
 export interface LoteFilters {
-  estatus?: LoteStatus;
+  estatus?: EstatusLote | string;
   zona?: string;
   manzana?: string;
   precioMin?: number;
@@ -115,7 +115,7 @@ class DirectusApiError extends Error {
 
   constructor(message: string, options?: { status?: number; originalError?: unknown }) {
     super(message);
-    this.name = 'DirectusApiError';
+    this.name = 'DirectusError';
     this.status = options?.status;
     this.originalError = options?.originalError;
   }
@@ -123,7 +123,7 @@ class DirectusApiError extends Error {
 
 export class NetworkError extends DirectusApiError {
   constructor(message: string, options?: { originalError?: unknown }) {
-    super(message, { ...options, status: options?.status });
+    super(message, { ...options, status: 0 });
     this.name = 'NetworkError';
   }
 }
@@ -146,7 +146,7 @@ export class ValidationError extends DirectusApiError {
 // CLIENTE AXIOS
 // ========================================
 
-const directusClient = axios.create({
+export const directusClient = axios.create({
   baseURL: DIRECTUS_BASE_URL,
   timeout: 10000,
   headers: {
@@ -158,7 +158,7 @@ const directusClient = axios.create({
 // FUNCIONES DE UTILIDAD
 // ========================================
 
-function handleAxiosError(error: unknown, context: string): never {
+export function handleAxiosError(error: unknown, context: string): never {
   const axiosError = error as AxiosError;
 
   if (!axios.isAxiosError(axiosError)) {
@@ -263,7 +263,7 @@ function loteToFeature(lote: Lote): LoteFeature | null {
           
           // Convertir cada punto del polígono
           geometry.coordinates[0] = geometry.coordinates[0].map((coord: number[]) => {
-            return convertUTMtoLatLng(coord[0], coord[1]);
+            return convertUTMtoLatLng(coord[0] || 0, coord[1] || 0);
           });
         }
       }
@@ -298,7 +298,7 @@ function loteToFeature(lote: Lote): LoteFeature | null {
             console.log(`🔄 Lote ${lote.numero_lote}: Convirtiendo polígono de UTM a WGS84`);
             
             geometry.coordinates[0] = geometry.coordinates[0].map((coord: number[]) => {
-              return convertUTMtoLatLng(coord[0], coord[1]);
+              return convertUTMtoLatLng(coord[0] || 0, coord[1] || 0);
             });
           }
         }
@@ -350,6 +350,7 @@ function loteToFeature(lote: Lote): LoteFeature | null {
   const feature: LoteFeature = {
     type: 'Feature',
     id: lote.id,
+    geometry: geometry as any, // Cast a any para evitar conflicto estricto de tipos Geometry
     properties: {
       id: lote.id,
       numero_lote: lote.numero_lote,
@@ -362,11 +363,14 @@ function loteToFeature(lote: Lote): LoteFeature | null {
       precio_lista: lote.precio_lista,
       topografia: lote.topografia,
       vista: lote.vista,
-      cliente_id: lote.cliente_id,
-      vendedor_id: lote.vendedor_id,
+      cliente_id: lote.cliente_id ? Number(lote.cliente_id) : null,
+      vendedor_id: lote.vendedor_id ? Number(lote.vendedor_id) : null,
       notas: lote.notas,
+      latitud: lote.latitud || 0,
+      longitud: lote.longitud || 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
-    geometry: geometry as LoteFeature['geometry'],
   };
 
   return feature;

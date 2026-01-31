@@ -1,0 +1,14 @@
+{
+  "name": "directus-endpoint-ventas",
+  "version": "1.0.0",
+  "description": "Endpoint personalizado para gestión de ventas",
+  "type": "module",
+  "main": "src/index.js",
+  "icon": "attach_money",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "ventas",
+    "source": "src/index.js",
+    "host": "^10.0.0"
+  }
+}

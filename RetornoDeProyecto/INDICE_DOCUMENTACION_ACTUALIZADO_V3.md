@@ -243,6 +243,33 @@ Esta categoría contiene los documentos fundamentales que definen la dirección,
 
 * * *
 
+### 6. Documentación de Estado y Progreso
+
+Esta categoría agrupa los documentos que rastrean el estado actual del proyecto, el cumplimiento de objetivos y los cambios realizados.
+
+#### 6.1 ESTADO_PROYECTO_Y_ALCANCE.md
+
+**Descripción:** Informe actualizado sobre el estado del proyecto, detallando los logros de la Fase 2 (Backend Logic & Validation) y el inicio de la Fase 3 (Frontend Integration). Incluye resumen de capacidades funcionales actuales.
+
+**Contenido Principal:**
+- Resumen Ejecutivo (Transición Fase 2 -> Fase 3)
+- Cambios de tareas anteriores (Validación Integral, Business Logic, Migración SVG)
+- Alcance funcional detallado (Backend vs Frontend)
+- Próximos pasos inmediatos
+
+**Relaciones con otros documentos:**
+- ⬅️ Basado en: `VALIDACION_INTEGRAL_V2.md`
+- ⬅️ Basado en: `CHANGELOG.md`
+
+**Versión:** 0.2.9
+**Última Actualización:** 31 de Enero de 2026
+**Estado:** ✅ Activo
+**Ubicación:** `documentacion/ninja/ESTADO_PROYECTO_Y_ALCANCE.md`
+
+#### 6.2 CHANGELOG.md
+
+* * *
+
 ## 🔗 MATRIZ DE RELACIONES ENTRE DOCUMENTOS
 
 ```

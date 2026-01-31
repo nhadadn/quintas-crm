@@ -4,9 +4,10 @@ import { COLORES_ESTATUS, EstatusLote } from '@/types/lote';
 export interface PanelLoteProps {
   selectedLote: LoteProperties | null;
   onClose: () => void;
+  footer?: React.ReactNode;
 }
 
-export function PanelLote({ selectedLote, onClose }: PanelLoteProps) {
+export function PanelLote({ selectedLote, onClose, footer }: PanelLoteProps) {
   if (!selectedLote) {
     return (
       <div className="p-4 border-b border-slate-800">
@@ -52,6 +53,8 @@ export function PanelLote({ selectedLote, onClose }: PanelLoteProps) {
         </p>
         <p>Precio lista: ${selectedLote.precio_lista.toLocaleString('es-MX')}</p>
       </div>
+      
+      {footer && <div className="mt-4 pt-4 border-t border-slate-700">{footer}</div>}
     </div>
   );
 }

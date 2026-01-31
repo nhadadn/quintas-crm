@@ -60,4 +60,5 @@ export interface FiltrosMapa {
   precioMax?: number;
   areaMin?: number;
   areaMax?: number;
+  numero_lote?: string;
 }

@@ -139,7 +139,7 @@ export default function MapaInteractivo() {
         });
 
         // Evento: Click en lote
-        map.current!.on('click', 'lotes-fill', (e) => {
+        map.current!.on('click', 'lotes-fill', (e: mapboxgl.MapLayerMouseEvent) => {
           if (e.features && e.features[0]) {
             const properties = e.features[0].properties as LoteFeature['properties'];
             console.log('📍 Lote seleccionado:', properties);
@@ -168,9 +168,11 @@ export default function MapaInteractivo() {
           if (feature.geometry) {
             if (feature.geometry.type === 'Polygon') {
               const coords = feature.geometry.coordinates[0];
-              coords.forEach((coord) => {
-                bounds.extend(coord as [number, number]);
-              });
+              if (coords) {
+                coords.forEach((coord) => {
+                  bounds.extend(coord as [number, number]);
+                });
+              }
             } else if (feature.geometry.type === 'Point') {
               bounds.extend(feature.geometry.coordinates as [number, number]);
             }
