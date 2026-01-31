@@ -2,6 +2,8 @@ import React from 'react';
 import { FilaAmortizacion } from '@/types/erp';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { format, isValid } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface TablaAmortizacionProps {
   amortizacion: FilaAmortizacion[];
@@ -13,7 +15,8 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-MX');
+    const date = new Date(dateStr);
+    return isValid(date) ? format(date, 'dd/MM/yyyy', { locale: es }) : 'Fecha inválida';
   };
 
   const handleDownloadPDF = () => {

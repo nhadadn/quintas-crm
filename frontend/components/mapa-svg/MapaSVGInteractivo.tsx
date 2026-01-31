@@ -22,10 +22,12 @@ interface FrontendConfigPath {
   id: string;
   d: string;
   interactive: boolean;
+  transform?: string;
 }
 
 interface FrontendConfig {
   svgSource: string;
+  viewBox?: string;
   paths: FrontendConfigPath[];
 }
 
@@ -38,6 +40,9 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
   const { scale, offset, actions, handlers } = useMapa();
   const [filtros, setFiltros] = useState<FiltrosMapa>({});
   const [hoverInfo, setHoverInfo] = useState<{ props: LoteFeature['properties']; x: number; y: number } | null>(null);
+
+  // Use config viewBox if available, otherwise fallback to prop
+  const currentViewBox = frontendConfig?.viewBox || svgViewBox;
 
   useEffect(() => {
     const load = async () => {
@@ -109,7 +114,7 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
         {frontendConfig && (
           <svg
             className="w-full h-full max-h-screen"
-            viewBox={svgViewBox}
+            viewBox={currentViewBox}
             preserveAspectRatio="xMidYMid meet"
             onPointerDown={handlers.onPointerDown}
             onPointerMove={handlers.onPointerMove}

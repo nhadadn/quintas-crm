@@ -1,5 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
+import { format, isValid } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface VentaReciente {
   id: string | number;
@@ -39,8 +41,18 @@ export function RecentSalesTable({ ventas }: RecentSalesTableProps) {
               <tr key={venta.id} className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
                 <td className="px-6 py-4 font-medium text-slate-100">{venta.lote}</td>
                 <td className="px-6 py-4">{venta.cliente}</td>
-                <td className="px-6 py-4">{new Date(venta.fecha).toLocaleDateString()}</td>
-                <td className="px-6 py-4">${venta.monto.toLocaleString()}</td>
+                <td className="px-6 py-4">
+                  {isValid(new Date(venta.fecha))
+                    ? format(new Date(venta.fecha), 'dd/MM/yyyy', { locale: es })
+                    : 'Fecha inválida'}
+                </td>
+                <td className="px-6 py-4">
+                  {venta.monto.toLocaleString('es-MX', {
+                    style: 'currency',
+                    currency: 'MXN',
+                    minimumFractionDigits: 2
+                  })}
+                </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold
                     ${venta.estatus === 'pagado' ? 'bg-emerald-900/50 text-emerald-400' : 

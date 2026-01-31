@@ -14,6 +14,8 @@ const DIRECTUS_BASE_URL =
     ? process.env.NEXT_PUBLIC_DIRECTUS_URL
     : 'http://localhost:8055';
 
+const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_STATIC_TOKEN;
+
 // ========================================
 // CONFIGURACIÓN DE SISTEMAS DE COORDENADAS
 // ========================================
@@ -151,6 +153,7 @@ export const directusClient = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    ...(DIRECTUS_TOKEN ? { Authorization: `Bearer ${DIRECTUS_TOKEN}` } : {}),
   },
 });
 
