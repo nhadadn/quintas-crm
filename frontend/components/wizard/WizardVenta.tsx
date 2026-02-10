@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { WizardState, TerminosVenta } from './types';
 import { Step1SeleccionLote } from './Step1SeleccionLote';
 import { Step2DatosCliente } from './Step2DatosCliente';
@@ -20,6 +21,8 @@ const INITIAL_STATE: WizardState = {
 };
 
 export default function WizardVenta() {
+  const { data: session } = useSession();
+  const token = session?.accessToken as string | undefined;
   const router = useRouter();
   const [state, setState] = useState<WizardState>(INITIAL_STATE);
   const [loaded, setLoaded] = useState(false);
@@ -71,33 +74,79 @@ export default function WizardVenta() {
       return;
     }
 
+    const token = session?.accessToken as string | undefined;
+
     try {
       // 1. Asegurar que el cliente existe
       let clienteId = state.cliente.id;
-      if (!clienteId || (typeof clienteId === 'string' && clienteId.startsWith('new_'))) { // Asumiendo que new_ es temporal
-         // Intentar crear cliente si no tiene ID válido
-         // Nota: Step2 debería haber manejado esto idealmente, pero lo hacemos aquí por seguridad
-         const nuevoCliente = await createCliente(state.cliente);
-         clienteId = nuevoCliente.id;
+      if (
+        !clienteId ||
+        (typeof clienteId === 'string' && clienteId.startsWith('new_')) ||
+        clienteId === ''
+      ) {
+        try {
+          // Intentar crear cliente
+          const nuevoCliente = await createCliente(state.cliente, token);
+          clienteId = nuevoCliente.id;
+        } catch (createError: any) {
+          // Si falla por unicidad, intentar recuperar el cliente existente
+          if (
+            createError?.response?.data?.errors?.[0]?.message?.includes('unique') ||
+            createError?.message?.includes('unique')
+          ) {
+            console.log('Cliente duplicado detectado al crear, intentando recuperar...');
+            const { findClienteByEmailOrRFC } = await import('@/lib/clientes-api');
+            const existente = await findClienteByEmailOrRFC(
+              state.cliente.email,
+              state.cliente.rfc,
+              state.cliente.telefono,
+              token,
+            );
+
+            if (existente) {
+              console.log('Cliente existente recuperado:', existente.id);
+              clienteId = existente.id;
+              // Actualizamos el estado para que futuras referencias usen este ID
+              updateState({ cliente: existente });
+            } else {
+              throw createError; // No se encontró, relanzar error original
+            }
+          } else {
+            throw createError; // Otro tipo de error
+          }
+        }
       }
 
       // 2. Preparar objeto de venta
       const nuevaVenta: Partial<Venta> = {
-        lote_id: typeof state.loteSeleccionado.id === 'string' ? parseInt(state.loteSeleccionado.id) : state.loteSeleccionado.id,
+        lote_id:
+          typeof state.loteSeleccionado.id === 'string'
+            ? parseInt(state.loteSeleccionado.id)
+            : state.loteSeleccionado.id,
         cliente_id: clienteId,
+        vendedor_id: state.terminos.vendedor_id,
         fecha_venta: new Date().toISOString().split('T')[0], // YYYY-MM-DD
         monto_total: state.loteSeleccionado.precio_lista,
         enganche: state.terminos.enganche,
         monto_financiado: state.terminos.monto_financiado,
         plazo_meses: state.terminos.plazo_meses,
         estatus: 'contrato', // Estatus inicial
-        metodo_pago: state.terminos.metodo_pago
+        metodo_pago: state.terminos.metodo_pago,
       };
 
       // 3. Crear venta
-      const ventaCreada = await createVenta(nuevaVenta);
+      const ventaCreada = await createVenta(nuevaVenta, token);
 
       if (ventaCreada) {
+        // Notificar a otras pestañas que hubo una nueva venta para actualizar dashboard
+        try {
+          const channel = new BroadcastChannel('dashboard_updates');
+          channel.postMessage({ type: 'NEW_SALE', ventaId: ventaCreada.id });
+          setTimeout(() => channel.close(), 100); // Dar tiempo para enviar
+        } catch (e) {
+          console.error('Error enviando notificación de actualización:', e);
+        }
+
         alert('Venta creada exitosamente!');
         localStorage.removeItem(STORAGE_KEY);
         setState(INITIAL_STATE);
@@ -105,9 +154,18 @@ export default function WizardVenta() {
       } else {
         throw new Error('No se recibió la venta creada');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al crear venta:', error);
-      alert('Ocurrió un error al crear la venta. Por favor intente nuevamente.');
+      let errorMessage = 'Ocurrió un error al crear la venta. Por favor intente nuevamente.';
+
+      // Intentar extraer mensaje de error específico de Directus
+      if (error?.response?.data?.errors?.[0]?.message) {
+        errorMessage = `Error: ${error.response.data.errors[0].message}`;
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -124,7 +182,7 @@ export default function WizardVenta() {
             </span>
             Nueva Venta
           </h1>
-          
+
           <div className="flex items-center space-x-2">
             {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex items-center">
@@ -133,8 +191,8 @@ export default function WizardVenta() {
                     state.currentStep === step
                       ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-800'
                       : state.currentStep > step
-                      ? 'bg-emerald-900 text-emerald-200'
-                      : 'bg-slate-700 text-slate-400'
+                        ? 'bg-emerald-900 text-emerald-200'
+                        : 'bg-slate-700 text-slate-400'
                   }`}
                 >
                   {step}
@@ -170,6 +228,7 @@ export default function WizardVenta() {
 
         {state.currentStep === 1 && (
           <Step1SeleccionLote
+            token={token}
             initialLote={state.loteSeleccionado}
             onLoteSelected={(lote) => {
               updateState({ loteSeleccionado: lote });
@@ -203,11 +262,7 @@ export default function WizardVenta() {
         )}
 
         {state.currentStep === 4 && (
-          <Step4Confirmacion
-            state={state}
-            onBack={prevStep}
-            onConfirm={handleFinish}
-          />
+          <Step4Confirmacion state={state} onBack={prevStep} onConfirm={handleFinish} />
         )}
       </div>
     </div>
