@@ -89,7 +89,30 @@ classDiagram
     ComisionesService --> DatabaseRepository
 ```
 
-## 3. Diseño de Base de Datos (Schema)
+## 3. Catálogo de Módulos (Backend)
+
+El backend se extiende mediante **18 Extensiones de Directus** ubicadas en `/extensions`.
+
+### 3.1 Módulos de Negocio Core
+
+| Módulo | Tipo | Descripción y Responsabilidad |
+|--------|------|-------------------------------|
+| `directus-extension-hook-crm-logic` | **Hook** | **CRÍTICO.** Valida reglas invariantes (Anti-doble venta). Bloquea transacciones que violen la integridad del inventario. |
+| `directus-endpoint-lotes` | **Endpoint** | Gestión especializada de lotes (inventario). |
+| `ventas-api` | **Endpoint** | API transaccional para creación y gestión de contratos de venta. |
+| `clientes` | **Endpoint** | Gestión de perfiles de clientes y sus relaciones. |
+| `vendedores` | **Endpoint** | Gestión de fuerza de ventas y asignaciones. |
+| `perfil` | **Endpoint** | Endpoint "Me" enriquecido para usuarios del portal. |
+
+### 3.2 Módulos Financieros
+
+| Módulo | Tipo | Descripción y Responsabilidad |
+|--------|------|-------------------------------|
+| `endpoint-pagos` | **Endpoint** | **Pasarela de Pagos.** Integra Stripe, valida montos, y aplica Rate Limiting (100 req/min). |
+| `comisiones` | **Endpoint** | Cálculo de comisiones para vendedores (reglas fijas/variables). |
+| `amortizacion` | **Endpoint** | Generador de tablas de amortización (proyección de pagos). |
+
+## 4. Diseño de Base de Datos (Schema)
 
 El esquema de base de datos ha sido normalizado (3NF) y adaptado para coexistir con tablas legacy (`lotes`) y nuevas tablas gestionadas por Directus (UUIDs).
 

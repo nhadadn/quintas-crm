@@ -13,6 +13,8 @@ Esta carpeta `/ninja` contiene la documentación técnica maestra del proyecto Q
 | **API.md** | Documentación de endpoints REST, esquemas y auth. | [Ver aquí](./API.md) |
 | **DEPLOYMENT.md** | Guía de infraestructura, variables de entorno y despliegue. | [Ver aquí](./DEPLOYMENT.md) |
 | **TESTING.md** | Estrategia de pruebas y ejecución de tests. | [Ver aquí](./TESTING.md) |
+| **docs/** | 📚 **Guías Especializadas** (Stripe, DB Schema, ERD, etc.) | [Explorar](./docs/) |
+| **archive/** | 📦 **Archivo Histórico** (Documentación antigua y reportes) | [Explorar](./archive/) |
 
 ---
 
