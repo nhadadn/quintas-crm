@@ -31,7 +31,7 @@ export interface CalculoComisionResponse {
 export async function calcularComisiones(ventaId: string): Promise<CalculoComisionResponse> {
   try {
     const response = await directusClient.get<CalculoComisionResponse>('/comisiones/calcular', {
-      params: { venta_id: ventaId }
+      params: { venta_id: ventaId },
     });
     return response.data;
   } catch (error) {
@@ -45,38 +45,38 @@ export async function calcularComisiones(ventaId: string): Promise<CalculoComisi
  * @returns Lista de comisiones
  */
 export async function fetchComisionesByVendedor(vendedorId: string): Promise<Comision[]> {
-    try {
-        const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
-            params: {
-                filter: {
-                    vendedor_id: {
-                        _eq: vendedorId
-                    }
-                },
-                fields: '*.*', // Obtener relaciones (venta, vendedor)
-                sort: '-fecha_pago_programada',
-                limit: -1
-            }
-        });
-        return response.data.data;
-    } catch (error) {
-        handleAxiosError(error, 'fetchComisionesByVendedor');
-        return [];
-    }
+  try {
+    const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
+      params: {
+        filter: {
+          vendedor_id: {
+            _eq: vendedorId,
+          },
+        },
+        fields: '*.*', // Obtener relaciones (venta, vendedor)
+        sort: '-fecha_pago_programada',
+        limit: -1,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    handleAxiosError(error, 'fetchComisionesByVendedor');
+    return [];
+  }
 }
 
 export async function fetchComisiones(): Promise<Comision[]> {
-    try {
-        const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
-            params: {
-                fields: '*.*', // Obtener relaciones (venta, vendedor)
-                sort: '-fecha_pago_programada',
-                limit: -1
-            }
-        });
-        return response.data.data;
-    } catch (error) {
-        handleAxiosError(error, 'fetchComisiones');
-        throw error;
-    }
+  try {
+    const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
+      params: {
+        fields: '*.*', // Obtener relaciones (venta, vendedor)
+        sort: '-fecha_pago_programada',
+        limit: -1,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    handleAxiosError(error, 'fetchComisiones');
+    throw error;
+  }
 }

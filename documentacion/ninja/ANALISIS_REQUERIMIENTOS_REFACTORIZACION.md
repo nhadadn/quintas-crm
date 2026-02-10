@@ -9,7 +9,9 @@
 ## 🎯 RESUMEN EJECUTIVO
 
 ### Situación Actual
+
 El proyecto **Quintas de Otinapa** ha completado exitosamente la **Fase 3** con:
+
 - ✅ Base de datos MySQL con 50 lotes georeferenciados
 - ✅ Directus CRM funcionando (puerto 8055)
 - ✅ Frontend Next.js 14 con mapa interactivo usando **Mapbox GL JS**
@@ -17,7 +19,9 @@ El proyecto **Quintas de Otinapa** ha completado exitosamente la **Fase 3** con:
 - ✅ Sistema de visualización de lotes con colores por estatus
 
 ### Necesidad de Refactorización
+
 El cliente requiere **migrar de Mapbox a SVG** para:
+
 1. **Eliminar dependencia de Mapbox** (costos, tokens, límites de API)
 2. **Usar plano SVG real del proyecto** como fuente de verdad
 3. **Mayor control sobre la visualización** y personalización
@@ -29,6 +33,7 @@ El cliente requiere **migrar de Mapbox a SVG** para:
 **🎯 RECOMENDACIÓN: REFACTORIZAR EL PROYECTO ACTUAL**
 
 **Razones:**
+
 - ✅ La arquitectura base es sólida (Next.js + Directus + MySQL)
 - ✅ El 80% del código es reutilizable (API, tipos, componentes)
 - ✅ Solo necesitamos cambiar la capa de visualización (Mapbox → SVG)
@@ -37,6 +42,7 @@ El cliente requiere **migrar de Mapbox a SVG** para:
 - ❌ Rehacer desde cero sería innecesario y costoso (4-6 semanas vs 1-2 semanas)
 
 **Cambios Necesarios:**
+
 1. **Frontend:** Reemplazar componente MapaInteractivo (Mapbox → SVG)
 2. **Base de Datos:** Agregar campos para mapeo SVG (opcional)
 3. **Directus:** Sin cambios mayores
@@ -88,6 +94,7 @@ El cliente requiere **migrar de Mapbox a SVG** para:
 #### 2.1 Base de Datos (Cambios Menores)
 
 **Estado Actual:**
+
 ```sql
 CREATE TABLE lotes (
     id INT PRIMARY KEY,
@@ -101,6 +108,7 @@ CREATE TABLE lotes (
 ```
 
 **Cambios Propuestos:**
+
 ```sql
 ALTER TABLE lotes
 ADD COLUMN svg_path_id VARCHAR(50),      -- ID del path en SVG
@@ -109,6 +117,7 @@ ADD COLUMN svg_transform VARCHAR(255);   -- Transformaciones SVG
 ```
 
 **Justificación:**
+
 - Mantener compatibilidad con datos existentes
 - Agregar campos para mapeo SVG sin romper estructura actual
 - Permitir migración gradual
@@ -118,12 +127,14 @@ ADD COLUMN svg_transform VARCHAR(255);   -- Transformaciones SVG
 #### 2.2 Directus (Sin Cambios Mayores)
 
 **Mantener:**
+
 - ✅ Endpoint nativo `/items/lotes`
 - ✅ Configuración CORS
 - ✅ Estructura de colecciones
 - ✅ Autenticación y permisos
 
 **Agregar (Opcional):**
+
 - Nuevo campo en colección `lotes` para `svg_path_id`
 - Endpoint personalizado `/svg-map` para servir SVG procesado
 
@@ -132,12 +143,14 @@ ADD COLUMN svg_transform VARCHAR(255);   -- Transformaciones SVG
 #### 2.3 Frontend (Refactorización Mayor)
 
 **Eliminar:**
+
 - ❌ `mapbox-gl` (dependencia)
 - ❌ `@types/mapbox-gl`
 - ❌ Componente `MapaInteractivo.tsx` (versión Mapbox)
 - ❌ Conversión UTM a WGS84 (ya no necesaria para SVG)
 
 **Mantener:**
+
 - ✅ Next.js 14 + TypeScript
 - ✅ Tailwind CSS
 - ✅ `lib/directus-api.ts` (con ajustes)
@@ -145,6 +158,7 @@ ADD COLUMN svg_transform VARCHAR(255);   -- Transformaciones SVG
 - ✅ Estructura de carpetas
 
 **Agregar:**
+
 - ✅ Nuevo componente `MapaSVGInteractivo.tsx`
 - ✅ Librería para manipulación SVG (react-svg o nativa)
 - ✅ Utilidades para mapeo de coordenadas SVG
@@ -207,20 +221,21 @@ frontend/
 
 ### Comparación
 
-| Aspecto | Refactorizar | Rehacer desde Cero |
-|---------|--------------|-------------------|
-| **Tiempo** | 1-2 semanas | 4-6 semanas |
-| **Costo** | Bajo | Alto |
-| **Riesgo** | Bajo | Medio-Alto |
-| **Código Reutilizable** | 80% | 0% |
-| **Base de Datos** | Mantener + ajustes | Recrear |
-| **Directus** | Mantener | Reinstalar |
-| **Testing** | Parcial | Completo |
-| **Aprendizaje** | Mínimo | Significativo |
+| Aspecto                 | Refactorizar       | Rehacer desde Cero |
+| ----------------------- | ------------------ | ------------------ |
+| **Tiempo**              | 1-2 semanas        | 4-6 semanas        |
+| **Costo**               | Bajo               | Alto               |
+| **Riesgo**              | Bajo               | Medio-Alto         |
+| **Código Reutilizable** | 80%                | 0%                 |
+| **Base de Datos**       | Mantener + ajustes | Recrear            |
+| **Directus**            | Mantener           | Reinstalar         |
+| **Testing**             | Parcial            | Completo           |
+| **Aprendizaje**         | Mínimo             | Significativo      |
 
 ### ✅ DECISIÓN: REFACTORIZAR
 
 **Justificación:**
+
 1. **Arquitectura sólida:** Next.js + Directus + MySQL es correcta
 2. **Cambio localizado:** Solo capa de visualización (Mapbox → SVG)
 3. **Datos intactos:** 50 lotes ya georeferenciados
@@ -228,6 +243,7 @@ frontend/
 5. **ROI positivo:** 80% de reutilización vs 100% de reescritura
 
 **Plan:**
+
 - Mantener estructura actual
 - Reemplazar componente de mapa
 - Ajustar tipos y utilidades
@@ -240,16 +256,16 @@ frontend/
 
 ### Cambios por Componente
 
-| Componente | Impacto | Acción |
-|------------|---------|--------|
-| **Base de Datos** | 🟡 Bajo | Agregar 3 campos |
-| **Directus** | 🟢 Mínimo | Sin cambios |
-| **API Client** | 🟡 Bajo | Remover proj4 |
-| **Tipos TypeScript** | 🟡 Bajo | Agregar tipos SVG |
-| **Componente Mapa** | 🔴 Alto | Reescribir completo |
-| **Panel Detalles** | 🟢 Mínimo | Reutilizar |
-| **Leyenda** | 🟢 Mínimo | Reutilizar |
-| **Estilos** | 🟢 Mínimo | Mantener |
+| Componente           | Impacto   | Acción              |
+| -------------------- | --------- | ------------------- |
+| **Base de Datos**    | 🟡 Bajo   | Agregar 3 campos    |
+| **Directus**         | 🟢 Mínimo | Sin cambios         |
+| **API Client**       | 🟡 Bajo   | Remover proj4       |
+| **Tipos TypeScript** | 🟡 Bajo   | Agregar tipos SVG   |
+| **Componente Mapa**  | 🔴 Alto   | Reescribir completo |
+| **Panel Detalles**   | 🟢 Mínimo | Reutilizar          |
+| **Leyenda**          | 🟢 Mínimo | Reutilizar          |
+| **Estilos**          | 🟢 Mínimo | Mantener            |
 
 ### Líneas de Código Afectadas
 
@@ -267,6 +283,7 @@ Código nuevo: ~300 líneas
 **RECOMENDACIÓN FINAL: REFACTORIZAR EL PROYECTO ACTUAL**
 
 **Razones Clave:**
+
 1. ✅ Arquitectura base es correcta y probada
 2. ✅ 80% del código es reutilizable
 3. ✅ Cambios localizados en capa de visualización
@@ -276,6 +293,7 @@ Código nuevo: ~300 líneas
 7. ✅ Menor riesgo y costo
 
 **Próximos Pasos:**
+
 1. Obtener archivo SVG del plano real
 2. Crear plan de implementación detallado
 3. Generar prompts para TRAE.IA

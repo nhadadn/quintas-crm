@@ -11,6 +11,7 @@
 ### Decisión Tomada: ✅ REFACTORIZAR (No rehacer desde cero)
 
 **Justificación:**
+
 - 80% del código es reutilizable
 - Cambios localizados en capa de visualización
 - Base de datos requiere solo 5 campos adicionales
@@ -19,14 +20,14 @@
 
 ### Beneficios de la Migración
 
-| Aspecto | Antes (Mapbox) | Después (SVG) | Mejora |
-|---------|----------------|---------------|--------|
-| **Dependencias** | 3 librerías pesadas | 1 librería ligera | -66% |
-| **Bundle Size** | 2.3 MB | 1.3 MB | -45% |
-| **Tiempo de Carga** | 5 segundos | 2 segundos | -60% |
-| **Costos Mensuales** | $50-200 USD | $0 USD | -100% |
-| **Control** | Limitado | Total | +100% |
-| **Personalización** | Limitada | Ilimitada | +100% |
+| Aspecto              | Antes (Mapbox)      | Después (SVG)     | Mejora |
+| -------------------- | ------------------- | ----------------- | ------ |
+| **Dependencias**     | 3 librerías pesadas | 1 librería ligera | -66%   |
+| **Bundle Size**      | 2.3 MB              | 1.3 MB            | -45%   |
+| **Tiempo de Carga**  | 5 segundos          | 2 segundos        | -60%   |
+| **Costos Mensuales** | $50-200 USD         | $0 USD            | -100%  |
+| **Control**          | Limitado            | Total             | +100%  |
+| **Personalización**  | Limitada            | Ilimitada         | +100%  |
 
 ---
 
@@ -35,6 +36,7 @@
 ### 1. Análisis y Planificación (3 documentos)
 
 #### `ANALISIS_REQUERIMIENTOS_REFACTORIZACION.md`
+
 - ✅ Análisis completo del proyecto actual
 - ✅ Evaluación de cambios necesarios
 - ✅ Decisión: Refactorizar vs Rehacer
@@ -42,12 +44,14 @@
 - ✅ Justificación técnica y económica
 
 **Contenido clave:**
+
 - Estado actual del stack
 - Análisis de cambios por componente
 - Decisión estratégica fundamentada
 - Impacto de la refactorización
 
 #### `PLAN_IMPLEMENTACION_SVG.md`
+
 - ✅ Plan detallado de 10 días
 - ✅ 8 fases de implementación
 - ✅ Scripts SQL completos
@@ -56,18 +60,21 @@
 - ✅ Checklist de validación
 
 **Contenido clave:**
+
 - Cronograma día por día
 - Scripts ejecutables
 - Código de componentes
 - Guías de testing
 
 #### `PROMPTS_HERRAMIENTAS_COMPLETOS.md`
+
 - ✅ 3 prompts para TRAE.IA
 - ✅ 1 prompt completo para Figma
 - ✅ 1 prompt completo para KOMBAI
 - ✅ 1 prompt para Cursor/IDE
 
 **Contenido clave:**
+
 - Prompts copy-paste listos
 - Especificaciones técnicas detalladas
 - Ejemplos de código
@@ -76,6 +83,7 @@
 ### 2. Ejecución y Scripts (1 documento)
 
 #### `GUIA_EJECUCION_COMPLETA.md`
+
 - ✅ 3 scripts PowerShell completos
 - ✅ Guía día por día
 - ✅ Comandos ejecutables
@@ -83,6 +91,7 @@
 - ✅ Checklist final
 
 **Contenido clave:**
+
 - Scripts automatizados
 - Comandos PowerShell/CMD
 - Solución de problemas
@@ -108,6 +117,7 @@ Total: ~130 KB de documentación técnica completa
 ## 🎯 CAMBIOS REQUERIDOS POR COMPONENTE
 
 ### Base de Datos (Cambios Menores)
+
 ```sql
 -- Agregar 5 campos nuevos
 ALTER TABLE lotes
@@ -121,6 +131,7 @@ ADD COLUMN svg_centroid_y DECIMAL(10,2);
 **Impacto:** 🟡 Bajo (5 minutos)
 
 ### Directus (Sin Cambios Mayores)
+
 - ✅ Mantener configuración actual
 - ✅ Agregar endpoint `/svg-map` (nuevo)
 - ✅ Exponer nuevos campos en colección
@@ -130,12 +141,14 @@ ADD COLUMN svg_centroid_y DECIMAL(10,2);
 ### Frontend (Refactorización Mayor)
 
 **Eliminar:**
+
 - ❌ `mapbox-gl` (2.3 MB)
 - ❌ `@types/mapbox-gl`
 - ❌ `proj4`
 - ❌ `components/MapaInteractivo.tsx` (versión Mapbox)
 
 **Agregar:**
+
 - ✅ `xml2js` (50 KB)
 - ✅ `components/mapa-svg/MapaSVGInteractivo.tsx`
 - ✅ `components/mapa-svg/SVGLoteLayer.tsx`
@@ -252,12 +265,14 @@ Payback:          7.6 meses
 ### Para el Desarrollador (Día 1)
 
 1. **Backup Completo:**
+
    ```powershell
    # Ejecutar script de backup
    .\scripts\backup_completo.ps1
    ```
 
 2. **Preparar Proyecto:**
+
    ```powershell
    # Ejecutar script de preparación
    .\scripts\01_preparar_proyecto.ps1
@@ -273,6 +288,7 @@ Payback:          7.6 meses
 ## 📊 MÉTRICAS DE ÉXITO
 
 ### Técnicas
+
 - ✅ Bundle size reducido en 45%
 - ✅ Tiempo de carga reducido en 60%
 - ✅ Cero dependencias de Mapbox
@@ -280,6 +296,7 @@ Payback:          7.6 meses
 - ✅ Interactividad completa funcionando
 
 ### Funcionales
+
 - ✅ Mapa se visualiza correctamente
 - ✅ Lotes tienen colores según estatus
 - ✅ Click en lote muestra información
@@ -287,6 +304,7 @@ Payback:          7.6 meses
 - ✅ Panel lateral es responsive
 
 ### Negocio
+
 - ✅ Cero costos de Mapbox
 - ✅ Mayor control sobre el mapa
 - ✅ Personalización ilimitada
@@ -299,42 +317,44 @@ Payback:          7.6 meses
 
 ### Stack Tecnológico
 
-| Componente | Antes | Después |
-|------------|-------|---------|
-| **Mapa** | Mapbox GL JS | SVG Nativo |
-| **Conversión** | proj4 (UTM→WGS84) | No necesaria |
-| **Bundle** | 2.3 MB | 1.3 MB |
-| **Dependencias** | 3 pesadas | 1 ligera |
-| **Costo Mensual** | $50-200 USD | $0 USD |
+| Componente        | Antes             | Después      |
+| ----------------- | ----------------- | ------------ |
+| **Mapa**          | Mapbox GL JS      | SVG Nativo   |
+| **Conversión**    | proj4 (UTM→WGS84) | No necesaria |
+| **Bundle**        | 2.3 MB            | 1.3 MB       |
+| **Dependencias**  | 3 pesadas         | 1 ligera     |
+| **Costo Mensual** | $50-200 USD       | $0 USD       |
 
 ### Código
 
-| Aspecto | Antes | Después |
-|---------|-------|---------|
-| **Líneas de código** | ~2,500 | ~2,800 |
-| **Componentes** | 1 (MapaInteractivo) | 6 (modulares) |
-| **Complejidad** | Alta (Mapbox API) | Media (SVG nativo) |
-| **Mantenibilidad** | Media | Alta |
-| **Testabilidad** | Baja | Alta |
+| Aspecto              | Antes               | Después            |
+| -------------------- | ------------------- | ------------------ |
+| **Líneas de código** | ~2,500              | ~2,800             |
+| **Componentes**      | 1 (MapaInteractivo) | 6 (modulares)      |
+| **Complejidad**      | Alta (Mapbox API)   | Media (SVG nativo) |
+| **Mantenibilidad**   | Media               | Alta               |
+| **Testabilidad**     | Baja                | Alta               |
 
 ### Performance
 
-| Métrica | Antes | Después | Mejora |
-|---------|-------|---------|--------|
-| **First Load** | 5.2s | 2.1s | -60% |
-| **Bundle Size** | 2.3 MB | 1.3 MB | -45% |
-| **Time to Interactive** | 6.8s | 3.2s | -53% |
-| **Memory Usage** | 180 MB | 95 MB | -47% |
+| Métrica                 | Antes  | Después | Mejora |
+| ----------------------- | ------ | ------- | ------ |
+| **First Load**          | 5.2s   | 2.1s    | -60%   |
+| **Bundle Size**         | 2.3 MB | 1.3 MB  | -45%   |
+| **Time to Interactive** | 6.8s   | 3.2s    | -53%   |
+| **Memory Usage**        | 180 MB | 95 MB   | -47%   |
 
 ---
 
 ## 📞 CONTACTO Y SOPORTE
 
 ### Para Dudas Técnicas
+
 - **Email:** dev@quintasdeotinapa.com
 - **Documentación:** Ver archivos en `/workspace`
 
 ### Para Aprobación del Proyecto
+
 - **Email:** proyecto@quintasdeotinapa.com
 - **Presupuesto:** $25,000 MXN
 - **Duración:** 10 días hábiles
@@ -344,6 +364,7 @@ Payback:          7.6 meses
 ## ✅ CHECKLIST DE ENTREGA
 
 ### Documentación
+
 - [x] Análisis de requerimientos completo
 - [x] Plan de implementación detallado
 - [x] Prompts para herramientas (TRAE, Figma, KOMBAI)
@@ -351,6 +372,7 @@ Payback:          7.6 meses
 - [x] Resumen ejecutivo
 
 ### Scripts
+
 - [x] Script de preparación (PowerShell)
 - [x] Script de actualización de BD (PowerShell)
 - [x] Script de testing (PowerShell)
@@ -358,12 +380,14 @@ Payback:          7.6 meses
 - [x] Scripts Node.js documentados
 
 ### Código de Ejemplo
+
 - [x] Componentes React completos
 - [x] Utilidades SVG
 - [x] Tipos TypeScript
 - [x] API client actualizado
 
 ### Guías
+
 - [x] Guía día por día
 - [x] Troubleshooting completo
 - [x] Checklist de validación
@@ -413,6 +437,7 @@ Revisar la documentación y confirmar aprobación para iniciar la implementació
 
 **Para el desarrollador:**
 Una vez aprobado, ejecutar:
+
 ```powershell
 cd C:\Users\nadir\quintas-crm
 .\scripts\01_preparar_proyecto.ps1

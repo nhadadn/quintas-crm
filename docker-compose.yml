@@ -1,0 +1,161 @@
+services:
+  # Base de Datos (PostgreSQL - Deshabilitado)
+  # postgres:
+  #   image: postgis/postgis:15-3.4-alpine
+  #   container_name: quintas_postgres
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: ${DB_USER}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #     POSTGRES_DB: ${DB_DATABASE}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - internal
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Caché y Colas
+  redis:
+    image: redis:7-alpine
+    container_name: quintas_redis
+    restart: always
+    networks:
+      - internal
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend / CMS
+  directus:
+    image: directus/directus:11.0.0
+    container_name: quintas_directus
+    restart: always
+    ports:
+      - '8055:8055'
+    volumes:
+      - ./extensions:/directus/extensions
+      - ./uploads:/directus/uploads
+    environment:
+      KEY: ${KEY}
+      SECRET: ${SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      # Database Connection (MySQL Host)
+      DB_CLIENT: 'mysql'
+      DB_HOST: 'host.docker.internal'
+      DB_PORT: '3306'
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Cache
+      CACHE_ENABLED: 'true'
+      CACHE_STORE: 'redis'
+      CACHE_REDIS: 'redis://redis:6379'
+      REDIS: 'redis://redis:6379'
+
+      # Auth Token TTL
+      ACCESS_TOKEN_TTL: '60m'
+      REFRESH_TOKEN_TTL: '30d'
+
+      # CORS & Security
+      CORS_ENABLED: 'true'
+      CORS_ORIGIN: 'true'
+      WEBSOCKETS_ENABLED: 'true'
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+      - public
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8055
+    container_name: quintas_frontend
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      # Public URL (Browser -> Next.js)
+      NEXT_PUBLIC_API_URL: http://localhost:8055
+      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8055
+
+      # Internal URL (Next.js SSR -> Directus Container)
+      DIRECTUS_INTERNAL_URL: http://directus:8055
+      DIRECTUS_URL: http://directus:8055
+
+      # Auth
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_TRUST_HOST: 'true'
+
+      # Static Token
+      DIRECTUS_STATIC_TOKEN: ${DIRECTUS_STATIC_TOKEN}
+    depends_on:
+      - directus
+    networks:
+      - public
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: quintas_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    networks:
+      - internal
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: quintas_grafana
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - internal
+      - public
+
+networks:
+  internal:
+    driver: bridge
+  public:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

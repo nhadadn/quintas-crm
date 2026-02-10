@@ -17,22 +17,28 @@ Se ha iniciado la transición hacia la **Fase 3**, con la migración de la visua
 ## 🔄 Cambios de las Tareas Anteriores
 
 ### 1. Validación Integral y Calidad (v0.2.8)
+
 Se implementó una suite de pruebas automatizada (`npm test`) que garantiza la estabilidad del sistema:
+
 - **Cobertura de Flujos Críticos**: Ventas, Pagos y Clientes.
 - **Seguridad**: Verificación de Rate Limiting (100 req/min), protección contra SQL Injection y validación de contextos JWT.
 - **Integridad de Datos**: Prevención de duplicados (Email/RFC) y consistencia relacional.
 
 ### 2. Lógica de Negocio "Business Logic Layer" (v0.2.5 - v0.2.7)
+
 Se desarrollaron y validaron los triggers automáticos que orquestan las operaciones complejas:
+
 - **Automatización de Ventas**: Al crear una venta, el lote cambia automáticamente a estado `apartado` o `vendido`.
 - **Generación de Pagos**: Creación automática de tablas de amortización (método francés/lineal).
 - **Cálculo de Comisiones**: Generación automática de registros de comisión para vendedores basada en configuraciones.
-- **Validaciones de Reglas de Negocio**: 
+- **Validaciones de Reglas de Negocio**:
   - No permitir venta de lotes no disponibles.
   - Validación de vendedores activos.
 
 ### 3. Migración a Mapa SVG (v0.2.0)
+
 Inicio de la refactorización del componente de mapa para abandonar librerías pesadas (Mapbox) en favor de una solución SVG nativa y ligera:
+
 - Estructura de componentes en `frontend/components/mapa-svg/`.
 - Utilidades de mapeo y conversión en `frontend/lib/svg/`.
 - Scripts de procesamiento de planos (`analyze-svg.ts`, `map-lotes-to-svg.ts`).
@@ -42,6 +48,7 @@ Inicio de la refactorización del componente de mapa para abandonar librerías p
 ## 🚀 Alcance Actual del Sistema
 
 ### ✅ Backend (Completado y Validado)
+
 El backend es funcional y seguro, operando como una API Headless sobre Directus:
 | Módulo | Capacidad Actual |
 | :--- | :--- |
@@ -53,6 +60,7 @@ El backend es funcional y seguro, operando como una API Headless sobre Directus:
 | **Seguridad** | Autenticación JWT, Rate Limiting, Validación de Inputs. |
 
 ### 🚧 Frontend (En Desarrollo)
+
 La interfaz de usuario está en proceso de integración con la nueva lógica:
 | Componente | Estado | Descripción |
 | :--- | :--- | :--- |

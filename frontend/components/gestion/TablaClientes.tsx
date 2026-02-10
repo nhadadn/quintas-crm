@@ -11,15 +11,15 @@ interface TablaClientesProps {
   onEditar?: (id: string | number) => void;
 }
 
-const TablaClientes: React.FC<TablaClientesProps> = ({ 
-  clientes, 
+const TablaClientes: React.FC<TablaClientesProps> = ({
+  clientes,
   isLoading = false,
   onVerDetalles,
-  onEditar
+  onEditar,
 }) => {
   // Estados para filtros y ordenamiento
   const [filtroTexto, setFiltroTexto] = useState('');
-  
+
   const [ordenColumna, setOrdenColumna] = useState<keyof Cliente>('nombre');
   const [ordenDireccion, setOrdenDireccion] = useState<'asc' | 'desc'>('asc');
 
@@ -34,36 +34,39 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
 
   // Lógica de filtrado y ordenamiento
   const clientesFiltrados = useMemo(() => {
-    return clientes.filter(cliente => {
-      const nombreCompleto = `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno || ''}`.toLowerCase();
-      const email = (cliente.email || '').toLowerCase();
-      const rfc = (cliente.rfc || '').toLowerCase();
-      const search = filtroTexto.toLowerCase();
+    return clientes
+      .filter((cliente) => {
+        const nombreCompleto =
+          `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno || ''}`.toLowerCase();
+        const email = (cliente.email || '').toLowerCase();
+        const rfc = (cliente.rfc || '').toLowerCase();
+        const search = filtroTexto.toLowerCase();
 
-      return nombreCompleto.includes(search) || email.includes(search) || rfc.includes(search);
-    }).sort((a, b) => {
-      let valorA: any = a[ordenColumna];
-      let valorB: any = b[ordenColumna];
+        return nombreCompleto.includes(search) || email.includes(search) || rfc.includes(search);
+      })
+      .sort((a, b) => {
+        let valorA: any = a[ordenColumna];
+        let valorB: any = b[ordenColumna];
 
-      // Manejo de nulos
-      if (valorA === null || valorA === undefined) valorA = '';
-      if (valorB === null || valorB === undefined) valorB = '';
+        // Manejo de nulos
+        if (valorA === null || valorA === undefined) valorA = '';
+        if (valorB === null || valorB === undefined) valorB = '';
 
-      // Comparación string case insensitive
-      if (typeof valorA === 'string') valorA = valorA.toLowerCase();
-      if (typeof valorB === 'string') valorB = valorB.toLowerCase();
+        // Comparación string case insensitive
+        if (typeof valorA === 'string') valorA = valorA.toLowerCase();
+        if (typeof valorB === 'string') valorB = valorB.toLowerCase();
 
-      if (valorA < valorB) return ordenDireccion === 'asc' ? -1 : 1;
-      if (valorA > valorB) return ordenDireccion === 'asc' ? 1 : -1;
-      return 0;
-    });
+        if (valorA < valorB) return ordenDireccion === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenDireccion === 'asc' ? 1 : -1;
+        return 0;
+      });
   }, [clientes, filtroTexto, ordenColumna, ordenDireccion]);
 
   // Paginación
   const totalPaginas = Math.ceil(clientesFiltrados.length / itemsPorPagina);
   const clientesPaginados = clientesFiltrados.slice(
     (paginaActual - 1) * itemsPorPagina,
-    paginaActual * itemsPorPagina
+    paginaActual * itemsPorPagina,
   );
 
   const handleSort = (columna: keyof Cliente) => {
@@ -94,8 +97,8 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('nombre')}
               >
@@ -104,22 +107,22 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                   <span className="ml-1">{ordenDireccion === 'asc' ? '↑' : '↓'}</span>
                 )}
               </th>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('email')}
               >
                 Email
               </th>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('telefono')}
               >
                 Teléfono
               </th>
-              <th 
-                scope="col" 
+              <th
+                scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('rfc')}
               >
@@ -151,7 +154,7 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                       {cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Registrado: {formatDate(cliente.date_created)}
+                      Registrado: {formatDate(cliente.created_at)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -164,14 +167,14 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                     {cliente.rfc || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button 
+                    <button
                       onClick={() => onVerDetalles(cliente.id)}
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
                       Ver
                     </button>
                     {onEditar && (
-                      <button 
+                      <button
                         onClick={() => onEditar(cliente.id)}
                         className="text-indigo-600 hover:text-indigo-900"
                       >
@@ -191,13 +194,21 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Mostrando <span className="font-medium">{(paginaActual - 1) * itemsPorPagina + 1}</span> a <span className="font-medium">{Math.min(paginaActual * itemsPorPagina, clientesFiltrados.length)}</span> de <span className="font-medium">{clientesFiltrados.length}</span> resultados
+              Mostrando{' '}
+              <span className="font-medium">{(paginaActual - 1) * itemsPorPagina + 1}</span> a{' '}
+              <span className="font-medium">
+                {Math.min(paginaActual * itemsPorPagina, clientesFiltrados.length)}
+              </span>{' '}
+              de <span className="font-medium">{clientesFiltrados.length}</span> resultados
             </p>
           </div>
           <div>
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <nav
+              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+              aria-label="Pagination"
+            >
               <button
-                onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
                 disabled={paginaActual === 1}
                 className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
@@ -217,7 +228,7 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                 </button>
               ))}
               <button
-                onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
                 disabled={paginaActual === totalPaginas}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >

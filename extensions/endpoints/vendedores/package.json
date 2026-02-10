@@ -1,7 +1,0 @@
-{
-  "name": "directus-endpoint-vendedores",
-  "version": "1.0.0",
-  "description": "Custom CRUD endpoint for Vendedores with validations",
-  "type": "module",
-  "main": "src/index.js"
-}

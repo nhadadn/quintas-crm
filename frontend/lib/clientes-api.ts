@@ -1,19 +1,20 @@
 import { Cliente } from '@/types/erp';
 import { directusClient, DirectusResponse, handleAxiosError } from './directus-api';
 
-export async function fetchClientes(page = 1, limit = 20): Promise<{ data: Cliente[], meta: any }> {
+export async function fetchClientes(page = 1, limit = 20, token?: string): Promise<{ data: Cliente[]; meta: any }> {
   try {
     const response = await directusClient.get<DirectusResponse<Cliente[]>>('/items/clientes', {
       params: {
         page,
         limit,
-        sort: '-date_created',
-        meta: '*'
-      }
+        sort: '-created_at',
+        meta: '*',
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return {
       data: response.data.data,
-      meta: response.data.meta
+      meta: response.data.meta,
     };
   } catch (error) {
     handleAxiosError(error, 'fetchClientes');
@@ -21,20 +22,14 @@ export async function fetchClientes(page = 1, limit = 20): Promise<{ data: Clien
   }
 }
 
-export async function searchClientes(query: string): Promise<Cliente[]> {
+export async function searchClientes(query: string, token?: string): Promise<Cliente[]> {
   try {
     const response = await directusClient.get<DirectusResponse<Cliente[]>>('/items/clientes', {
       params: {
-        filter: {
-          _or: [
-            { nombre: { _icontains: query } },
-            { apellido_paterno: { _icontains: query } },
-            { email: { _icontains: query } },
-            { rfc: { _icontains: query } }
-          ]
-        },
-        limit: 10
-      }
+        search: query,
+        limit: 10,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data.data;
   } catch (error) {
@@ -43,9 +38,15 @@ export async function searchClientes(query: string): Promise<Cliente[]> {
   }
 }
 
-export async function createCliente(cliente: Omit<Cliente, 'id'>): Promise<Cliente> {
+export async function createCliente(cliente: Omit<Cliente, 'id'>, token?: string): Promise<Cliente> {
   try {
-    const response = await directusClient.post<DirectusResponse<Cliente>>('/items/clientes', cliente);
+    const response = await directusClient.post<DirectusResponse<Cliente>>(
+      '/items/clientes',
+      cliente,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'createCliente');
@@ -53,9 +54,15 @@ export async function createCliente(cliente: Omit<Cliente, 'id'>): Promise<Clien
   }
 }
 
-export async function updateCliente(id: string, updates: Partial<Cliente>): Promise<Cliente> {
+export async function updateCliente(id: string, updates: Partial<Cliente>, token?: string): Promise<Cliente> {
   try {
-    const response = await directusClient.patch<DirectusResponse<Cliente>>(`/items/clientes/${id}`, updates);
+    const response = await directusClient.patch<DirectusResponse<Cliente>>(
+      `/items/clientes/${id}`,
+      updates,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'updateCliente');
@@ -63,12 +70,48 @@ export async function updateCliente(id: string, updates: Partial<Cliente>): Prom
   }
 }
 
-export async function fetchClienteById(id: string): Promise<Cliente> {
+export async function fetchClienteById(id: string, token?: string): Promise<Cliente> {
   try {
-    const response = await directusClient.get<DirectusResponse<Cliente>>(`/items/clientes/${id}`);
+    const response = await directusClient.get<DirectusResponse<Cliente>>(`/items/clientes/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'fetchClienteById');
     throw error;
+  }
+}
+
+export async function findClienteByEmailOrRFC(
+  email?: string,
+  rfc?: string,
+  telefono?: string,
+  token?: string
+): Promise<Cliente | null> {
+  try {
+    const filters = [];
+    if (email) filters.push({ email: { _eq: email } });
+    if (rfc) filters.push({ rfc: { _eq: rfc } });
+    if (telefono) filters.push({ telefono: { _eq: telefono } });
+
+    if (filters.length === 0) return null;
+
+    const response = await directusClient.get<DirectusResponse<Cliente[]>>('/items/clientes', {
+      params: {
+        filter: {
+          _or: filters,
+        },
+        limit: 1,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (response.data.data && response.data.data.length > 0) {
+      return response.data.data[0] ?? null;
+    }
+    return null;
+  } catch (error) {
+    handleAxiosError(error, 'findClienteByEmailOrRFC');
+    return null;
   }
 }

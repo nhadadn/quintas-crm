@@ -16,6 +16,7 @@ export interface MapaSVGInteractivoProps {
   onLoteSeleccionado?: (lote: LoteFeature['properties']) => void;
   modoSeleccion?: boolean;
   panelFooter?: React.ReactNode | ((lote: LoteFeature['properties']) => React.ReactNode);
+  token?: string;
 }
 
 interface FrontendConfigPath {
@@ -31,7 +32,13 @@ interface FrontendConfig {
   paths: FrontendConfigPath[];
 }
 
-export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSeleccionado, modoSeleccion = false, panelFooter }: MapaSVGInteractivoProps) {
+export function MapaSVGInteractivo({
+  svgViewBox = '0 0 1000 1000',
+  onLoteSeleccionado,
+  modoSeleccion = false,
+  panelFooter,
+  token,
+}: MapaSVGInteractivoProps) {
   const [lotes, setLotes] = useState<LoteFeature[]>([]);
   const [selectedLote, setSelectedLote] = useState<LoteFeature['properties'] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +46,11 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
   const [frontendConfig, setFrontendConfig] = useState<FrontendConfig | null>(null);
   const { scale, offset, actions, handlers } = useMapa();
   const [filtros, setFiltros] = useState<FiltrosMapa>({});
-  const [hoverInfo, setHoverInfo] = useState<{ props: LoteFeature['properties']; x: number; y: number } | null>(null);
+  const [hoverInfo, setHoverInfo] = useState<{
+    props: LoteFeature['properties'];
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Use config viewBox if available, otherwise fallback to prop
   const currentViewBox = frontendConfig?.viewBox || svgViewBox;
@@ -48,7 +59,7 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
     const load = async () => {
       try {
         const [geojson, configRes] = await Promise.all([
-          fetchLotesAsGeoJSON(),
+          fetchLotesAsGeoJSON(undefined, token),
           fetch('/mapas/scripts/frontend-config.json'),
         ]);
 
@@ -85,7 +96,7 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
 
   const renderPanelFooter = () => {
     if (typeof panelFooter === 'function') {
-        return selectedLote ? panelFooter(selectedLote) : null;
+      return selectedLote ? panelFooter(selectedLote) : null;
     }
     if (panelFooter) return panelFooter;
     if (!selectedLote) return null;
@@ -94,7 +105,7 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
       return (
         <Link
           href={`/ventas/nueva?lote=${selectedLote.id}`}
-          className="block w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-center rounded font-semibold transition-colors"
+          className="block w-full py-3 bg-primary hover:bg-primary-light text-white text-center rounded-lg font-bold shadow-md hover:shadow-lg transform transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
         >
           Apartar Lote
         </Link>
@@ -103,10 +114,6 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
 
     return null;
   };
-
-  
-
-  
 
   return (
     <div className="relative w-full h-screen bg-slate-900 flex">
@@ -123,10 +130,13 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
             <g transform={`translate(${offset.x} ${offset.y}) scale(${scale})`}>
               <SVGLoteLayer
                 lotes={lotes.filter((f) => {
-                  const estatusOk = !filtros.estatus || filtros.estatus.includes(f.properties.estatus as any);
+                  const estatusOk =
+                    !filtros.estatus || filtros.estatus.includes(f.properties.estatus as any);
                   const numeroOk =
                     !filtros.numero_lote ||
-                    String(f.properties.numero_lote).toLowerCase().includes(String(filtros.numero_lote).toLowerCase());
+                    String(f.properties.numero_lote)
+                      .toLowerCase()
+                      .includes(String(filtros.numero_lote).toLowerCase());
                   return estatusOk && numeroOk;
                 })}
                 onSelectLote={handleSelectLote}
@@ -173,9 +183,9 @@ export function MapaSVGInteractivo({ svgViewBox = '0 0 1000 1000', onLoteSelecci
       <div className="w-80 border-l border-slate-800 bg-slate-900/80 backdrop-blur-md">
         <Leyenda />
         <FiltrosMapaComponent filtros={filtros} onChange={setFiltros} />
-        <PanelLote 
-          selectedLote={selectedLote} 
-          onClose={() => setSelectedLote(null)} 
+        <PanelLote
+          selectedLote={selectedLote}
+          onClose={() => setSelectedLote(null)}
           footer={renderPanelFooter()}
         />
       </div>

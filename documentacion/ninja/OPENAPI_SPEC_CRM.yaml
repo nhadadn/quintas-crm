@@ -4,10 +4,10 @@ info:
   description: |
     API personalizada para el ERP Inmobiliario Quintas de Otinapa.
     Implementada como extensiones de Directus (Custom Endpoints).
-    
+
     ## Autenticación
     Requiere token JWT en header: `Authorization: Bearer <token>`
-    
+
     ## Rate Limiting
     - Límite: 100 requests/minuto por IP
     - Header respuesta: `X-RateLimit-Limit`, `X-RateLimit-Remaining`
@@ -390,7 +390,7 @@ paths:
               type: object
               required: [monto]
               properties:
-                venta_id: 
+                venta_id:
                   type: string
                   format: uuid
                   description: Requerido si no se envía pago_id (busca el más antiguo)

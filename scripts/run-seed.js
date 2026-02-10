@@ -9,7 +9,7 @@ async function seed() {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'quintas_otinapaV2',
-    port: process.env.DB_PORT || 3306
+    port: process.env.DB_PORT || 3306,
   });
 
   const sqlPath = path.join(__dirname, 'seed-lotes.sql');
@@ -27,7 +27,7 @@ async function seed() {
     await connection.query('TRUNCATE TABLE ventas');
     await connection.query('TRUNCATE TABLE lotes');
     await connection.query('SET FOREIGN_KEY_CHECKS = 1');
-    
+
     console.log('Inserting new compatible lotes...');
     await connection.query(sql);
     console.log('✅ Database seeded with map-compatible data!');

@@ -14,6 +14,7 @@ import { authConfig } from './auth.config';
 import axios from 'axios';
 import http from 'http';
 import https from 'https';
+import { JWT } from 'next-auth/jwt';
 
 // Optimización: Agentes HTTP/HTTPS con KeepAlive para reutilizar conexiones TCP
 // Esto reduce drásticamente la latencia en peticiones secuenciales a Directus (localhost)
@@ -42,12 +43,27 @@ declare module 'next-auth' {
 
   interface Session {
     accessToken?: string;
+    error?: string;
     user: {
       role?: string;
       id?: string;
       clienteId?: string;
       vendedorId?: string;
     } & import('next-auth').DefaultSession['user'];
+  }
+}
+
+// Definir tipos para extender JWT
+declare module 'next-auth/jwt' {
+  interface JWT {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: number;
+    role?: string;
+    id?: string;
+    clienteId?: string;
+    vendedorId?: string;
+    error?: string;
   }
 }
 
@@ -77,7 +93,51 @@ class ServiceUnavailableError extends AuthError {
   message = 'El servicio de autenticación no está disponible.';
 }
 
-export const { auth, handlers, signIn, signOut } = NextAuth({
+export async function refreshAccessToken(token: JWT): Promise<JWT> {
+  try {
+    const directusUrl =
+      process.env.DIRECTUS_INTERNAL_URL ||
+      process.env.DIRECTUS_URL ||
+      process.env.NEXT_PUBLIC_DIRECTUS_URL;
+
+    if (!directusUrl) {
+      throw new Error('DIRECTUS_URL not set');
+    }
+
+    const response = await authClient.post(`${directusUrl}/auth/refresh`, {
+      refresh_token: token.refreshToken,
+      mode: 'json',
+    });
+
+    // Validar respuesta esperada
+    if (!response.data?.data?.access_token) {
+      throw new Error('Respuesta de refresh token inválida');
+    }
+
+    const { access_token, refresh_token, expires } = response.data.data;
+
+    console.log('✅ Token refreshed successfully');
+
+    return {
+      ...token,
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      expiresAt: Date.now() + (expires || 300000), // Fallback de 5 min si no hay expires
+      error: undefined,
+    };
+  } catch (error) {
+    console.error('❌ Error refreshing access token:', error);
+    
+    // Si falla el refresh, no retornamos un token parcial con error
+    // Forzamos el cierre de sesión retornando null (NextAuth manejará esto invalidando la sesión)
+    return {
+      ...token,
+      error: 'RefreshAccessTokenError',
+    };
+  }
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
@@ -288,22 +348,32 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-  },
   callbacks: {
     ...authConfig.callbacks,
-    async jwt({ token, user }) {
-      if (user) {
-        token.accessToken = user.access_token;
-        token.refreshToken = user.refresh_token;
-        token.expiresAt = user.expires_at;
-        token.role = user.role;
-        token.id = user.id;
-        token.clienteId = user.clienteId;
-        token.vendedorId = user.vendedorId;
+    async jwt({ token, user, account }) {
+      // 1. Initial sign in
+      if (user && account) {
+        return {
+          ...token,
+          accessToken: user.access_token,
+          refreshToken: user.refresh_token,
+          expiresAt: user.expires_at,
+          role: user.role,
+          id: user.id,
+          clienteId: user.clienteId,
+          vendedorId: user.vendedorId,
+        };
       }
-      return token;
+
+      // 2. Return previous token if the access token has not expired yet
+      // Add a buffer of 1 minute (60000ms) to refresh before it actually expires
+      if (token.expiresAt && Date.now() < (token.expiresAt as number) - 60000) {
+        return token;
+      }
+
+      // 3. Access token has expired, try to update it
+      console.log('🔄 Token expired, refreshing...');
+      return await refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token && session.user) {
@@ -312,6 +382,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.clienteId = token.clienteId as string;
         session.user.vendedorId = token.vendedorId as string;
         session.accessToken = token.accessToken as string;
+        
+        // Pass error to client if exists
+        if (token.error) {
+          session.error = token.error;
+        }
       }
       return session;
     },

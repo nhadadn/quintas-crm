@@ -8,4 +8,3 @@ export interface SVGPathMapping {
   loteId: number;
   svgPathId: string;
 }
-

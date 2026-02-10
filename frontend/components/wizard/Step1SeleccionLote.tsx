@@ -5,9 +5,10 @@ import { LoteProperties, EstatusLote } from '@/types/lote';
 interface Step1Props {
   onLoteSelected: (lote: LoteProperties) => void;
   initialLote: LoteProperties | null;
+  token?: string;
 }
 
-export function Step1SeleccionLote({ onLoteSelected, initialLote }: Step1Props) {
+export function Step1SeleccionLote({ onLoteSelected, initialLote, token }: Step1Props) {
   const handleConfirmSelection = (lote: LoteProperties) => {
     onLoteSelected(lote);
   };
@@ -15,6 +16,7 @@ export function Step1SeleccionLote({ onLoteSelected, initialLote }: Step1Props) 
   return (
     <div className="h-[calc(100vh-200px)] w-full border border-slate-700 rounded-lg overflow-hidden">
       <MapaSVGInteractivo
+        token={token}
         modoSeleccion={true}
         panelFooter={(lote: LoteProperties) => {
           const isAvailable = lote.estatus === EstatusLote.DISPONIBLE;

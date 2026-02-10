@@ -1,4 +1,5 @@
 import { FilaAmortizacion, Pago } from '@/types/erp';
+import axios from 'axios';
 import { directusClient, DirectusResponse, handleAxiosError } from './directus-api';
 
 // Function to calculate amortization schedule based on parameters
@@ -6,15 +7,17 @@ export function calcularAmortizacion(
   montoFinanciado: number,
   tasaAnual: number,
   plazoMeses: number,
-  fechaInicio: Date = new Date()
+  fechaInicio: Date = new Date(),
 ): FilaAmortizacion[] {
   const tasaMensual = tasaAnual / 100 / 12;
-  
+
   // PMT Formula: P * (r * (1 + r)^n) / ((1 + r)^n - 1)
   // If rate is 0, simple division
   let cuota = 0;
   if (tasaMensual > 0) {
-    cuota = (montoFinanciado * tasaMensual * Math.pow(1 + tasaMensual, plazoMeses)) / (Math.pow(1 + tasaMensual, plazoMeses) - 1);
+    cuota =
+      (montoFinanciado * tasaMensual * Math.pow(1 + tasaMensual, plazoMeses)) /
+      (Math.pow(1 + tasaMensual, plazoMeses) - 1);
   } else {
     cuota = montoFinanciado / plazoMeses;
   }
@@ -26,7 +29,7 @@ export function calcularAmortizacion(
     const interes = saldo * tasaMensual;
     const capital = cuota - interes;
     saldo -= capital;
-    
+
     const fecha = new Date(fechaInicio);
     fecha.setMonth(fechaInicio.getMonth() + i);
 
@@ -37,7 +40,7 @@ export function calcularAmortizacion(
       interes: interes,
       capital: capital,
       saldo_restante: Math.max(0, saldo),
-      estatus: 'pendiente'
+      estatus: 'pendiente',
     });
   }
 
@@ -52,35 +55,56 @@ export async function generarTablaAmortizacion(venta_id: string): Promise<FilaAm
   const montoFinanciado = 100000;
   const tasaAnual = 12; // 12%
   const plazoMeses = 12;
-  
+
   return calcularAmortizacion(montoFinanciado, tasaAnual, plazoMeses);
 }
 
-export async function fetchPagos(): Promise<Pago[]> {
+export async function fetchPagos(params: any = {}, token?: string): Promise<Pago[]> {
   try {
     const response = await directusClient.get<DirectusResponse<Pago[]>>('/items/pagos', {
       params: {
-        fields: '*.*', // Obtener relaciones
-        sort: '-fecha_vencimiento',
-        limit: -1
-      }
+        ...params,
+        limit: params.limit || -1,
+      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'fetchPagos');
+    return [];
   }
 }
 
-export async function getPagoById(id: string): Promise<Pago> {
+export async function getPagoById(id: string, token?: string): Promise<Pago> {
   try {
     const response = await directusClient.get<DirectusResponse<Pago>>(`/items/pagos/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       params: {
-        fields: '*.*.*' // Obtener relaciones profundas (Pago -> Venta -> Cliente/Lote)
+        fields: '*.*.*' // Fetch related data (venta, cliente, etc.)
       }
     });
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'getPagoById');
+    throw error;
   }
 }
 
+export async function createPaymentIntent(
+  monto: number,
+  pagoId: number | string,
+  clienteId: string,
+) {
+  try {
+    const response = await directusClient.post('/pagos/create-payment-intent', {
+      pago_id: pagoId,
+      cliente_id: clienteId,
+      // El backend calcula el monto basado en el ID, pero podemos enviarlo como sanity check si quisiéramos
+      // Por ahora, el backend usa el del DB, así que solo IDs
+    });
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error, 'createPaymentIntent');
+    throw error;
+  }
+}

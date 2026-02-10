@@ -1,0 +1,35 @@
+{
+  "name": "endpoint-pagos",
+  "version": "1.0.0",
+  "description": "Endpoint personalizado para gestión de pagos en Quintas CRM",
+  "icon": "extension",
+  "type": "module",
+  "main": "src/index.js",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-extension-endpoint"
+  ],
+  "files": [
+    "src"
+  ],
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "pagos",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "scripts": {
+    "dev": "directus-extension build -w --no-minify",
+    "build": "directus-extension build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "11.0.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "stripe": "^20.3.0",
+    "zod": "^4.3.6"
+  }
+}

@@ -48,4 +48,3 @@ void main().catch((error) => {
   console.error('Error generando mapeo de lotes a SVG:', error);
   process.exit(1);
 });
-

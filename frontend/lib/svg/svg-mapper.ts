@@ -7,4 +7,3 @@ export function mapLotesToSVGPaths(lotes: Lote[], config: SVGMapConfig): SVGPath
     svgPathId: `${config.loteIdPrefix}${lote.id}`,
   }));
 }
-

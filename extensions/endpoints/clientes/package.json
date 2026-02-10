@@ -1,7 +1,0 @@
-{
-  "name": "directus-endpoint-clientes",
-  "version": "1.0.0",
-  "description": "Custom CRUD endpoint for Clientes with strict validation",
-  "type": "module",
-  "main": "src/index.js"
-}

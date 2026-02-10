@@ -1,0 +1,33 @@
+{
+  "name": "reportes",
+  "version": "1.0.0",
+  "description": "Endpoints para reportes detallados con exportación a PDF y Excel",
+  "icon": "assessment",
+  "type": "module",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-extension-endpoint"
+  ],
+  "files": [
+    "src"
+  ],
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "reportes",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "scripts": {
+    "build": "directus-extension build"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.15.0"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "11.0.0"
+  }
+}

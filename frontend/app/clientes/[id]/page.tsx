@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { fetchClienteById, updateCliente } from '@/lib/clientes-api';
 import { fetchVentasByClienteId } from '@/lib/ventas-api';
@@ -10,14 +11,15 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function DetalleClientePage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = use(params);
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,17 +27,29 @@ export default function DetalleClientePage({ params }: PageProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   // Form handling
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Cliente>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<Cliente>();
 
   useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (status === 'unauthenticated') {
+      setLoading(false);
+      return;
+    }
+
     const cargarDatos = async () => {
       setLoading(true);
       try {
-        const clienteData = await fetchClienteById(id);
+        const clienteData = await fetchClienteById(id, session?.accessToken);
         setCliente(clienteData);
         reset(clienteData); // Inicializar formulario
 
-        const ventasData = await fetchVentasByClienteId(id);
+        const ventasData = await fetchVentasByClienteId(id, session?.accessToken);
         setVentas(ventasData);
       } catch (error) {
         console.error('Error cargando datos:', error);
@@ -45,11 +59,11 @@ export default function DetalleClientePage({ params }: PageProps) {
     };
 
     cargarDatos();
-  }, [id, reset]);
+  }, [id, reset, status, session]);
 
   const onSubmit = async (data: Cliente) => {
     try {
-      const updatedCliente = await updateCliente(id, data);
+      const updatedCliente = await updateCliente(id, data, session?.accessToken);
       setCliente(updatedCliente);
       setIsEditing(false);
       alert('Cliente actualizado exitosamente');
@@ -75,15 +89,16 @@ export default function DetalleClientePage({ params }: PageProps) {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <Link href="/clientes" className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
+          <Link
+            href="/clientes"
+            className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block"
+          >
             &larr; Volver a Clientes
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
             {cliente.nombre} {cliente.apellido_paterno}
           </h1>
-          <p className="text-gray-500">
-            Cliente desde: {formatDate(cliente.date_created)}
-          </p>
+          <p className="text-gray-500">Cliente desde: {formatDate(cliente.date_created)}</p>
         </div>
         {!isEditing && activeTab === 'info' && (
           <button
@@ -222,17 +237,29 @@ export default function DetalleClientePage({ params }: PageProps) {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lote</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estatus</th>
-                <th className="px-6 py-3 relative"><span className="sr-only">Ver</span></th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Lote
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fecha
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Monto
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estatus
+                </th>
+                <th className="px-6 py-3 relative">
+                  <span className="sr-only">Ver</span>
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {ventas.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No hay compras registradas</td>
+                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                    No hay compras registradas
+                  </td>
                 </tr>
               ) : (
                 ventas.map((venta) => (
@@ -247,15 +274,23 @@ export default function DetalleClientePage({ params }: PageProps) {
                       {formatCurrency(venta.monto_total)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        venta.estatus === 'liquidado' ? 'bg-green-100 text-green-800' : 
-                        venta.estatus === 'cancelada' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          venta.estatus === 'liquidado'
+                            ? 'bg-green-100 text-green-800'
+                            : venta.estatus === 'cancelada'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
                         {venta.estatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/ventas/${venta.id}`} className="text-indigo-600 hover:text-indigo-900">
+                      <Link
+                        href={`/ventas/${venta.id}`}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
                         Ver Detalles
                       </Link>
                     </td>

@@ -3,8 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { User } from 'next-auth';
 
-export function Navbar() {
+interface NavbarProps {
+  user?: User;
+}
+
+export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
 
   // No mostrar navbar en el mapa a pantalla completa
@@ -17,48 +22,59 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <Link
+              href="/"
+              className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"
+            >
               Quintas CRM
             </Link>
             <div className="hidden md:flex gap-6 text-sm font-medium text-slate-400">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className={`transition-colors ${isActive('/') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Dashboard
               </Link>
-              <Link 
-                href="/mapa" 
+              {user?.role === 'Administrator' && (
+                <Link
+                  href="/dashboard"
+                  className={`transition-colors ${isActive('/dashboard') ? 'text-emerald-400' : 'hover:text-slate-100'} font-bold text-amber-400`}
+                >
+                  Admin Panel
+                </Link>
+              )}
+              <Link
+                href="/mapa"
                 className={`transition-colors ${isActive('/mapa') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Mapa
               </Link>
-              <Link 
-                href="/ventas" 
+              <Link
+                href="/ventas"
                 className={`transition-colors ${isActive('/ventas') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Ventas
               </Link>
-              <Link 
-                href="/pagos" 
+              <Link
+                href="/pagos"
                 className={`transition-colors ${isActive('/pagos') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Pagos
               </Link>
-              <Link 
-                href="/clientes" 
+              <Link
+                href="/clientes"
                 className={`transition-colors ${isActive('/clientes') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Clientes
               </Link>
-              <Link 
-                href="/vendedores" 
+              <Link
+                href="/vendedores"
                 className={`transition-colors ${isActive('/vendedores') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Vendedores
               </Link>
-              <Link 
-                href="/portal" 
+              <Link
+                href="/portal"
                 className={`transition-colors ${isActive('/portal') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Portal Cliente

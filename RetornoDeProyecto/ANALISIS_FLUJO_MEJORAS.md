@@ -6,7 +6,7 @@
 **Fecha:** 17 de Enero de 2026  
 **Estado:** Activo y Validado
 
-* * *
+---
 
 ## 📋 ÍNDICE
 
@@ -17,7 +17,7 @@
 5.  [Métricas de Éxito](#m%C3%A9tricas-de-%C3%A9xito)
 6.  [Roadmap de Mejoras](#roadmap-de-mejoras)
 
-* * *
+---
 
 ## 📊 RESUMEN EJECUTIVO
 
@@ -35,13 +35,13 @@ Este documento analiza los flujos de trabajo del proyecto Quintas de Otinapa CRM
 
 ### Impacto Esperado
 
--   **Reducción del tiempo de desarrollo:** 30-40%
--   **Aumento en calidad del código:** 25-35%
--   **Reducción de bugs en producción:** 50-60%
--   **Mejora en coordinación entre agentes:** 40-50%
--   **Aumento en satisfacción del cliente:** 35-45%
+- **Reducción del tiempo de desarrollo:** 30-40%
+- **Aumento en calidad del código:** 25-35%
+- **Reducción de bugs en producción:** 50-60%
+- **Mejora en coordinación entre agentes:** 40-50%
+- **Aumento en satisfacción del cliente:** 35-45%
 
-* * *
+---
 
 ## 🔍 ANÁLISIS DE FLUJOS ACTUALES
 
@@ -120,7 +120,7 @@ Total: 2-6 horas por solicitud de coordinación
 4.  **Falta de Visibilidad:** Los agentes no tienen visibilidad completa del progreso de otros agentes
 5.  **Cuellos de Botella:** Algunos agentes se convierten en cuellos de botella
 
-* * *
+---
 
 ## 💡 MEJORAS IDENTIFICADAS
 
@@ -140,39 +140,46 @@ Implementar sincronizaciones regulares (daily stand-ups) entre agentes para mejo
 **Duración:** 15 minutos por agente
 
 **Estructura de Actualización:**
+
 1. ¿Qué completé ayer?
 2. ¿Qué planeo completar hoy?
 3. ¿Qué bloqueos tengo?
 4. ¿Necesito coordinación con algún agente?
 
 **Plantilla de Actualización:**
+
 ```markdown
 ## Stand-Up - [Fecha] - [Nombre Agente]
 
 ### ✅ Completado Ayer
+
 - [Tarea 1 completada]
 - [Tarea 2 completada]
 
 ### 📋 Planificado Hoy
+
 - [Tarea 1]
 - [Tarea 2]
 
 ### 🚧 Bloqueos
+
 - [Bloqueo 1 si aplica]
 - [Bloqueo 2 si aplica]
 
 ### 🤝 Coordinación Necesaria
+
 - Agente [Nombre]: [Coordinación necesaria]
+```
 ````
 
 **Ubicación:** `docs/stand-ups/[YYYY-MM-DD]-[AGENTE].md`
 
 **Beneficios Esperados:**
 
--   Reducción del tiempo de coordinación: 40-50%
--   Mejor visibilidad del progreso
--   Identificación temprana de bloqueos
--   Mejor coordinación entre agentes
+- Reducción del tiempo de coordinación: 40-50%
+- Mejor visibilidad del progreso
+- Identificación temprana de bloqueos
+- Mejor coordinación entre agentes
 
 ````
 
@@ -208,9 +215,9 @@ Implementar documentación en vivo que se actualiza en tiempo real durante el de
 ```markdown
 # [Nombre del Componente/Endpoint/Funcionalidad]
 
-**Estado:** 🟡 En Desarrollo  
-**Agente Responsable:** [Nombre Agente]  
-**Fecha de Inicio:** DD/MM/AAAA  
+**Estado:** 🟡 En Desarrollo
+**Agente Responsable:** [Nombre Agente]
+**Fecha de Inicio:** DD/MM/AAAA
 **Última Actualización:** DD/MM/AAAA
 
 ## Descripción
@@ -246,10 +253,10 @@ Implementar documentación en vivo que se actualiza en tiempo real durante el de
 
 **Beneficios Esperados:**
 
--   Documentación siempre actualizada
--   Menos retrabajo
--   Mejor comunicación entre agentes
--   Reducción del tiempo de documentación: 30-40%
+- Documentación siempre actualizada
+- Menos retrabajo
+- Mejor comunicación entre agentes
+- Reducción del tiempo de documentación: 30-40%
 
 ````
 
@@ -294,9 +301,9 @@ Implementar validación temprana de requerimientos con stakeholders para evitar 
 ```markdown
 # [US-XXX] - [Título de User Story]
 
-**Estado:** ✅ Validado y Aprobado  
-**Prioridad:** [Alta/Media/Baja]  
-**Story Points:** [Número]  
+**Estado:** ✅ Validado y Aprobado
+**Prioridad:** [Alta/Media/Baja]
+**Story Points:** [Número]
 **Sprint:** [Número]
 
 ## Descripción
@@ -323,10 +330,10 @@ Implementar validación temprana de requerimientos con stakeholders para evitar 
 
 **Beneficios Esperados:**
 
--   Reducción de retrabajo: 50-60%
--   Requerimientos más claros
--   Mejor alineación con cliente
--   Menos cambios durante desarrollo
+- Reducción de retrabajo: 50-60%
+- Requerimientos más claros
+- Mejor alineación con cliente
+- Menos cambios durante desarrollo
 
 ````
 
@@ -352,11 +359,11 @@ Implementar testing automatizado para reducir dependencia de pruebas manuales.
    /  \      E2E Tests (10%)
   /____\     - Playwright
  /      \    - Flujos críticos
-/________\   
+/________\
 ```
 
-/ \\ Integration Tests (30%) /************\\ - React Testing Library / - APIs integration /****************  
-| | Unit Tests (60%) |****\_\_\_\_\_\_\_\_\_\_\_\_|- Jest - Componentes individuales - Funciones utilitarias
+/ \\ Integration Tests (30%) /****\*\*\*\*****\\ - React Testing Library / - APIs integration /******\*\*\*\*******  
+| | Unit Tests (60%) |\*\*\*\*\_\_\_\_\_\_\_\_\_\_\_\_|- Jest - Componentes individuales - Funciones utilitarias
 
 ````
 
@@ -381,9 +388,9 @@ describe('directus-api', () => {
 
 ### Integration Tests (30%)
 
--   Framework: React Testing Library
--   Cobertura objetivo: > 60%
--   Ejecución en cada PR
+- Framework: React Testing Library
+- Cobertura objetivo: > 60%
+- Ejecución en cada PR
 
 ```typescript
 // Ejemplo de test de integración
@@ -399,9 +406,9 @@ describe('MapaSVGInteractivo Integration', () => {
 
 ### E2E Tests (10%)
 
--   Framework: Playwright
--   Cobertura objetivo: > 50% de flujos críticos
--   Ejecución antes de deploy a producción
+- Framework: Playwright
+- Cobertura objetivo: > 50% de flujos críticos
+- Ejecución antes de deploy a producción
 
 ```typescript
 // Ejemplo de test E2E
@@ -431,24 +438,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run Unit Tests
         run: npm run test:unit
-        
+
       - name: Run Integration Tests
         run: npm run test:integration
-        
+
       - name: Generate Coverage Report
         run: npm run test:coverage
-        
+
       - name: Upload Coverage
         uses: codecov/codecov-action@v3
 
@@ -458,21 +465,21 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Install Playwright
         run: npx playwright install --with-deps
-        
+
       - name: Run E2E Tests
         run: npm run test:e2e
-        
+
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v3
         if: always()
@@ -483,10 +490,10 @@ jobs:
 
 **Beneficios Esperados:**
 
--   Reducción del tiempo de testing: 60-70%
--   Mejor detección de bugs
--   Mayor confianza en cambios
--   Reducción de bugs en producción: 50-60%
+- Reducción del tiempo de testing: 60-70%
+- Mejor detección de bugs
+- Mayor confianza en cambios
+- Reducción de bugs en producción: 50-60%
 
 ````
 
@@ -699,10 +706,10 @@ monitoring:
 
 **Beneficios Esperados:**
 
--   Reducción del tiempo de despliegue: 80-90%
--   Cero errores humanos en despliegues
--   Rollback automático en fallas
--   Mayor confianza en despliegues
+- Reducción del tiempo de despliegue: 80-90%
+- Cero errores humanos en despliegues
+- Rollback automático en fallas
+- Mayor confianza en despliegues
 
 ````
 
@@ -803,15 +810,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 **Tipos de commit:**
 
--   `feat`: Nueva funcionalidad
--   `fix`: Corrección de bug
--   `docs`: Cambios en documentación
--   `style`: Cambios de formato (espacios, tabs, etc.)
--   `refactor`: Refactorización de código
--   `test`: Agregar o actualizar tests
--   `chore`: Tareas de mantenimiento
--   `perf`: Mejoras de performance
--   `ci`: Cambios en CI/CD
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de bug
+- `docs`: Cambios en documentación
+- `style`: Cambios de formato (espacios, tabs, etc.)
+- `refactor`: Refactorización de código
+- `test`: Agregar o actualizar tests
+- `chore`: Tareas de mantenimiento
+- `perf`: Mejoras de performance
+- `ci`: Cambios en CI/CD
 
 **Ejemplos:**
 
@@ -833,26 +840,26 @@ git commit -m "refactor(frontend): optimizar rendering de componentes"
 
 **Etiquetas de Issues:**
 
--   `bug`: Error reportado
--   `enhancement`: Mejora propuesta
--   `feature`: Nueva funcionalidad
--   `documentation`: Cambio en documentación
--   `performance`: Mejora de performance
--   `security`: Issue de seguridad
--   `critical`: Bug crítico
--   `high priority`: Alta prioridad
--   `low priority`: Baja prioridad
--   `help wanted`: Ayuda solicitada
--   `good first issue`: Buen issue para principiantes
+- `bug`: Error reportado
+- `enhancement`: Mejora propuesta
+- `feature`: Nueva funcionalidad
+- `documentation`: Cambio en documentación
+- `performance`: Mejora de performance
+- `security`: Issue de seguridad
+- `critical`: Bug crítico
+- `high priority`: Alta prioridad
+- `low priority`: Baja prioridad
+- `help wanted`: Ayuda solicitada
+- `good first issue`: Buen issue para principiantes
 
 **Etiquetas de Pull Requests:**
 
--   `breaking change`: Cambio breaking
--   `needs review`: Necesita revisión
--   `approved`: Aprobado
--   `changes requested`: Cambios solicitados
--   `work in progress`: En progreso
--   `ready to merge`: Listo para merge
+- `breaking change`: Cambio breaking
+- `needs review`: Necesita revisión
+- `approved`: Aprobado
+- `changes requested`: Cambios solicitados
+- `work in progress`: En progreso
+- `ready to merge`: Listo para merge
 
 ### 4\. Template de Issue
 
@@ -866,29 +873,36 @@ assignees: ''
 ---
 
 ## Descripción
+
 Descripción clara y concisa del bug.
 
 ## Pasos para Reproducir
+
 1. Ir a '...'
 2. Click en '....'
 3. Scroll a '....'
 4. Ver error
 
 ## Comportamiento Esperado
+
 Descripción de lo que debería pasar.
 
 ## Comportamiento Actual
+
 Descripción de lo que realmente pasa.
 
 ## Screenshots
+
 Si aplica, agregar screenshots para explicar el problema.
 
 ## Entorno
+
 - OS: [e.g. Windows 10, macOS 12.0]
 - Browser: [e.g. Chrome 96, Firefox 95]
 - Versión del Sistema: [e.g. v1.2.0]
 
 ## Contexto Adicional
+
 Agregar cualquier otro contexto sobre el problema.
 ```
 
@@ -896,9 +910,11 @@ Agregar cualquier otro contexto sobre el problema.
 
 ```markdown
 ## Descripción
+
 Descripción de los cambios implementados en este PR.
 
 ## Tipo de Cambio
+
 - [ ] Bug fix (corrección no breaking)
 - [ ] New feature (funcionalidad no breaking)
 - [ ] Breaking change (fix o feature que causa cambio breaking)
@@ -907,10 +923,12 @@ Descripción de los cambios implementados en este PR.
 - [ ] Code refactoring
 
 ## Issue Relacionado
+
 Closes #(número de issue)
 Fixes #(número de issue)
 
 ## Checklist
+
 - [ ] Mi código sigue las guías de estilo del proyecto
 - [ ] He realizado self-review de mi código
 - [ ] He comentado mi código, particularmente en áreas complejas
@@ -921,18 +939,20 @@ Fixes #(número de issue)
 - [ ] Cualquier cambio dependiente ha sido mergeado y publicado
 
 ## Screenshots
+
 Si aplica, agregar screenshots antes/después.
 
 ## Información Adicional
+
 Cualquier información adicional relevante para el PR.
 ```
 
 **Beneficios Esperados:**
 
--   Trazabilidad completa de cambios
--   Historial claro y organizado
--   Fácil rollback a versiones anteriores
--   Mejor comunicación entre agentes
+- Trazabilidad completa de cambios
+- Historial claro y organizado
+- Fácil rollback a versiones anteriores
+- Mejor comunicación entre agentes
 
 ```
 
@@ -946,7 +966,7 @@ Cualquier información adicional relevante para el PR.
 ## 🚀 IMPLEMENTACIÓN DE MEJORAS
 
 ### Fase 1: Implementación Inmediata (Sprint 1)
-**Duración:** 1 semana  
+**Duración:** 1 semana
 **Prioridad:** Alta
 
 - [ ] Implementar Daily Stand-Up Asincrónico
@@ -956,7 +976,7 @@ Cualquier información adicional relevante para el PR.
 - [ ] Crear templates de Issues y PRs
 
 ### Fase 2: Implementación de Testing (Sprint 2)
-**Duración:** 1-2 semanas  
+**Duración:** 1-2 semanas
 **Prioridad:** Alta
 
 - [ ] Configurar Jest para unit tests
@@ -966,7 +986,7 @@ Cualquier información adicional relevante para el PR.
 - [ ] Integrar tests en CI/CD
 
 ### Fase 3: Automatización de Despliegues (Sprint 3)
-**Duración:** 1 semana  
+**Duración:** 1 semana
 **Prioridad:** Alta
 
 - [ ] Configurar pipelines de despliegue a staging
@@ -976,7 +996,7 @@ Cualquier información adicional relevante para el PR.
 - [ ] Documentar proceso de despliegue
 
 ### Fase 4: Optimización de Comunicación (Sprint 4)
-**Duración:** 1 semana  
+**Duración:** 1 semana
 **Prioridad:** Media
 
 - [ ] Implementar herramienta de comunicación (Slack/Discord)
@@ -986,7 +1006,7 @@ Cualquier información adicional relevante para el PR.
 - [ ] Documentar protocolos de comunicación
 
 ### Fase 5: Validación y Ajustes (Sprint 5)
-**Duración:** 1 semana  
+**Duración:** 1 semana
 **Prioridad:** Media
 
 - [ ] Validar implementación de mejoras
@@ -1187,9 +1207,9 @@ Con la implementación de estas mejoras, el proyecto Quintas de Otinapa CRM expe
 
 ---
 
-**Versión:** 3.0 - Fortalecida  
-**Última Actualización:** 17 de Enero de 2026  
-**Estado:** ✅ Activo y Validado  
+**Versión:** 3.0 - Fortalecida
+**Última Actualización:** 17 de Enero de 2026
+**Estado:** ✅ Activo y Validado
 **Siguiente Documento:** BUSINESS_MODEL_CANVAS.md
 
 ---

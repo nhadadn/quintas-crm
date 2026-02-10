@@ -11,12 +11,14 @@
 Hemos creado **documentación completa** para migrar tu proyecto de Mapbox a SVG nativo.
 
 ### ✅ Lo que tienes ahora:
+
 - Mapa interactivo funcionando con Mapbox
 - 50 lotes visualizados
 - Directus CRM operativo
 - Base de datos MySQL con datos
 
 ### 🎯 Lo que tendrás después:
+
 - Mapa interactivo con SVG (tu plano real)
 - **Sin costos de Mapbox** ($100 USD/mes → $0)
 - **60% más rápido** (5s → 2s de carga)
@@ -28,11 +30,13 @@ Hemos creado **documentación completa** para migrar tu proyecto de Mapbox a SVG
 ## 💰 INVERSIÓN Y RETORNO
 
 ### Inversión Única
+
 ```
 Desarrollo: $25,000 MXN (10 días)
 ```
 
 ### Ahorro Anual
+
 ```
 Eliminación de Mapbox:  $24,000 MXN/año
 Hosting más barato:     $3,600 MXN/año
@@ -42,6 +46,7 @@ TOTAL AHORRO:           $39,600 MXN/año
 ```
 
 ### Retorno
+
 ```
 ROI Año 1:      58%
 Payback:        7.6 meses
@@ -66,13 +71,16 @@ Beneficio Neto: $14,600 MXN en año 1
 ## 📚 ¿QUÉ DOCUMENTOS LEER?
 
 ### Si tienes 5 minutos:
+
 👉 **Lee solo este documento**
 
 ### Si tienes 15 minutos:
+
 1. Este documento (5 min)
 2. `RESUMEN_FINAL_REFACTORIZACION.md` (10 min)
 
 ### Si tienes 30 minutos:
+
 1. Este documento (5 min)
 2. `RESUMEN_FINAL_REFACTORIZACION.md` (10 min)
 3. `ANALISIS_REQUERIMIENTOS_REFACTORIZACION.md` (15 min)
@@ -84,6 +92,7 @@ Beneficio Neto: $14,600 MXN en año 1
 ### 1. ¿Por qué cambiar de Mapbox a SVG?
 
 **Respuesta:**
+
 - ✅ Eliminar costos mensuales ($100 USD/mes)
 - ✅ Usar tu plano real del proyecto
 - ✅ Mayor control y personalización
@@ -94,6 +103,7 @@ Beneficio Neto: $14,600 MXN en año 1
 
 **Respuesta:**
 ❌ **NO.** Mantendremos toda la funcionalidad:
+
 - ✅ Visualización de lotes
 - ✅ Colores por estatus
 - ✅ Click para ver información
@@ -105,6 +115,7 @@ Beneficio Neto: $14,600 MXN en año 1
 
 **Respuesta:**
 ✅ **REFACTORIZAR** es mejor porque:
+
 - 80% del código se reutiliza
 - 4x más rápido (10 días vs 40 días)
 - 4x más económico ($25K vs $100K)
@@ -115,6 +126,7 @@ Beneficio Neto: $14,600 MXN en año 1
 
 **Respuesta:**
 Solo necesitas:
+
 - ✅ Archivo SVG del plano real del proyecto
 - ✅ Aprobación del presupuesto ($25,000 MXN)
 - ✅ Confirmar fecha de inicio
@@ -123,6 +135,7 @@ Solo necesitas:
 
 **Respuesta:**
 ✅ **Tenemos backup completo:**
+
 - Backup de base de datos
 - Backup de código
 - Script de restauración automática
@@ -131,6 +144,7 @@ Solo necesitas:
 ### 6. ¿Cuándo veré resultados?
 
 **Respuesta:**
+
 ```
 Día 1-3:  Backend listo (no visible)
 Día 4-5:  Diseño en Figma (visible)
@@ -143,6 +157,7 @@ Día 10:   Listo para producción
 
 **Respuesta:**
 ❌ **NO.** La documentación incluye:
+
 - Scripts automatizados (solo ejecutar)
 - Comandos copy-paste listos
 - Guías paso a paso
@@ -155,12 +170,14 @@ Día 10:   Listo para producción
 ### Opción A: ✅ APROBAR Y COMENZAR
 
 **Si apruebas:**
+
 1. Confirma presupuesto: $25,000 MXN
 2. Proporciona archivo SVG del plano
 3. Confirma fecha de inicio
 4. El desarrollador ejecutará los scripts
 
 **Resultado:**
+
 - Proyecto completado en 10 días
 - Ahorro de $39,600 MXN/año
 - Mapa más rápido y personalizable
@@ -170,6 +187,7 @@ Día 10:   Listo para producción
 ### Opción B: ⏸️ SOLICITAR CAMBIOS
 
 **Si necesitas cambios:**
+
 1. Especifica qué cambiar
 2. Revisaremos el plan
 3. Ajustaremos presupuesto/cronograma
@@ -180,6 +198,7 @@ Día 10:   Listo para producción
 ### Opción C: ❌ NO PROCEDER
 
 **Si decides no proceder:**
+
 - El proyecto actual sigue funcionando
 - Seguirás pagando Mapbox ($100 USD/mes)
 - Documentación queda como referencia futura
@@ -189,15 +208,18 @@ Día 10:   Listo para producción
 ## 📧 CONTACTO
 
 ### Para Aprobar el Proyecto
+
 **Email:** proyecto@quintasdeotinapa.com  
 **Asunto:** Aprobación - Refactorización SVG
 
 **Incluir en el email:**
+
 - ✅ Aprobación de presupuesto ($25,000 MXN)
 - ✅ Fecha de inicio deseada
 - ✅ Archivo SVG adjunto (o indicar cuándo lo proporcionarás)
 
 ### Para Dudas o Cambios
+
 **Email:** soporte@quintasdeotinapa.com  
 **Asunto:** Consulta - Refactorización SVG
 
@@ -231,13 +253,13 @@ Además de la migración a SVG, la documentación incluye:
 **Responde estas 3 preguntas:**
 
 1. ¿Apruebas el presupuesto de $25,000 MXN?  
-   [ ] Sí  [ ] No  [ ] Necesito cambios
+   [ ] Sí [ ] No [ ] Necesito cambios
 
 2. ¿Cuándo podemos comenzar?  
-   Fecha: _______________
+   Fecha: ******\_\_\_******
 
 3. ¿Tienes el archivo SVG del plano?  
-   [ ] Sí, lo adjunto  [ ] Lo tendré en ___ días  [ ] No lo tengo
+   [ ] Sí, lo adjunto [ ] Lo tendré en \_\_\_ días [ ] No lo tengo
 
 **Envía tus respuestas a:** proyecto@quintasdeotinapa.com
 

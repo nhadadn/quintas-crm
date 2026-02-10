@@ -1,0 +1,14 @@
+{
+  "name": "perfil",
+  "version": "1.0.0",
+  "type": "module",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "perfil",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "dependencies": {
+    "directus": "^11.0.0"
+  }
+}

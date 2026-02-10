@@ -26,18 +26,18 @@ async function procesarSVGCorrecto() {
 
   try {
     const result = await parser.parseStringPromise(svgContent);
-    
+
     // Extraer grupos (capas)
     const groups = result.svg.g || [];
     console.log(`📊 Grupos encontrados: ${groups.length}`);
 
     // Buscar grupo de lotes
-    const lotesGroup = groups.find(g => 
-      g.$ && (
-        g.$.id?.toLowerCase().includes('lote') ||
-        g.$.id?.toLowerCase().includes('parcel') ||
-        g.$.id?.toLowerCase().includes('block')
-      )
+    const lotesGroup = groups.find(
+      (g) =>
+        g.$ &&
+        (g.$.id?.toLowerCase().includes('lote') ||
+          g.$.id?.toLowerCase().includes('parcel') ||
+          g.$.id?.toLowerCase().includes('block')),
     );
 
     if (!lotesGroup) {
@@ -50,20 +50,20 @@ async function procesarSVGCorrecto() {
 
     // Extraer polígonos
     const polygons = [];
-    
+
     // Buscar en todos los grupos
     groups.forEach((group, groupIndex) => {
       if (group.polygon) {
         group.polygon.forEach((poly, polyIndex) => {
           const points = poly.$.points;
           const id = poly.$.id || `polygon-${groupIndex}-${polyIndex}`;
-          
+
           polygons.push({
             id: id,
             groupId: group.$.id,
             points: points,
             pointCount: (points.match(/,/g) || []).length + 1,
-            boundingBox: calculateBoundingBox(points)
+            boundingBox: calculateBoundingBox(points),
           });
         });
       }
@@ -79,23 +79,30 @@ async function procesarSVGCorrecto() {
 
     // Filtrar polígonos que parecen ser lotes
     // (polígonos cerrados con área significativa)
-    const lotesPolygons = polygons.filter(p => p.pointCount >= 4);
-    
+    const lotesPolygons = polygons.filter((p) => p.pointCount >= 4);
+
     console.log(`🏘️  Polígonos que parecen ser lotes: ${lotesPolygons.length}`);
 
     // Generar mapeo
     const mapping = generarMapeo(lotesPolygons);
 
     // Guardar mapeo
-    fs.writeFileSync(OUTPUT_MAPPING, JSON.stringify({
-      metadata: {
-        fecha: new Date().toISOString(),
-        total_poligonos: polygons.length,
-        lotes_identificados: mapping.length,
-        fuente: 'LibreCAD/QCAD SVG'
-      },
-      lotes: mapping
-    }, null, 2));
+    fs.writeFileSync(
+      OUTPUT_MAPPING,
+      JSON.stringify(
+        {
+          metadata: {
+            fecha: new Date().toISOString(),
+            total_poligonos: polygons.length,
+            lotes_identificados: mapping.length,
+            fuente: 'LibreCAD/QCAD SVG',
+          },
+          lotes: mapping,
+        },
+        null,
+        2,
+      ),
+    );
 
     console.log(`\n💾 Mapeo guardado: ${OUTPUT_MAPPING}`);
 
@@ -104,7 +111,6 @@ async function procesarSVGCorrecto() {
 
     // Mostrar resumen
     mostrarResumen(mapping);
-
   } catch (error) {
     console.error('❌ Error procesando SVG:', error.message);
     process.exit(1);
@@ -115,13 +121,13 @@ async function procesarSVGCorrecto() {
  * Calcula bounding box de un polígono
  */
 function calculateBoundingBox(pointsString) {
-  const points = pointsString.split(' ').map(p => {
+  const points = pointsString.split(' ').map((p) => {
     const [x, y] = p.split(',').map(Number);
     return { x, y };
   });
 
-  const xs = points.map(p => p.x);
-  const ys = points.map(p => p.y);
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
 
   return {
     minX: Math.min(...xs),
@@ -131,7 +137,7 @@ function calculateBoundingBox(pointsString) {
     width: Math.max(...xs) - Math.min(...xs),
     height: Math.max(...ys) - Math.min(...ys),
     centerX: (Math.min(...xs) + Math.max(...xs)) / 2,
-    centerY: (Math.min(...ys) + Math.max(...ys)) / 2
+    centerY: (Math.min(...ys) + Math.max(...ys)) / 2,
   };
 }
 
@@ -163,7 +169,7 @@ function generarMapeo(polygons) {
       svg_points: poly.points,
       centroide_x: poly.boundingBox.centerX,
       centroide_y: poly.boundingBox.centerY,
-      area_aproximada: poly.boundingBox.width * poly.boundingBox.height
+      area_aproximada: poly.boundingBox.width * poly.boundingBox.height,
     };
   });
 
@@ -192,7 +198,9 @@ CREATE TEMPORARY TABLE lotes_temp (
 );
 
 -- Insertar datos
-${mapping.map(lote => `
+${mapping
+  .map(
+    (lote) => `
 INSERT INTO lotes_temp VALUES (
   '${lote.numero_lote}',
   '${lote.svg_path_id}',
@@ -200,7 +208,9 @@ INSERT INTO lotes_temp VALUES (
   ${lote.centroide_x},
   ${lote.centroide_y}
 );
-`).join('')}
+`,
+  )
+  .join('')}
 
 -- Actualizar tabla lotes
 UPDATE lotes l
@@ -238,8 +248,8 @@ function mostrarResumen(mapping) {
   console.log('════════════════════════════════════════════════');
   console.log(`✅ Lotes identificados: ${mapping.length}`);
   console.log(`✅ Primeros 5 lotes:`);
-  
-  mapping.slice(0, 5).forEach(lote => {
+
+  mapping.slice(0, 5).forEach((lote) => {
     console.log(`   - ${lote.numero_lote} (${lote.svg_path_id})`);
   });
 

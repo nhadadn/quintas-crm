@@ -1,5 +1,5 @@
 export type EstatusVenta = 'apartado' | 'contrato' | 'pagos' | 'liquidado' | 'cancelada';
-export type EstatusPago = 'pendiente' | 'pagado' | 'atrasado';
+export type EstatusPago = 'pendiente' | 'pagado' | 'atrasado' | 'vencido';
 export type EstatusComision = 'pendiente' | 'pagada';
 export type TipoComision = 'enganche' | 'contrato' | 'liquidacion';
 
@@ -13,6 +13,7 @@ export interface Cliente {
   telefono?: string;
   direccion?: string;
   ingreso_mensual?: number;
+  created_at?: string;
   date_created?: string;
 }
 
@@ -26,7 +27,7 @@ export interface Vendedor {
 export interface Lote {
   id: string | number;
   identificador: string;
-  numero_lote?: string;
+  numero_lote?: string | { identificador?: string; numero_lote?: string };
   zona?: string;
   manzana?: string;
   precio_total: number;
@@ -74,7 +75,6 @@ export interface FilaAmortizacion {
   saldo_restante: number;
   estatus: EstatusPago;
 }
-
 
 export interface Comision {
   id: string | number;

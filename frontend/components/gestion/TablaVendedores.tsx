@@ -10,10 +10,10 @@ interface TablaVendedoresProps {
   onVerDetalles: (id: string | number) => void;
 }
 
-const TablaVendedores: React.FC<TablaVendedoresProps> = ({ 
-  vendedores, 
+const TablaVendedores: React.FC<TablaVendedoresProps> = ({
+  vendedores,
   isLoading = false,
-  onVerDetalles
+  onVerDetalles,
 }) => {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden w-full">
@@ -21,13 +21,22 @@ const TablaVendedores: React.FC<TablaVendedoresProps> = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Nombre Completo
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Email
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 ID Sistema
               </th>
               <th scope="col" className="relative px-6 py-3">
@@ -63,7 +72,7 @@ const TablaVendedores: React.FC<TablaVendedoresProps> = ({
                     <span className="font-mono text-xs">{vendedor.id}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button 
+                    <button
                       onClick={() => onVerDetalles(vendedor.id)}
                       className="text-indigo-600 hover:text-indigo-900"
                     >

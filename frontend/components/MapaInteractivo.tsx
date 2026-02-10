@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useSession } from 'next-auth/react';
 import { fetchLotesAsGeoJSON } from '@/lib/directus-api';
 import { type LoteFeature, EstatusLote, COLORES_ESTATUS } from '@/types/lote';
 import { type MapaConfig, type MapViewState } from '@/types/mapa';
@@ -16,6 +17,7 @@ interface MapState {
 export default function MapaInteractivo() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const { data: session, status } = useSession();
   const [state, setState] = useState<MapState>({
     loading: true,
     error: null,
@@ -24,6 +26,9 @@ export default function MapaInteractivo() {
   const [selectedLote, setSelectedLote] = useState<LoteFeature['properties'] | null>(null);
 
   useEffect(() => {
+    // Esperar a que la sesión cargue para tener el token listo
+    if (status === 'loading') return;
+
     // Verificar que el token está configurado
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -73,7 +78,8 @@ export default function MapaInteractivo() {
         console.log('📍 Obteniendo lotes desde Directus...');
 
         // Obtener lotes como GeoJSON
-        const geoJSON = await fetchLotesAsGeoJSON();
+        const token = session?.accessToken as string | undefined;
+        const geoJSON = await fetchLotesAsGeoJSON(undefined, token);
 
         console.log('📊 GeoJSON obtenido:', {
           type: geoJSON.type,

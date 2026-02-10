@@ -14,10 +14,12 @@ async function main() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    multipleStatements: true // Importante para ejecutar scripts SQL completos
+    multipleStatements: true, // Importante para ejecutar scripts SQL completos
   };
 
-  console.log(`🔌 Conectando a ${config.host}:${config.port}/${config.database} como ${config.user}...`);
+  console.log(
+    `🔌 Conectando a ${config.host}:${config.port}/${config.database} como ${config.user}...`
+  );
 
   let connection;
   try {
@@ -32,13 +34,12 @@ async function main() {
     const sqlContent = fs.readFileSync(MIGRATION_FILE, 'utf8');
 
     console.log('⚡ Ejecutando sentencias SQL...');
-    
+
     // Ejecutar todo el script
     await connection.query(sqlContent);
-    
+
     console.log('✅ Migración completada exitosamente.');
     console.log('   Tablas creadas/verificadas: clientes, vendedores, ventas, pagos, comisiones.');
-
   } catch (error) {
     console.error('❌ Error durante la migración:', error.message);
     if (error.code === 'ECONNREFUSED') {
@@ -55,13 +56,16 @@ async function main() {
 
 async function dropForeignKeyIfExists(conn, tableName, constraintName) {
   try {
-    const [rows] = await conn.query(`
+    const [rows] = await conn.query(
+      `
       SELECT CONSTRAINT_NAME 
       FROM information_schema.TABLE_CONSTRAINTS 
       WHERE TABLE_SCHEMA = DATABASE() 
       AND TABLE_NAME = ? 
       AND CONSTRAINT_NAME = ?
-    `, [tableName, constraintName]);
+    `,
+      [tableName, constraintName]
+    );
 
     if (rows.length > 0) {
       console.log(`   🔧 Eliminando FK existente: ${constraintName} en ${tableName}...`);

@@ -9,21 +9,25 @@ Sistema de gestión para Quintas de Otinapa, integrando un backend headless (Dir
 ## ✨ Características Principales (Actualizado)
 
 ### 🧠 Backend (Business Logic Layer)
+
 - **Validación Robusta**: Suite de pruebas automatizada (`npm test`) para flujos críticos.
 - **Automatización**: Triggers para gestión de estados de lotes, generación de amortizaciones y cálculo de comisiones.
 - **Seguridad**: Rate limiting, protección SQLi y validación de contextos JWT.
 
 ### 🎨 Frontend
+
 - **Mapa Interactivo (En Migración)**: Transición de Mapbox a **SVG Nativo** para mejor rendimiento y control.
 - **Gestión Integral**: Módulos para ventas, clientes, pagos y comisiones.
 
 ## 🚀 Tecnologías
 
 ### Backend
+
 - **Directus CMS**: Headless CMS para gestión de datos y usuarios.
 - **Base de Datos**: (Configurada en Directus, por defecto SQLite/PostgreSQL según entorno).
 
 ### Frontend
+
 - **Next.js 14**: Framework de React con App Router.
 - **TypeScript**: Tipado estático robusto.
 - **Tailwind CSS**: Estilos utilitarios.
@@ -40,12 +44,14 @@ Sistema de gestión para Quintas de Otinapa, integrando un backend headless (Dir
 ## 🛠️ Instalación y Configuración
 
 ### 1. Clonar el repositorio
+
 ```bash
 git clone <url-del-repositorio>
 cd quintas-crm
 ```
 
 ### 2. Configurar el Backend (Directus)
+
 El backend se encuentra en la raíz del proyecto.
 
 ```bash
@@ -55,9 +61,11 @@ npm install
 # Iniciar Directus
 npx directus start
 ```
+
 El backend estará disponible en `http://localhost:8055`.
 
 ### 3. Configurar el Frontend
+
 El frontend se encuentra en la carpeta `frontend/`.
 
 ```bash
@@ -68,6 +76,7 @@ npm install
 ```
 
 #### Variables de Entorno
+
 Crea un archivo `.env.local` en la carpeta `frontend/` con las siguientes variables:
 
 ```env
@@ -81,6 +90,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=tu_token_de_mapbox_aqui
 # Desde la carpeta frontend
 npm run dev
 ```
+
 El frontend estará disponible en `http://localhost:3000` (o 3001 si el puerto está ocupado).
 
 ## 🗺️ Migración a SVG
@@ -99,6 +109,52 @@ Actualmente el proyecto está en proceso de migrar de **Mapbox GL JS** a un mapa
   - `frontend/lib/svg/svg-mapper.ts`
 - Tipos específicos para SVG:
   - `frontend/types/svg.ts`
+
+## 🔒 Solución de Problemas de Autenticación y Permisos
+
+Si encuentras errores **403 Forbidden** o **401 Unauthorized** al acceder a los datos (ej. Clientes), sigue estos pasos:
+
+### 1. Verificar Token de Acceso
+
+Asegúrate de que el token en `.env.local` sea correcto y corresponda a un usuario activo.
+
+```env
+NEXT_PUBLIC_DIRECTUS_STATIC_TOKEN=tu_token_estatico
+```
+
+### 2. Configuración de Roles y Permisos en Directus
+
+Para resolver errores 403, el rol del usuario (o el rol Public si no hay token) debe tener permisos explícitos sobre las colecciones.
+
+**Procedimiento de Otorgamiento de Permisos:**
+
+1. Ingresa al panel de administración de Directus (`/admin`).
+2. Ve a **Configuración** > **Roles y Permisos**.
+3. Selecciona el rol correspondiente (ej. `Ventas` o `Public` si es acceso anónimo).
+4. Busca la colección afectada (ej. `clientes`).
+5. Habilita los permisos necesarios (Lectura, Creación, Actualización) haciendo clic en los íconos correspondientes (deben ponerse en verde o check).
+   - **Lectura (Read):** Permite ver los registros. Configura "Validation" si deseas restringir qué registros ver.
+   - **Escritura (Create/Update):** Permite modificar.
+6. Guarda los cambios.
+
+### 3. Troubleshooting Común
+
+| Error                | Causa Probable                                        | Solución                                                         |
+| -------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| **403 Forbidden**    | El usuario no tiene permiso sobre la colección.       | Ajustar permisos en Directus (ver arriba).                       |
+| **403 Forbidden**    | Token inválido o expirado (aunque usualmente es 401). | Generar un nuevo token estático en el perfil del usuario.        |
+| **401 Unauthorized** | Token faltante o incorrecto.                          | Verificar `NEXT_PUBLIC_DIRECTUS_STATIC_TOKEN` en `.env.local`.   |
+| **CORS Error**       | Directus no permite el origen del frontend.           | Verificar `CORS_ORIGIN` en las variables de entorno de Directus. |
+
+### 4. Pruebas Automatizadas
+
+El proyecto incluye pruebas para verificar el manejo de estos errores:
+
+```bash
+# Ejecutar pruebas de autenticación
+npx playwright test tests/directus-auth.spec.ts
+```
+
 - Mapa base:
   - `frontend/public/mapas/mapa-quintas.svg` (actualmente un placeholder)
 
@@ -148,4 +204,5 @@ quintas-crm/
 ```
 
 ## 🔐 Seguridad
+
 Asegúrate de no subir archivos `.env` o claves privadas al repositorio. El archivo `.gitignore` está configurado para excluir estos archivos sensibles.

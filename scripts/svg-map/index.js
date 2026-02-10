@@ -6,17 +6,20 @@ export default {
 
     router.get('/', async (req, res) => {
       try {
-        const lotesService = new ItemsService('lotes', { schema: req.schema, accountability: req.accountability });
-        
+        const lotesService = new ItemsService('lotes', {
+          schema: req.schema,
+          accountability: req.accountability,
+        });
+
         // Filtrar lotes que tienen un svg_path_id asignado
         const lotes = await lotesService.readByQuery({
           filter: {
             svg_path_id: {
-              _nnull: true
-            }
+              _nnull: true,
+            },
           },
           fields: ['*'],
-          limit: -1
+          limit: -1,
         });
 
         res.json(lotes);
@@ -28,10 +31,13 @@ export default {
     router.get('/:id', async (req, res) => {
       try {
         const { id } = req.params;
-        const lotesService = new ItemsService('lotes', { schema: req.schema, accountability: req.accountability });
+        const lotesService = new ItemsService('lotes', {
+          schema: req.schema,
+          accountability: req.accountability,
+        });
 
         const lote = await lotesService.readOne(id, {
-          fields: ['*']
+          fields: ['*'],
         });
 
         if (!lote) {
@@ -43,5 +49,5 @@ export default {
         res.status(500).json({ error: error.message });
       }
     });
-  }
+  },
 };

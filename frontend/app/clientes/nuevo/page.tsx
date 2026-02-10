@@ -2,22 +2,31 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { createCliente } from '@/lib/clientes-api';
 import { Cliente } from '@/types/erp';
 import Link from 'next/link';
 
-type FormData = Omit<Cliente, 'id' | 'date_created' | 'date_updated' | 'user_created' | 'user_updated'>;
+type FormData = Omit<
+  Cliente,
+  'id' | 'date_created' | 'date_updated' | 'user_created' | 'user_updated'
+>;
 
 export default function NuevoClientePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await createCliente(data);
+      await createCliente(data, session?.accessToken);
       router.push('/clientes');
     } catch (error) {
       console.error('Error creando cliente:', error);
@@ -109,12 +118,12 @@ export default function NuevoClientePage() {
                 <input
                   type="email"
                   id="email"
-                  {...register('email', { 
+                  {...register('email', {
                     required: 'Este campo es obligatorio',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Dirección de correo inválida'
-                    }
+                      message: 'Dirección de correo inválida',
+                    },
                   })}
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />

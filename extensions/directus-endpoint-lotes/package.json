@@ -1,0 +1,14 @@
+{
+  "name": "directus-endpoint-lotes",
+  "version": "1.0.0",
+  "description": "Endpoint de disponibilidad de lotes",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "lotes",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "dependencies": {}
+}

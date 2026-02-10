@@ -12,7 +12,11 @@ type FormData = Omit<Vendedor, 'id'>;
 export default function NuevoVendedorPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -30,7 +34,10 @@ export default function NuevoVendedorPage() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-6">
-        <Link href="/vendedores" className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
+        <Link
+          href="/vendedores"
+          className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block"
+        >
           &larr; Volver a Vendedores
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">Registrar Nuevo Vendedor</h1>
@@ -81,12 +88,12 @@ export default function NuevoVendedorPage() {
                 <input
                   type="email"
                   id="email"
-                  {...register('email', { 
+                  {...register('email', {
                     required: 'Este campo es obligatorio',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Dirección de correo inválida'
-                    }
+                      message: 'Dirección de correo inválida',
+                    },
                   })}
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                 />

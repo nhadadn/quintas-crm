@@ -2,29 +2,49 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import TablaClientes from '@/components/gestion/TablaClientes';
 import { fetchClientes } from '@/lib/clientes-api';
+import { ForbiddenError, UnauthorizedError } from '@/lib/directus-api';
 import { Cliente } from '@/types/erp';
 import Link from 'next/link';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function GestionClientesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarClientes();
-  }, []);
+    if (status === 'authenticated') {
+      cargarClientes();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      setError('No autenticado');
+    }
+  }, [status, session]);
 
   const cargarClientes = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetchClientes();
+      const response = await fetchClientes(1, 20, session?.accessToken);
       if (response && response.data) {
         setClientes(response.data);
       }
-    } catch (error) {
-      console.error('Error cargando clientes:', error);
+    } catch (err: any) {
+      console.error('Error cargando clientes:', err);
+      if (err instanceof ForbiddenError) {
+        setError(
+          '⛔ Acceso denegado: No tienes permisos para ver el listado de clientes. Verifica tu rol en Directus.',
+        );
+      } else if (err instanceof UnauthorizedError) {
+        setError('⚠️ Sesión no válida o expirada. Por favor verifica tus credenciales.');
+      } else {
+        setError(`Error al cargar clientes: ${err.message || 'Error desconocido'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -57,6 +77,32 @@ export default function GestionClientesPage() {
           </Link>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-sm font-medium text-red-800">Error de Carga</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={cargarClientes}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Reintentar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <TablaClientes
         clientes={clientes}

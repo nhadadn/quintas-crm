@@ -10,23 +10,25 @@ Se ha ejecutado la suite de validación automatizada (`npm test`) cubriendo aspe
 
 ## 2. Verificación de Seguridad
 
-| Requisito | Estatus | Evidencia / Notas |
-|-----------|---------|-------------------|
-| **SQL Injection** | ✅ Protegido | Test 11: Inputs maliciosos (`' OR '1'='1`) son tratados como literales por `ItemsService`. |
-| **XSS Prevention** | ✅ Delegado | Directus almacena inputs tal cual. El frontend debe sanitizar al mostrar. Backend no ejecuta HTML. |
-| **Rate Limiting** | ✅ Activo | Test 12: Se verificó bloqueo tras 100 requests/min por IP. |
-| **Autenticación JWT** | ✅ Requerido | Test 13: El contexto de seguridad (`accountability`) se propaga correctamente a los servicios de datos. |
-| **Integridad de Datos** | ✅ Asegurada | Uso de Transacciones en Ventas y Pagos. Validaciones de duplicados en Clientes (Test 7). |
+| Requisito               | Estatus      | Evidencia / Notas                                                                                       |
+| ----------------------- | ------------ | ------------------------------------------------------------------------------------------------------- |
+| **SQL Injection**       | ✅ Protegido | Test 11: Inputs maliciosos (`' OR '1'='1`) son tratados como literales por `ItemsService`.              |
+| **XSS Prevention**      | ✅ Delegado  | Directus almacena inputs tal cual. El frontend debe sanitizar al mostrar. Backend no ejecuta HTML.      |
+| **Rate Limiting**       | ✅ Activo    | Test 12: Se verificó bloqueo tras 100 requests/min por IP.                                              |
+| **Autenticación JWT**   | ✅ Requerido | Test 13: El contexto de seguridad (`accountability`) se propaga correctamente a los servicios de datos. |
+| **Integridad de Datos** | ✅ Asegurada | Uso de Transacciones en Ventas y Pagos. Validaciones de duplicados en Clientes (Test 7).                |
 
 ## 3. Checklist de Calidad de Código
 
 ### Estándares
+
 - [x] **Formato:** ES Modules / CommonJS soportados.
 - [x] **Manejo de Errores:** `try/catch` implementado en todos los endpoints con respuestas JSON estandarizadas.
 - [⚠️] **Logs:** Se detectaron `console.log` en los endpoints. **Acción requerida:** Reemplazar por logger estructurado o eliminar antes de PROD.
 - [x] **Validaciones:** Inputs críticos validados manualmente antes de llamar a la BD.
 
 ### Performance
+
 - [x] **Queries:** Uso de `ItemsService` optimizado con filtros específicos.
 - [x] **Transacciones:** Limitadas a operaciones de escritura críticas (Ventas/Pagos).
 - [x] **N+1:** Endpoints custom realizan queries agregadas o específicas, evitando bucles de queries.
@@ -60,4 +62,5 @@ COBERTURA: > 85% de flujos críticos
 2. **Promoción:** El backend se considera estable y seguro para inicio de desarrollo Frontend.
 
 ---
+
 **Aprobado por:** QA Team

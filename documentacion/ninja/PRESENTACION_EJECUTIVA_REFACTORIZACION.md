@@ -115,17 +115,18 @@ Mes 12: +$14,600 ✅
 
 ### Comparación
 
-| Aspecto | Refactorizar | Rehacer |
-|---------|--------------|---------|
-| **Tiempo** | ✅ 10 días | ❌ 40 días |
-| **Costo** | ✅ $25,000 | ❌ $100,000+ |
-| **Riesgo** | ✅ Bajo | ❌ Alto |
-| **Código Reutilizable** | ✅ 80% | ❌ 0% |
-| **Base de Datos** | ✅ Mantener | ❌ Recrear |
+| Aspecto                 | Refactorizar | Rehacer      |
+| ----------------------- | ------------ | ------------ |
+| **Tiempo**              | ✅ 10 días   | ❌ 40 días   |
+| **Costo**               | ✅ $25,000   | ❌ $100,000+ |
+| **Riesgo**              | ✅ Bajo      | ❌ Alto      |
+| **Código Reutilizable** | ✅ 80%       | ❌ 0%        |
+| **Base de Datos**       | ✅ Mantener  | ❌ Recrear   |
 
 ### ✅ DECISIÓN: REFACTORIZAR
 
 **Razones:**
+
 - 4x más rápido
 - 4x más económico
 - Menor riesgo
@@ -137,6 +138,7 @@ Mes 12: +$14,600 ✅
 ## 📋 SLIDE 5: ¿QUÉ CAMBIA?
 
 ### Base de Datos: 🟡 Cambios Menores
+
 ```
 Agregar 5 campos nuevos:
 - svg_path_id
@@ -150,6 +152,7 @@ Impacto: Mínimo
 ```
 
 ### Directus: 🟢 Sin Cambios Mayores
+
 ```
 Mantener:
 - Configuración actual
@@ -164,6 +167,7 @@ Impacto: Mínimo
 ```
 
 ### Frontend: 🔴 Refactorización Mayor
+
 ```
 Eliminar:
 - Mapbox GL JS (2.3 MB)

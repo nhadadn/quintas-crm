@@ -1,0 +1,5 @@
+[33mcommit 4b7290a53cc5b149e02a03fe2ddc0f14f327c61c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: CANAAM-0001\nadir <nadir.nacaam@protonmail.me>
+Date:   Mon Feb 9 00:25:45 2026 -0600
+
+    feat(auth): enhance authentication error handling and add unit tests

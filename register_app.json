@@ -1,0 +1,4 @@
+{
+  "app_name": "Test App",
+  "redirect_urls": ["http://localhost:3000/callback"]
+}

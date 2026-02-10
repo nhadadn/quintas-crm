@@ -10,10 +10,10 @@ export enum EstatusLote {
 
 // 5. Type ColoresEstatus para mapeo de colores
 export const COLORES_ESTATUS: Record<EstatusLote, string> = {
-  [EstatusLote.DISPONIBLE]: '#81c784', // verde sitio oficial
-  [EstatusLote.APARTADO]: '#ffb300', // naranja sitio oficial
-  [EstatusLote.VENDIDO]: '#e57373', // rojo sitio oficial
-  [EstatusLote.LIQUIDADO]: '#4c92e7', // azul (reservado en sitio)
+  [EstatusLote.DISPONIBLE]: '#6B8E23', // Verde Oliva (Cálido)
+  [EstatusLote.APARTADO]: '#D69E2E', // Ocre/Dorado
+  [EstatusLote.VENDIDO]: '#9B2C2C', // Rojo profundo/Vino
+  [EstatusLote.LIQUIDADO]: '#2C5282', // Azul marino cálido
 };
 
 // 1. Interface Lote con todos los campos del endpoint

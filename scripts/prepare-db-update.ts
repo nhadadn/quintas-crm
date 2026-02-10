@@ -26,4 +26,3 @@ void main().catch((error) => {
   console.error('Error preparando actualización de base de datos:', error);
   process.exit(1);
 });
-

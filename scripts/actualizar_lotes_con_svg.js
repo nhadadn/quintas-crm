@@ -2,7 +2,7 @@
  * @file scripts/actualizar_lotes_con_svg.js
  * @description Script para actualizar la base de datos MySQL con los IDs de los paths SVG.
  * Lee el archivo JSON generado por el script de mapeo.
- * 
+ *
  * Uso: node scripts/actualizar_lotes_con_svg.js
  * Requiere: npm install mysql2 dotenv
  */
@@ -20,7 +20,7 @@ const DB_CONFIG = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'root',
   database: process.env.DB_DATABASE || 'quintas_crm',
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
 };
 
 /**
@@ -51,11 +51,13 @@ async function actualizarBaseDeDatos() {
       console.error('❌ Error conectando a MySQL (verifique credenciales en .env o DB_CONFIG):');
       console.error(connError.message);
       console.log('⚠️ Ejecución en modo SIMULACIÓN (DRY RUN) debido a fallo de conexión.');
-      
+
       // Simular proceso
       console.log('\n--- SENTENCIAS SQL QUE SE EJECUTARÍAN ---');
       for (const item of mapping) {
-        console.log(`UPDATE lotes SET svg_path_id = '${item.svg_path_id}' WHERE numero_lote = ${item.numero_lote};`);
+        console.log(
+          `UPDATE lotes SET svg_path_id = '${item.svg_path_id}' WHERE numero_lote = ${item.numero_lote};`
+        );
       }
       return;
     }
@@ -65,7 +67,9 @@ async function actualizarBaseDeDatos() {
       await connection.execute('SELECT svg_path_id FROM lotes LIMIT 1');
     } catch (colError) {
       console.log('⚠️ La columna svg_path_id no existe. Intentando crearla...');
-      await connection.execute('ALTER TABLE lotes ADD COLUMN svg_path_id VARCHAR(255) NULL AFTER id');
+      await connection.execute(
+        'ALTER TABLE lotes ADD COLUMN svg_path_id VARCHAR(255) NULL AFTER id'
+      );
       console.log('✅ Columna svg_path_id creada.');
     }
 
@@ -84,7 +88,6 @@ async function actualizarBaseDeDatos() {
     }
 
     console.log(`✅ Actualización completada. ${updatedCount} lotes actualizados.`);
-
   } catch (error) {
     console.error('❌ Error durante la actualización:', error);
   } finally {

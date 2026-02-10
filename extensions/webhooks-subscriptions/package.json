@@ -1,0 +1,16 @@
+{
+  "name": "directus-endpoint-webhooks-subscriptions",
+  "version": "1.0.0",
+  "description": "Endpoint para gestión de suscripciones de Webhooks",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "webhooks-subscriptions",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  }
+}

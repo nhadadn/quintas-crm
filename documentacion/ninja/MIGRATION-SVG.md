@@ -62,4 +62,3 @@ En `frontend/` se ha creado la siguiente estructura:
 
 - La base de datos no se modifica todavía; los scripts generan solo SQL de ejemplo.
 - Directus no se toca; la integración se hará con nuevas columnas/campos cuando se decida.
-

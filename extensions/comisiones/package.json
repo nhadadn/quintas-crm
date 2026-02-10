@@ -1,0 +1,13 @@
+{
+  "name": "comisiones-endpoint",
+  "version": "1.0.0",
+  "description": "Endpoint para cálculo y gestión de comisiones",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "comisiones",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  }
+}

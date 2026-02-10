@@ -5,8 +5,8 @@ import { es } from 'date-fns/locale';
 
 interface VentaReciente {
   id: string | number;
-  lote: string;
-  cliente: string;
+  lote: string | { numero_lote: string | number; [key: string]: any };
+  cliente: string | { nombre?: string; apellido_paterno?: string; [key: string]: any };
   fecha: string;
   monto: number;
   estatus: string;
@@ -17,11 +17,34 @@ export interface RecentSalesTableProps {
 }
 
 export function RecentSalesTable({ ventas }: RecentSalesTableProps) {
+  // Helper para renderizar valores de manera segura
+  const renderCell = (value: any, key: string) => {
+    if (value === null || value === undefined) return '-';
+    
+    if (typeof value === 'object') {
+      if (key === 'lote' && 'numero_lote' in value) {
+        return value.numero_lote;
+      }
+      if (key === 'cliente') {
+        if ('nombre' in value) {
+          return `${value.nombre} ${value.apellido_paterno || ''}`.trim();
+        }
+      }
+      // Fallback para otros objetos
+      return JSON.stringify(value);
+    }
+    
+    return value;
+  };
+
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
       <div className="p-6 border-b border-slate-700 flex justify-between items-center">
         <h3 className="text-lg font-semibold text-slate-100">Ventas Recientes</h3>
-        <Link href="/ventas" className="text-emerald-500 hover:text-emerald-400 text-sm font-medium">
+        <Link
+          href="/ventas"
+          className="text-emerald-500 hover:text-emerald-400 text-sm font-medium"
+        >
           Ver todas
         </Link>
       </div>
@@ -38,27 +61,40 @@ export function RecentSalesTable({ ventas }: RecentSalesTableProps) {
           </thead>
           <tbody>
             {ventas.map((venta) => (
-              <tr key={venta.id} className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-100">{venta.lote}</td>
-                <td className="px-6 py-4">{venta.cliente}</td>
+              <tr
+                key={venta.id}
+                className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-slate-100">
+                  {renderCell(venta.lote, 'lote')}
+                </td>
+                <td className="px-6 py-4">
+                  {renderCell(venta.cliente, 'cliente')}
+                </td>
                 <td className="px-6 py-4">
                   {isValid(new Date(venta.fecha))
                     ? format(new Date(venta.fecha), 'dd/MM/yyyy', { locale: es })
                     : 'Fecha inválida'}
                 </td>
                 <td className="px-6 py-4">
-                  {venta.monto.toLocaleString('es-MX', {
+                  {(venta.monto || 0).toLocaleString('es-MX', {
                     style: 'currency',
                     currency: 'MXN',
-                    minimumFractionDigits: 2
+                    minimumFractionDigits: 2,
                   })}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${venta.estatus === 'pagado' ? 'bg-emerald-900/50 text-emerald-400' : 
-                      venta.estatus === 'pendiente' ? 'bg-amber-900/50 text-amber-400' : 
-                      'bg-slate-700 text-slate-300'}`}>
-                    {venta.estatus.toUpperCase()}
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold
+                    ${
+                      venta.estatus === 'pagado'
+                        ? 'bg-emerald-900/50 text-emerald-400'
+                        : venta.estatus === 'pendiente'
+                          ? 'bg-amber-900/50 text-amber-400'
+                          : 'bg-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {(venta.estatus || 'desconocido').toUpperCase()}
                   </span>
                 </td>
               </tr>

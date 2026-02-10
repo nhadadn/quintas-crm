@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import TablaVentas from '@/components/gestion/TablaVentas';
 import { fetchVentas } from '@/lib/ventas-api';
 import { Venta } from '@/types/erp';
@@ -9,17 +10,25 @@ import Link from 'next/link';
 
 export default function GestionVentasPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    cargarVentas();
-  }, []);
+    if (status === 'authenticated') {
+      cargarVentas();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      // Opcional: Redirigir al login si es una página protegida
+      // router.push('/login');
+    }
+  }, [status, session]);
 
   const cargarVentas = async () => {
     setLoading(true);
     try {
-      const data = await fetchVentas();
+      const token = session?.accessToken as string | undefined;
+      const data = await fetchVentas(token);
       if (data) {
         setVentas(data);
       }

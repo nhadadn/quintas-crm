@@ -22,7 +22,7 @@ $('path').each((i, el) => {
   const $el = $(el);
   const id = $el.attr('id');
   const d = $el.attr('d');
-  
+
   if (!d) return;
 
   // Determine type and interactivity
@@ -46,14 +46,14 @@ $('path').each((i, el) => {
     interactive: interactive,
     type: type,
     // Capture transform if present (though likely not needed for this clean SVG)
-    transform: $el.attr('transform')
+    transform: $el.attr('transform'),
   });
 });
 
 const config = {
   svgSource: '/mapas/mapa-oficial.svg',
   viewBox: viewBox,
-  paths: paths
+  paths: paths,
 };
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));

@@ -22,52 +22,52 @@ async function generateConfig() {
   if (!viewBox && svg.$.width && svg.$.height) {
     viewBox = `0 0 ${svg.$.width} ${svg.$.height}`;
   }
-  
+
   console.log(`ViewBox: ${viewBox}`);
 
   const paths = [];
   let pathCount = 0;
-  
+
   const groupStats = {};
 
   function traverse(node, currentGroup = 'root') {
     // Check for group label
     let groupLabel = currentGroup;
     if (node.$ && (node.$['inkscape:label'] || node.$.id)) {
-       groupLabel = node.$['inkscape:label'] || node.$.id;
+      groupLabel = node.$['inkscape:label'] || node.$.id;
     }
 
     if (node.path) {
       if (!groupStats[groupLabel]) groupStats[groupLabel] = 0;
       groupStats[groupLabel] += node.path.length;
 
-      node.path.forEach(p => {
+      node.path.forEach((p) => {
         if (!p.$ || !p.$.d) return;
-        
+
         const d = p.$.d;
         const transform = p.$.transform;
         const id = p.$.id || `path-${pathCount++}`;
-        
+
         paths.push({
           id,
           d,
           transform,
           interactive: true,
-          group: groupLabel // Add group info to inspect
+          group: groupLabel, // Add group info to inspect
         });
       });
     }
     if (node.g) {
-      node.g.forEach(g => traverse(g, groupLabel));
+      node.g.forEach((g) => traverse(g, groupLabel));
     }
   }
 
   traverse(svg);
-  
+
   console.log('Group Stats:', groupStats);
 
   // Filter paths
-  const filteredPaths = paths.filter(p => {
+  const filteredPaths = paths.filter((p) => {
     // Exclude text and hatches
     if (p.group === 'CVL_CURV_TX') return false;
     if (p.group === 'hatches') return false;
@@ -79,7 +79,7 @@ async function generateConfig() {
   const config = {
     svgSource: '/mapas/mapa-quintas.svg',
     viewBox,
-    paths: filteredPaths.map(({id, d, transform}) => ({id, d, transform, interactive: true}))
+    paths: filteredPaths.map(({ id, d, transform }) => ({ id, d, transform, interactive: true })),
   };
 
   // Ensure directory exists

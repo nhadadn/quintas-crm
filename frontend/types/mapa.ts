@@ -1,7 +1,7 @@
 import type { LoteProperties } from './lote';
 
 // 4. Type MapboxStyle para estilos de mapa
-export type MapboxStyle = 
+export type MapboxStyle =
   | 'mapbox://styles/mapbox/satellite-v9'
   | 'mapbox://styles/mapbox/streets-v12'
   | 'mapbox://styles/mapbox/light-v11'

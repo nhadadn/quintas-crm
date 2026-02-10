@@ -167,7 +167,7 @@ DEPENDENCIAS:
     - mapbox-gl
     - @types/mapbox-gl
     - proj4
-  
+
   Instaladas:
     - xml2js
     - @types/xml2js
@@ -192,6 +192,7 @@ Write-Host "`nPróximo paso: .\scripts\02_actualizar_base_datos.ps1" -Foreground
 ```
 
 **Ejecutar:**
+
 ```powershell
 cd C:\Users\nadir\quintas-crm
 .\scripts\01_preparar_proyecto.ps1
@@ -231,7 +232,7 @@ Write-Host "`n[1/4] Verificando conexión a MySQL..." -ForegroundColor Yellow
 try {
     $testQuery = "SELECT VERSION();"
     $result = mysql -u $MySQLUser -p$MySQLPassword -e $testQuery 2>&1
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Conexión exitosa a MySQL" -ForegroundColor Green
     } else {
@@ -275,7 +276,7 @@ SELECT 'Verificando cambios...' as status;
 DESCRIBE lotes;
 
 -- Mostrar resumen
-SELECT 
+SELECT
     COUNT(*) as total_lotes,
     COUNT(svg_path_id) as lotes_con_svg,
     COUNT(*) - COUNT(svg_path_id) as lotes_sin_svg
@@ -293,7 +294,7 @@ Write-Host "`n[3/4] Ejecutando script SQL..." -ForegroundColor Yellow
 
 try {
     $output = mysql -u $MySQLUser -p$MySQLPassword $Database < $sqlPath 2>&1
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Script ejecutado exitosamente" -ForegroundColor Green
         Write-Host "`n  Salida:" -ForegroundColor Cyan
@@ -312,13 +313,13 @@ Write-Host "`n[4/4] Verificando cambios..." -ForegroundColor Yellow
 
 $verifyQuery = @"
 USE $Database;
-SELECT 
-    COLUMN_NAME, 
-    DATA_TYPE, 
-    IS_NULLABLE, 
+SELECT
+    COLUMN_NAME,
+    DATA_TYPE,
+    IS_NULLABLE,
     COLUMN_COMMENT
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_NAME = 'lotes' 
+WHERE TABLE_NAME = 'lotes'
 AND COLUMN_NAME LIKE 'svg%'
 ORDER BY ORDINAL_POSITION;
 "@
@@ -369,6 +370,7 @@ Write-Host "`nPróximo paso: node scripts\mapear_lotes_svg.js" -ForegroundColor 
 ```
 
 **Ejecutar:**
+
 ```powershell
 cd C:\Users\nadir\quintas-crm
 .\scripts\02_actualizar_base_datos.ps1 -MySQLUser root -MySQLPassword tu_password
@@ -404,12 +406,12 @@ function Test-Component {
         [string]$Name,
         [scriptblock]$TestScript
     )
-    
+
     Write-Host "`n[$Name]" -ForegroundColor Yellow
-    
+
     try {
         $result = & $TestScript
-        
+
         if ($result) {
             Write-Host "  ✅ PASSED" -ForegroundColor Green
             $script:testResults.Passed++
@@ -427,7 +429,7 @@ function Test-Component {
 Test-Component "Test 1: Base de Datos" {
     $query = "SELECT COUNT(*) as total, COUNT(svg_path_id) as con_svg FROM lotes;"
     $result = mysql -u root -p -e "USE quintas_otinapa; $query" -s -N 2>&1
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  Resultado: $result" -ForegroundColor Gray
         return $true
@@ -439,7 +441,7 @@ Test-Component "Test 1: Base de Datos" {
 Test-Component "Test 2: Directus API" {
     try {
         $response = Invoke-RestMethod -Uri "http://localhost:8055/svg-map" -Method Get -ErrorAction Stop
-        
+
         if ($response.success) {
             Write-Host "  Lotes con SVG: $($response.total)" -ForegroundColor Gray
             return $true
@@ -454,7 +456,7 @@ Test-Component "Test 2: Directus API" {
 Test-Component "Test 3: Frontend" {
     try {
         $response = Invoke-WebRequest -Uri "http://localhost:3000" -Method Get -ErrorAction Stop
-        
+
         if ($response.StatusCode -eq 200) {
             Write-Host "  Status: $($response.StatusCode)" -ForegroundColor Gray
             return $true
@@ -468,7 +470,7 @@ Test-Component "Test 3: Frontend" {
 # Test 4: Archivo SVG
 Test-Component "Test 4: Archivo SVG" {
     $svgPath = Join-Path $ProjectPath "frontend\public\mapas\mapa-quintas.svg"
-    
+
     if (Test-Path $svgPath) {
         $svgContent = Get-Content $svgPath -Raw
         $pathCount = ([regex]::Matches($svgContent, '<path')).Count
@@ -481,32 +483,32 @@ Test-Component "Test 4: Archivo SVG" {
 # Test 5: Dependencias
 Test-Component "Test 5: Dependencias Frontend" {
     Set-Location (Join-Path $ProjectPath "frontend")
-    
+
     $packageJson = Get-Content "package.json" | ConvertFrom-Json
-    
+
     # Verificar que Mapbox NO esté
     if ($packageJson.dependencies.'mapbox-gl') {
         Write-Host "  ⚠️ Mapbox aún instalado" -ForegroundColor Yellow
         $script:testResults.Warnings++
         return $false
     }
-    
+
     # Verificar que xml2js esté
     if ($packageJson.dependencies.'xml2js') {
         Write-Host "  xml2js instalado" -ForegroundColor Gray
         return $true
     }
-    
+
     return $false
 }
 
 # Test 6: Compilación
 Test-Component "Test 6: Compilación TypeScript" {
     Set-Location (Join-Path $ProjectPath "frontend")
-    
+
     Write-Host "  Ejecutando: npm run lint" -ForegroundColor Gray
     $lintOutput = npm run lint 2>&1
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  Lint: OK" -ForegroundColor Gray
         return $true
@@ -572,6 +574,7 @@ if ($testResults.Failed -eq 0) {
 ```
 
 **Ejecutar:**
+
 ```powershell
 cd C:\Users\nadir\quintas-crm
 .\scripts\03_testing_completo.ps1
@@ -815,24 +818,28 @@ Invoke-RestMethod -Uri "http://localhost:8055/svg-map" -Method Get | ConvertTo-J
 # CHECKLIST DE MIGRACIÓN COMPLETA
 
 ## Preparación
+
 - [ ] Backup de base de datos creado
 - [ ] Backup de código creado
 - [ ] Archivo SVG disponible
 - [ ] Dependencias verificadas
 
 ## Base de Datos
+
 - [ ] Campos SVG agregados
 - [ ] Índices creados
 - [ ] Datos actualizados
 - [ ] Verificación exitosa
 
 ## Backend
+
 - [ ] Endpoint /svg-map creado
 - [ ] Directus reiniciado
 - [ ] Endpoint probado
 - [ ] Datos correctos
 
 ## Frontend
+
 - [ ] Dependencias actualizadas
 - [ ] Componentes creados
 - [ ] API client actualizado
@@ -840,18 +847,21 @@ Invoke-RestMethod -Uri "http://localhost:8055/svg-map" -Method Get | ConvertTo-J
 - [ ] Compilación exitosa
 
 ## Testing
+
 - [ ] Tests automatizados pasados
 - [ ] Testing manual completado
 - [ ] Performance verificado
 - [ ] Responsive probado
 
 ## Deployment
+
 - [ ] Build de producción exitoso
 - [ ] Documentación actualizada
 - [ ] Changelog creado
 - [ ] Código en repositorio
 
 ## Validación Final
+
 - [ ] Mapa se visualiza correctamente
 - [ ] Lotes tienen colores
 - [ ] Click en lote funciona

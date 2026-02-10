@@ -1,0 +1,13 @@
+{
+  "name": "endpoint-vendedores",
+  "version": "1.0.0",
+  "description": "Custom CRUD endpoint for Vendedores with validations",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "vendedores",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  }
+}

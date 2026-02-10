@@ -1,7 +1,10 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { Cliente } from '@/types/erp';
-import { searchClientes } from '@/lib/clientes-api';
+import { searchClientes, findClienteByEmailOrRFC } from '@/lib/clientes-api';
 
 interface Step2Props {
   onNext: (cliente: Cliente) => void;
@@ -23,9 +26,11 @@ interface ClienteFormInputs {
 }
 
 export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props) {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Cliente[]>([]);
   const [searching, setSearching] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   const {
     register,
@@ -47,7 +52,7 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const results = await searchClientes(searchQuery);
+      const results = await searchClientes(searchQuery, session?.accessToken);
       setSearchResults(results);
     } catch (error) {
       console.error('Error buscando clientes:', error);
@@ -62,24 +67,63 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
     setSearchQuery('');
   };
 
-  const onSubmit = (data: ClienteFormInputs) => {
-    // Aquí se podría guardar el cliente en el backend si es nuevo, 
-    // o simplemente pasar los datos al siguiente paso.
-    // Asumiremos que pasamos los datos y se crea/actualiza al final.
-    const cliente: Cliente = {
-      id: initialCliente?.id || '', // Si no tiene ID, es nuevo
-      ...data,
-    };
-    onNext(cliente);
+  const onSubmit = async (data: ClienteFormInputs) => {
+    setIsValidating(true);
+    try {
+      // 1. Si ya tenemos un ID válido (seleccionado previamente), continuamos
+      if (initialCliente?.id && !String(initialCliente.id).startsWith('new_')) {
+        onNext({ ...data, id: initialCliente.id });
+        return;
+      }
+
+      // 2. Verificar si existe por Email, RFC o Teléfono
+      const existingCliente = await findClienteByEmailOrRFC(data.email, data.rfc, data.telefono, session?.accessToken);
+
+      if (existingCliente) {
+        // Cliente existe -> Preguntar si reutilizar
+        const confirmReuse = window.confirm(
+          `Ya existe un cliente registrado con estos datos similares:\n\n` +
+            `Nombre: ${existingCliente.nombre} ${existingCliente.apellido_paterno}\n` +
+            `RFC: ${existingCliente.rfc || 'N/A'}\n` +
+            `Email: ${existingCliente.email}\n` +
+            `Teléfono: ${existingCliente.telefono || 'N/A'}\n\n` +
+            `¿Desea asignar la venta a este cliente existente?`,
+        );
+
+        if (confirmReuse) {
+          // Usar el ID existente
+          onNext({ ...data, id: existingCliente.id });
+        } else {
+          // Usuario rechazó reutilizar -> No podemos crear duplicado
+          alert(
+            'No es posible crear un cliente con Email o RFC duplicado.\nPor favor verifique los datos o use el cliente existente.',
+          );
+        }
+      } else {
+        // Cliente nuevo -> Proceder
+        const cliente: Cliente = {
+          id: '', // Se generará al finalizar
+          ...data,
+        };
+        onNext(cliente);
+      }
+    } catch (error) {
+      console.error('Error validando cliente:', error);
+      alert('Error al validar datos del cliente. Intente nuevamente.');
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700">
       <h2 className="text-2xl font-bold text-white mb-6">Datos del Cliente</h2>
-      
+
       {/* Buscador de Clientes */}
       <div className="mb-8 bg-slate-900 p-4 rounded-lg border border-slate-700">
-        <label className="block text-sm font-medium text-slate-300 mb-2">Buscar Cliente Existente (Email o RFC)</label>
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          Buscar Cliente Existente (Email o RFC)
+        </label>
         <div className="flex gap-2 relative">
           <input
             type="text"
@@ -108,15 +152,21 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
                   onClick={() => selectCliente(cliente)}
                   className="w-full text-left px-4 py-3 hover:bg-slate-700 border-b border-slate-700 last:border-0"
                 >
-                  <p className="font-semibold text-white">{cliente.nombre} {cliente.apellido_paterno}</p>
-                  <p className="text-sm text-slate-400">{cliente.email} - {cliente.rfc}</p>
+                  <p className="font-semibold text-white">
+                    {cliente.nombre} {cliente.apellido_paterno}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    {cliente.email} - {cliente.rfc}
+                  </p>
                 </button>
               ))}
             </div>
           )}
         </div>
         {searchResults.length === 0 && searchQuery && !searching && (
-           <p className="text-xs text-slate-500 mt-2">Si no encuentras al cliente, llena el formulario para crear uno nuevo.</p>
+          <p className="text-xs text-slate-500 mt-2">
+            Si no encuentras al cliente, llena el formulario para crear uno nuevo.
+          </p>
         )}
       </div>
 
@@ -129,22 +179,30 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
               {...register('nombre', { required: 'El nombre es obligatorio' })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.nombre && <span className="text-red-500 text-xs mt-1">{errors.nombre.message}</span>}
+            {errors.nombre && (
+              <span className="text-red-500 text-xs mt-1">{errors.nombre.message}</span>
+            )}
           </div>
 
           {/* Apellido Paterno */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Apellido Paterno</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Apellido Paterno
+            </label>
             <input
               {...register('apellido_paterno', { required: 'El apellido paterno es obligatorio' })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.apellido_paterno && <span className="text-red-500 text-xs mt-1">{errors.apellido_paterno.message}</span>}
+            {errors.apellido_paterno && (
+              <span className="text-red-500 text-xs mt-1">{errors.apellido_paterno.message}</span>
+            )}
           </div>
 
           {/* Apellido Materno */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Apellido Materno</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Apellido Materno
+            </label>
             <input
               {...register('apellido_materno')}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -158,16 +216,18 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
             <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
             <input
               type="email"
-              {...register('email', { 
+              {...register('email', {
                 required: 'El email es obligatorio',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Email inválido"
-                }
+                  message: 'Email inválido',
+                },
               })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>}
+            {errors.email && (
+              <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
+            )}
           </div>
 
           {/* Teléfono */}
@@ -177,7 +237,9 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
               {...register('telefono', { required: 'El teléfono es obligatorio' })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.telefono && <span className="text-red-500 text-xs mt-1">{errors.telefono.message}</span>}
+            {errors.telefono && (
+              <span className="text-red-500 text-xs mt-1">{errors.telefono.message}</span>
+            )}
           </div>
         </div>
 
@@ -186,12 +248,13 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">RFC</label>
             <input
-              {...register('rfc', { 
+              {...register('rfc', {
                 required: 'El RFC es obligatorio',
                 pattern: {
-                  value: /^([A-ZÑ&]{3,4}) ?(?:- ?)?(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])) ?(?:- ?)?([A-Z\d]{2})([A\d])$/,
-                  message: "Formato de RFC inválido"
-                }
+                  value:
+                    /^([A-ZÑ&]{3,4}) ?(?:- ?)?(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])) ?(?:- ?)?([A-Z\d]{2})([A\d])$/,
+                  message: 'Formato de RFC inválido',
+                },
               })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
@@ -206,7 +269,9 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
             {...register('direccion', { required: 'La dirección es obligatoria' })}
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
-          {errors.direccion && <span className="text-red-500 text-xs mt-1">{errors.direccion.message}</span>}
+          {errors.direccion && (
+            <span className="text-red-500 text-xs mt-1">{errors.direccion.message}</span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -217,7 +282,9 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
               {...register('ciudad', { required: 'La ciudad es obligatoria' })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.ciudad && <span className="text-red-500 text-xs mt-1">{errors.ciudad.message}</span>}
+            {errors.ciudad && (
+              <span className="text-red-500 text-xs mt-1">{errors.ciudad.message}</span>
+            )}
           </div>
 
           {/* Estado */}
@@ -227,7 +294,9 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
               {...register('estado', { required: 'El estado es obligatorio' })}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            {errors.estado && <span className="text-red-500 text-xs mt-1">{errors.estado.message}</span>}
+            {errors.estado && (
+              <span className="text-red-500 text-xs mt-1">{errors.estado.message}</span>
+            )}
           </div>
 
           {/* CP */}
@@ -251,9 +320,10 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors"
+            disabled={isValidating}
+            className={`px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors ${isValidating ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Siguiente
+            {isValidating ? 'Validando...' : 'Siguiente'}
           </button>
         </div>
       </form>

@@ -6,6 +6,7 @@ export interface TerminosVenta {
   plazo_meses: number;
   tasa_interes: number;
   metodo_pago: string;
+  vendedor_id: string | number;
   monto_financiado: number;
   mensualidad?: number;
 }

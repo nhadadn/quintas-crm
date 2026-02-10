@@ -21,4 +21,3 @@ void main().catch((error) => {
   console.error('Error analizando SVG:', error);
   process.exit(1);
 });
-

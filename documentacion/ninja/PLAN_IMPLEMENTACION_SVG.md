@@ -30,6 +30,7 @@ Semana 2: Frontend y Testing (Días 6-10)
 ## 🎯 FASE 1: PREPARACIÓN Y ANÁLISIS (Día 1)
 
 ### Objetivo
+
 Analizar el archivo SVG del plano real y preparar el mapeo de lotes.
 
 ### Tareas
@@ -37,9 +38,11 @@ Analizar el archivo SVG del plano real y preparar el mapeo de lotes.
 #### 1.1 Obtener y Analizar SVG
 
 **Archivo Necesario:**
+
 - `PROYECTO QUINTAS DE OTINAPA PRIMERA ETAPA-Model.svg`
 
 **Análisis Requerido:**
+
 ```xml
 <!-- Identificar estructura del SVG -->
 <svg viewBox="0 0 WIDTH HEIGHT">
@@ -54,6 +57,7 @@ Analizar el archivo SVG del plano real y preparar el mapeo de lotes.
 ```
 
 **Script de Análisis:**
+
 ```powershell
 # Crear script: analizar_svg.ps1
 
@@ -90,28 +94,26 @@ parseString(svgContent, (err, result) => {
   }
 
   // Extraer paths de lotes
-  const lotesGroup = result.svg.g.find(g => g.$.id === 'lotes');
+  const lotesGroup = result.svg.g.find((g) => g.$.id === 'lotes');
   const paths = lotesGroup.path;
 
   // Crear mapeo
-  const mapeo = paths.map(path => ({
+  const mapeo = paths.map((path) => ({
     svg_path_id: path.$.id,
     numero_lote: path.$.id.replace('lote-', ''),
     svg_coordinates: path.$.d,
-    svg_transform: path.$.transform || null
+    svg_transform: path.$.transform || null,
   }));
 
   // Guardar mapeo
-  fs.writeFileSync(
-    './scripts/mapeo_lotes_svg.json',
-    JSON.stringify(mapeo, null, 2)
-  );
+  fs.writeFileSync('./scripts/mapeo_lotes_svg.json', JSON.stringify(mapeo, null, 2));
 
   console.log(`✅ Mapeo creado: ${mapeo.length} lotes`);
 });
 ```
 
 **Ejecutar:**
+
 ```powershell
 cd scripts
 node mapear_lotes_svg.js
@@ -122,6 +124,7 @@ node mapear_lotes_svg.js
 ## 🗄️ FASE 2: ACTUALIZACIÓN DE BASE DE DATOS (Día 2)
 
 ### Objetivo
+
 Agregar campos necesarios para mapeo SVG sin romper estructura existente.
 
 ### Script SQL
@@ -152,7 +155,7 @@ CREATE INDEX idx_svg_path_id ON lotes(svg_path_id);
 DESCRIBE lotes;
 
 -- Mostrar resumen
-SELECT 
+SELECT
     COUNT(*) as total_lotes,
     COUNT(svg_path_id) as lotes_con_svg,
     COUNT(*) - COUNT(svg_path_id) as lotes_sin_svg
@@ -162,6 +165,7 @@ SELECT '✅ Campos SVG agregados correctamente' as status;
 ```
 
 **Ejecutar:**
+
 ```powershell
 # Conectar a MySQL y ejecutar
 mysql -u root -p quintas_otinapa < database\02_agregar_campos_svg.sql
@@ -181,15 +185,13 @@ async function actualizarLotesConSVG() {
     host: 'localhost',
     user: 'root',
     password: 'tu_password',
-    database: 'quintas_otinapa'
+    database: 'quintas_otinapa',
   });
 
   console.log('✅ Conectado a MySQL');
 
   // Leer mapeo
-  const mapeo = JSON.parse(
-    fs.readFileSync('./scripts/mapeo_lotes_svg.json', 'utf8')
-  );
+  const mapeo = JSON.parse(fs.readFileSync('./scripts/mapeo_lotes_svg.json', 'utf8'));
 
   console.log(`📊 Procesando ${mapeo.length} lotes...`);
 
@@ -202,12 +204,7 @@ async function actualizarLotesConSVG() {
              svg_coordinates = ?,
              svg_transform = ?
          WHERE numero_lote = ?`,
-        [
-          lote.svg_path_id,
-          lote.svg_coordinates,
-          lote.svg_transform,
-          lote.numero_lote
-        ]
+        [lote.svg_path_id, lote.svg_coordinates, lote.svg_transform, lote.numero_lote]
       );
       console.log(`✅ Lote ${lote.numero_lote} actualizado`);
     } catch (error) {
@@ -233,6 +230,7 @@ actualizarLotesConSVG().catch(console.error);
 ```
 
 **Ejecutar:**
+
 ```powershell
 cd scripts
 node actualizar_lotes_con_svg.js
@@ -243,6 +241,7 @@ node actualizar_lotes_con_svg.js
 ## 🔧 FASE 3: AJUSTES EN DIRECTUS Y API (Día 3)
 
 ### Objetivo
+
 Actualizar Directus para exponer nuevos campos SVG.
 
 ### 3.1 Actualizar Colección en Directus
@@ -272,7 +271,7 @@ async function actualizarSchema() {
   // Autenticar
   const authResponse = await axios.post(`${DIRECTUS_URL}/auth/login`, {
     email: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD
+    password: ADMIN_PASSWORD,
   });
 
   const token = authResponse.data.data.access_token;
@@ -288,8 +287,8 @@ async function actualizarSchema() {
         display: 'raw',
         readonly: false,
         hidden: false,
-        width: 'half'
-      }
+        width: 'half',
+      },
     },
     {
       field: 'svg_coordinates',
@@ -300,19 +299,17 @@ async function actualizarSchema() {
         display: 'raw',
         readonly: false,
         hidden: false,
-        width: 'full'
-      }
+        width: 'full',
+      },
     },
     // ... más campos
   ];
 
   for (const campo of campos) {
     try {
-      await axios.post(
-        `${DIRECTUS_URL}/fields/lotes`,
-        campo,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(`${DIRECTUS_URL}/fields/lotes`, campo, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       console.log(`✅ Campo ${campo.field} agregado`);
     } catch (error) {
       console.error(`❌ Error agregando ${campo.field}:`, error.response?.data || error.message);
@@ -340,7 +337,7 @@ module.exports = function registerEndpoint(router, { services, exceptions }) {
       const schema = await req.schema;
       const lotesService = new ItemsService('lotes', {
         schema: schema,
-        knex: req.knex
+        knex: req.knex,
       });
 
       // Obtener lotes con campos SVG
@@ -357,18 +354,18 @@ module.exports = function registerEndpoint(router, { services, exceptions }) {
           'svg_coordinates',
           'svg_transform',
           'svg_centroid_x',
-          'svg_centroid_y'
+          'svg_centroid_y',
         ],
         filter: {
-          svg_path_id: { _nnull: true } // Solo lotes con SVG
+          svg_path_id: { _nnull: true }, // Solo lotes con SVG
         },
-        limit: -1
+        limit: -1,
       });
 
       res.json({
         success: true,
         total: lotes.length,
-        lotes: lotes
+        lotes: lotes,
       });
     } catch (error) {
       console.error('Error en /svg-map:', error);
@@ -383,28 +380,23 @@ module.exports = function registerEndpoint(router, { services, exceptions }) {
       const schema = await req.schema;
       const lotesService = new ItemsService('lotes', {
         schema: schema,
-        knex: req.knex
+        knex: req.knex,
       });
 
       const lote = await lotesService.readOne(id, {
-        fields: [
-          '*',
-          'svg_path_id',
-          'svg_coordinates',
-          'svg_transform'
-        ]
+        fields: ['*', 'svg_path_id', 'svg_coordinates', 'svg_transform'],
       });
 
       if (!lote) {
         return res.status(404).json({
           success: false,
-          error: 'Lote no encontrado'
+          error: 'Lote no encontrado',
         });
       }
 
       res.json({
         success: true,
-        lote: lote
+        lote: lote,
       });
     } catch (error) {
       console.error(`Error en /svg-map/${req.params.id}:`, error);
@@ -415,6 +407,7 @@ module.exports = function registerEndpoint(router, { services, exceptions }) {
 ```
 
 **Reiniciar Directus:**
+
 ```powershell
 # Detener Directus (Ctrl+C)
 # Reiniciar
@@ -422,6 +415,7 @@ npx -y --package node@22 --package directus@latest -- directus start
 ```
 
 **Probar endpoint:**
+
 ```powershell
 # Probar endpoint SVG
 Invoke-RestMethod -Uri "http://localhost:8055/svg-map" -Method Get | ConvertTo-Json
@@ -432,6 +426,7 @@ Invoke-RestMethod -Uri "http://localhost:8055/svg-map" -Method Get | ConvertTo-J
 ## 🎨 FASE 4: DISEÑO UI/UX EN FIGMA (Día 4)
 
 ### Objetivo
+
 Diseñar la interfaz del mapa SVG interactivo en Figma.
 
 ### Prompt para Figma
@@ -449,13 +444,13 @@ Requisitos de Diseño:
      * Logo "Quintas de Otinapa" (izquierda)
      * Navegación: Inicio | Lotes | Contacto (centro)
      * Botón "Agendar Visita" (derecha, CTA verde)
-   
+
    - Área del Mapa SVG (ocupar 70% del viewport)
      * Fondo: Imagen satelital o textura de terreno
      * Mapa SVG centrado y escalable
      * Controles de zoom (+/-) en esquina superior derecha
      * Botón "Reset View" en esquina superior derecha
-   
+
    - Panel Lateral Derecho (30% del viewport, 400px ancho)
      * Título: "Información del Lote"
      * Contenido dinámico al seleccionar lote
@@ -469,7 +464,7 @@ Requisitos de Diseño:
      * Liquidado: Azul (#6366F1) con opacidad 0.7
      * Hover: Aumentar opacidad a 1.0 + borde blanco 3px
      * Seleccionado: Borde amarillo 4px + sombra
-   
+
    - Etiquetas de Lotes:
      * Mostrar número de lote en centroide
      * Fuente: Inter, 12px, Bold, Blanco con sombra
@@ -480,7 +475,7 @@ Requisitos de Diseño:
      * Número de lote (H2, 32px, Bold)
      * Badge de estatus (pill, color según estatus)
      * Botón cerrar (X, top-right)
-   
+
    - Información del Lote (Grid 2 columnas):
      * Zona: [valor]
      * Manzana: [valor]
@@ -488,14 +483,14 @@ Requisitos de Diseño:
      * Dimensiones: [ancho] × [alto] m
      * Topografía: [valor]
      * Vista: [valor]
-   
+
    - Precio (Destacado):
      * Precio lista: $XXX,XXX (36px, Bold, Verde)
      * Precio por m²: $XXX / m² (16px, Gris)
-   
+
    - Notas (Si existen):
      * Texto descriptivo del lote
-   
+
    - Acciones:
      * Botón "Apartar Lote" (Full width, Verde, Bold)
      * Botón "Más Información" (Full width, Outline)
@@ -593,11 +588,12 @@ FORMATO:
 ## 🎨 FASE 5: CONVERSIÓN FIGMA → CÓDIGO CON KOMBAI (Día 4)
 
 ### Objetivo
+
 Convertir el diseño de Figma a código React + Tailwind usando KOMBAI.
 
 ### Prompt para KOMBAI
 
-```
+````
 PROMPT PARA KOMBAI - CONVERSIÓN FIGMA A CÓDIGO
 
 Contexto:
@@ -727,7 +723,7 @@ Especificaciones Técnicas:
      precioMin?: number;
      precioMax?: number;
    }
-   ```
+````
 
 7. MANEJO DE SVG:
    - Cargar SVG desde /public/mapa-quintas.svg
@@ -753,6 +749,7 @@ Especificaciones Técnicas:
     - Lazy loading de panel lateral
 
 SALIDA ESPERADA:
+
 - Archivos .tsx separados para cada componente
 - Código limpio y comentado
 - Tipos TypeScript completos
@@ -760,13 +757,15 @@ SALIDA ESPERADA:
 - Sin dependencias externas (excepto React, Next.js, Tailwind)
 
 FORMATO DE CÓDIGO:
+
 - Indentación: 2 espacios
 - Quotes: Single quotes
 - Semicolons: Sí
 - Arrow functions: Sí
 - Destructuring: Sí
 - Async/await: Sí
-```
+
+````
 
 ---
 
@@ -822,9 +821,10 @@ Write-Host "Próximos pasos:" -ForegroundColor Cyan
 Write-Host "1. Implementar componentes SVG"
 Write-Host "2. Actualizar lib/directus-api.ts"
 Write-Host "3. Probar integración"
-```
+````
 
 **Ejecutar:**
+
 ```powershell
 .\scripts\preparar_frontend_svg.ps1
 ```
@@ -837,8 +837,7 @@ Write-Host "3. Probar integración"
 import axios from 'axios';
 import type { Lote, LoteFilters } from '@/types/lote';
 
-const DIRECTUS_BASE_URL =
-  process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
+const DIRECTUS_BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
 
 const directusClient = axios.create({
   baseURL: DIRECTUS_BASE_URL,
@@ -942,24 +941,24 @@ export interface SVGBounds {
  */
 export function parsePathCoordinates(pathData: string): [number, number][] {
   const coordinates: [number, number][] = [];
-  
+
   // Remover comandos M, L, Z
   const cleanPath = pathData.replace(/[MLZ]/g, ' ').trim();
-  
+
   // Dividir en pares de coordenadas
   const pairs = cleanPath.split(/\s+/);
-  
+
   for (let i = 0; i < pairs.length; i += 2) {
     if (pairs[i] && pairs[i + 1]) {
       const x = parseFloat(pairs[i]);
       const y = parseFloat(pairs[i + 1]);
-      
+
       if (!isNaN(x) && !isNaN(y)) {
         coordinates.push([x, y]);
       }
     }
   }
-  
+
   return coordinates;
 }
 
@@ -970,15 +969,15 @@ export function calculateCentroid(coordinates: [number, number][]): [number, num
   if (coordinates.length === 0) {
     return [0, 0];
   }
-  
+
   let sumX = 0;
   let sumY = 0;
-  
+
   for (const [x, y] of coordinates) {
     sumX += x;
     sumY += y;
   }
-  
+
   return [sumX / coordinates.length, sumY / coordinates.length];
 }
 
@@ -989,19 +988,19 @@ export function calculateBounds(coordinates: [number, number][]): SVGBounds {
   if (coordinates.length === 0) {
     return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
   }
-  
+
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  
+
   for (const [x, y] of coordinates) {
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
     maxX = Math.max(maxX, x);
     maxY = Math.max(maxY, y);
   }
-  
+
   return {
     minX,
     minY,
@@ -1023,7 +1022,7 @@ export function getColorByEstatus(estatus: string): string {
     liquidado: '#6366F1',
     bloqueado: '#6B7280',
   };
-  
+
   return colores[estatus] || '#CCCCCC';
 }
 
@@ -1037,10 +1036,7 @@ export function applyTransform(
   panX: number,
   panY: number
 ): [number, number] {
-  return [
-    x * zoom + panX,
-    y * zoom + panY,
-  ];
+  return [x * zoom + panX, y * zoom + panY];
 }
 ```
 
@@ -1238,6 +1234,7 @@ export default function MapaSVGInteractivo() {
 ## 🧪 FASE 7: TESTING Y VALIDACIÓN (Día 9)
 
 ### Objetivo
+
 Probar exhaustivamente la funcionalidad del mapa SVG.
 
 ### Script de Testing
@@ -1308,12 +1305,14 @@ Write-Host "`n✅ Tests completados!" -ForegroundColor Green
 # CHECKLIST DE TESTING - MAPA SVG
 
 ## Backend
+
 - [ ] Base de datos tiene campos SVG
 - [ ] Todos los lotes tienen svg_path_id
 - [ ] Directus endpoint /svg-map responde
 - [ ] Directus devuelve lotes con datos SVG correctos
 
 ## Frontend
+
 - [ ] Página carga sin errores
 - [ ] SVG se visualiza correctamente
 - [ ] Lotes tienen colores según estatus
@@ -1326,6 +1325,7 @@ Write-Host "`n✅ Tests completados!" -ForegroundColor Green
 - [ ] Contador de lotes es correcto
 
 ## Interactividad
+
 - [ ] Hover en lote cambia opacidad
 - [ ] Cursor cambia a pointer en hover
 - [ ] Click selecciona lote
@@ -1334,18 +1334,21 @@ Write-Host "`n✅ Tests completados!" -ForegroundColor Green
 - [ ] Pan funciona (si implementado)
 
 ## Responsive
+
 - [ ] Desktop (1920x1080) se ve bien
 - [ ] Tablet (768x1024) se ve bien
 - [ ] Mobile (375x667) se ve bien
 - [ ] Panel lateral se convierte en bottom sheet en mobile
 
 ## Performance
+
 - [ ] Carga inicial < 3 segundos
 - [ ] Interacciones son fluidas (60fps)
 - [ ] No hay memory leaks
 - [ ] Console sin errores
 
 ## Accesibilidad
+
 - [ ] Navegación con teclado funciona
 - [ ] Focus visible en controles
 - [ ] Aria-labels presentes
@@ -1357,6 +1360,7 @@ Write-Host "`n✅ Tests completados!" -ForegroundColor Green
 ## 🚀 FASE 8: DEPLOYMENT Y DOCUMENTACIÓN (Día 10)
 
 ### Objetivo
+
 Preparar el proyecto para producción y documentar cambios.
 
 ### 8.1 Build de Producción
@@ -1408,7 +1412,7 @@ Write-Host "Archivos generados en: .next/" -ForegroundColor Cyan
 
 **Archivo:** `CHANGELOG_SVG.md`
 
-```markdown
+````markdown
 # CHANGELOG - Migración a Mapa SVG
 
 ## [2.0.0] - 2026-01-16
@@ -1416,12 +1420,14 @@ Write-Host "Archivos generados en: .next/" -ForegroundColor Cyan
 ### 🎉 Cambios Mayores
 
 #### Eliminado
+
 - ❌ Mapbox GL JS (dependencia completa)
 - ❌ @types/mapbox-gl
 - ❌ proj4 (conversión UTM ya no necesaria)
 - ❌ Componente MapaInteractivo.tsx (versión Mapbox)
 
 #### Agregado
+
 - ✅ Componente MapaSVGInteractivo.tsx (nuevo)
 - ✅ Componente SVGLoteLayer.tsx
 - ✅ Componente PanelLote.tsx
@@ -1432,6 +1438,7 @@ Write-Host "Archivos generados en: .next/" -ForegroundColor Cyan
 - ✅ Campos SVG en base de datos
 
 #### Modificado
+
 - ⚠️ lib/directus-api.ts (removida conversión UTM)
 - ⚠️ types/lote.ts (agregados campos SVG)
 - ⚠️ Base de datos (3 campos nuevos)
@@ -1475,24 +1482,29 @@ Para migrar de la versión anterior:
    ```bash
    mysql -u root -p quintas_otinapa < database/02_agregar_campos_svg.sql
    ```
+````
 
 2. Actualizar datos de lotes:
+
    ```bash
    node scripts/actualizar_lotes_con_svg.js
    ```
 
 3. Reinstalar dependencias frontend:
+
    ```bash
    cd frontend
    npm install
    ```
 
 4. Copiar archivo SVG:
+
    ```bash
    copy "PROYECTO QUINTAS DE OTINAPA PRIMERA ETAPA-Model.svg" "frontend\public\mapas\mapa-quintas.svg"
    ```
 
 5. Reiniciar servicios:
+
    ```bash
    # Directus
    npx directus start
@@ -1519,7 +1531,8 @@ Para migrar de la versión anterior:
 
 **Autor:** SuperNinja AI  
 **Fecha:** 16 de Enero, 2026
-```
+
+````
 
 ### 8.3 README Actualizado
 
@@ -1566,21 +1579,24 @@ Sistema de gestión inmobiliaria con mapa SVG interactivo para visualización de
 ```bash
 git clone https://github.com/nhadadn/quintas-crm.git
 cd quintas-crm
-```
+````
 
 ### 2. Configurar Base de Datos
+
 ```bash
 mysql -u root -p < database/01_schema_lotes.sql
 mysql -u root -p < database/02_agregar_campos_svg.sql
 ```
 
 ### 3. Configurar Directus
+
 ```bash
 npm install
 npx directus start
 ```
 
 ### 4. Configurar Frontend
+
 ```bash
 cd frontend
 npm install
@@ -1616,12 +1632,14 @@ quintas-crm/
 ## 🗺️ Uso del Mapa
 
 ### Interacciones
+
 - **Click en lote:** Muestra información detallada
 - **Hover:** Resalta el lote
 - **Zoom:** Botones +/- o scroll
 - **Reset:** Botón ⟲ para vista inicial
 
 ### Estatus de Lotes
+
 - 🟢 **Verde:** Disponible
 - 🟡 **Amarillo:** Apartado
 - 🔴 **Rojo:** Vendido
@@ -1632,9 +1650,11 @@ quintas-crm/
 ### Endpoints Disponibles
 
 #### GET /svg-map
+
 Obtiene todos los lotes con datos SVG.
 
 **Respuesta:**
+
 ```json
 {
   "success": true,
@@ -1658,6 +1678,7 @@ Obtiene todos los lotes con datos SVG.
 ```
 
 #### GET /svg-map/:id
+
 Obtiene un lote específico.
 
 ## 🧪 Testing
@@ -1711,6 +1732,7 @@ Privado - Quintas de Otinapa
 
 **Versión:** 2.0.0  
 **Estado:** Producción
+
 ```
 
 ---
@@ -1740,9 +1762,11 @@ Privado - Quintas de Otinapa
 ### Costo Estimado
 
 ```
+
 Desarrollo: 10 días × $2,500 MXN/día = $25,000 MXN
 Infraestructura: $0 (sin cambios)
 TOTAL: $25,000 MXN
+
 ```
 
 ### ROI
@@ -1781,7 +1805,8 @@ TOTAL: $25,000 MXN
 
 ---
 
-**Documento creado:** 16 de Enero, 2026  
-**Autor:** SuperNinja AI  
-**Estado:** Listo para implementación  
+**Documento creado:** 16 de Enero, 2026
+**Autor:** SuperNinja AI
+**Estado:** Listo para implementación
 **Versión:** 1.0
+```

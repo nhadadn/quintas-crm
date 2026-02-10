@@ -1,0 +1,16 @@
+{
+  "name": "directus-endpoint-ventas-api",
+  "version": "1.0.0",
+  "description": "Endpoint de consulta de ventas con RLS",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "ventas",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
+}

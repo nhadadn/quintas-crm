@@ -42,42 +42,44 @@ TAREAS:
 
 2. ESTRUCTURA DE CARPETAS:
    Crear la siguiente estructura en frontend/:
-   ```
-   frontend/
-   ├── components/
-   │   └── mapa-svg/
-   │       ├── MapaSVGInteractivo.tsx
-   │       ├── SVGLoteLayer.tsx
-   │       ├── PanelLote.tsx
-   │       ├── Leyenda.tsx
-   │       ├── ControlesMapa.tsx
-   │       └── FiltrosMapa.tsx
-   ├── lib/
-   │   ├── directus-api.ts (actualizar)
-   │   └── svg/
-   │       ├── svg-utils.ts
-   │       └── svg-mapper.ts
-   ├── types/
-   │   ├── lote.ts (actualizar)
-   │   └── svg.ts (nuevo)
-   └── public/
-       └── mapas/
-           └── mapa-quintas.svg
-   ```
+```
+
+frontend/
+├── components/
+│ └── mapa-svg/
+│ ├── MapaSVGInteractivo.tsx
+│ ├── SVGLoteLayer.tsx
+│ ├── PanelLote.tsx
+│ ├── Leyenda.tsx
+│ ├── ControlesMapa.tsx
+│ └── FiltrosMapa.tsx
+├── lib/
+│ ├── directus-api.ts (actualizar)
+│ └── svg/
+│ ├── svg-utils.ts
+│ └── svg-mapper.ts
+├── types/
+│ ├── lote.ts (actualizar)
+│ └── svg.ts (nuevo)
+└── public/
+└── mapas/
+└── mapa-quintas.svg
+
+```
 
 3. ACTUALIZAR PACKAGE.JSON:
-   - Remover: mapbox-gl, @types/mapbox-gl, proj4
-   - Agregar: react-svg, xml2js, @types/xml2js
+- Remover: mapbox-gl, @types/mapbox-gl, proj4
+- Agregar: react-svg, xml2js, @types/xml2js
 
 4. CREAR SCRIPTS DE UTILIDAD:
-   - Script para analizar SVG
-   - Script para mapear lotes a paths SVG
-   - Script para actualizar base de datos
+- Script para analizar SVG
+- Script para mapear lotes a paths SVG
+- Script para actualizar base de datos
 
 5. GENERAR DOCUMENTACIÓN:
-   - README con nuevas instrucciones
-   - Guía de migración
-   - Changelog
+- README con nuevas instrucciones
+- Guía de migración
+- Changelog
 
 ENTREGABLES:
 1. Estructura de carpetas creada
@@ -102,7 +104,7 @@ RESTRICCIONES:
 
 ### PROMPT 2: Refactorización de Estructura Backend
 
-```
+````
 CONTEXTO:
 Continuando con la migración de Mapbox a SVG en "Quintas de Otinapa". La estructura frontend está lista, ahora necesito preparar el backend.
 
@@ -126,9 +128,9 @@ TAREAS:
    ADD COLUMN svg_transform VARCHAR(255) NULL,
    ADD COLUMN svg_centroid_x DECIMAL(10,2) NULL,
    ADD COLUMN svg_centroid_y DECIMAL(10,2) NULL;
-   
+
    CREATE INDEX idx_svg_path_id ON lotes(svg_path_id);
-   ```
+````
 
 2. CREAR ENDPOINT DIRECTUS:
    Archivo: extensions/endpoints/svg-map/index.js
@@ -158,6 +160,7 @@ TAREAS:
    - Mantener funciones existentes para compatibilidad
 
 ENTREGABLES:
+
 1. Script SQL ejecutable
 2. Endpoint Directus funcionando
 3. Scripts Node.js documentados
@@ -165,15 +168,18 @@ ENTREGABLES:
 5. Tests de integración
 
 FORMATO DE SALIDA:
+
 - SQL con comentarios
 - JavaScript con JSDoc
 - TypeScript con tipos completos
 - Logs detallados de ejecución
 
 VALIDACIÓN:
+
 - Probar endpoint: curl http://localhost:8055/svg-map
 - Verificar datos en MySQL
 - Confirmar que API client funciona
+
 ```
 
 ---
@@ -181,10 +187,12 @@ VALIDACIÓN:
 ### PROMPT 3: Implementación de Componentes Frontend
 
 ```
+
 CONTEXTO:
 Backend listo para SVG. Ahora necesito implementar los componentes frontend que reemplazan Mapbox.
 
 ESTADO ACTUAL:
+
 - Estructura de carpetas creada
 - API client actualizado
 - Endpoint /svg-map funcionando
@@ -197,7 +205,7 @@ TAREAS:
 
 1. COMPONENTE PRINCIPAL: MapaSVGInteractivo.tsx
    Ubicación: frontend/components/mapa-svg/MapaSVGInteractivo.tsx
-   
+
    Requisitos:
    - Cargar SVG desde /public/mapas/mapa-quintas.svg
    - Obtener lotes desde API (fetchLotesConSVG)
@@ -205,18 +213,19 @@ TAREAS:
    - Manejar estado: zoom, pan, selectedLote
    - Implementar event listeners: click, hover
    - Renderizar componentes hijos: Panel, Leyenda, Controles
-   
+
    Estado:
+
    ```typescript
    interface MapState {
-     zoom: number;           // 0.5 - 3.0
+     zoom: number; // 0.5 - 3.0
      pan: { x: number; y: number };
      selectedLote: Lote | null;
      loading: boolean;
      error: string | null;
    }
    ```
-   
+
    Funciones:
    - handleLoteClick(lote: Lote)
    - handleZoomIn()
@@ -226,7 +235,7 @@ TAREAS:
 
 2. COMPONENTE: SVGLoteLayer.tsx
    Ubicación: frontend/components/mapa-svg/SVGLoteLayer.tsx
-   
+
    Requisitos:
    - Recibir lotes como props
    - Renderizar paths SVG con colores
@@ -236,7 +245,7 @@ TAREAS:
 
 3. COMPONENTE: PanelLote.tsx
    Ubicación: frontend/components/mapa-svg/PanelLote.tsx
-   
+
    Requisitos:
    - Mostrar información del lote seleccionado
    - Animación slide-in desde derecha
@@ -246,7 +255,7 @@ TAREAS:
 
 4. COMPONENTE: Leyenda.tsx
    Ubicación: frontend/components/mapa-svg/Leyenda.tsx
-   
+
    Requisitos:
    - Mostrar estatus con colores
    - Posición fixed bottom-left
@@ -255,7 +264,7 @@ TAREAS:
 
 5. COMPONENTE: ControlesMapa.tsx
    Ubicación: frontend/components/mapa-svg/ControlesMapa.tsx
-   
+
    Requisitos:
    - Botones: Zoom In, Zoom Out, Reset
    - Indicador de nivel de zoom
@@ -264,7 +273,7 @@ TAREAS:
 
 6. UTILIDADES SVG:
    Archivo: frontend/lib/svg/svg-utils.ts
-   
+
    Funciones:
    - parsePathCoordinates(pathData: string): [number, number][]
    - calculateCentroid(coords: [number, number][]): [number, number]
@@ -274,13 +283,14 @@ TAREAS:
 
 7. TIPOS TYPESCRIPT:
    Archivo: frontend/types/svg.ts
-   
+
    Interfaces:
    - SVGBounds
    - SVGTransform
    - SVGMapState
 
 ENTREGABLES:
+
 1. 6 componentes React funcionales
 2. Utilidades SVG completas
 3. Tipos TypeScript
@@ -288,6 +298,7 @@ ENTREGABLES:
 5. Documentación JSDoc
 
 FORMATO DE SALIDA:
+
 - TypeScript con tipos estrictos
 - Componentes funcionales con hooks
 - Tailwind CSS para estilos
@@ -295,10 +306,12 @@ FORMATO DE SALIDA:
 - Logs de debugging
 
 VALIDACIÓN:
+
 - npm run lint sin errores
 - npm run build exitoso
 - Mapa se visualiza correctamente
 - Interacciones funcionan
+
 ```
 
 ---
@@ -308,12 +321,14 @@ VALIDACIÓN:
 ### PROMPT 1: Diseño de Interfaz Principal
 
 ```
+
 BRIEF DE DISEÑO - MAPA SVG INTERACTIVO QUINTAS DE OTINAPA
 
 CONTEXTO DEL PROYECTO:
 "Quintas de Otinapa" es un desarrollo inmobiliario en Durango, México, con 1,500+ lotes residenciales. Necesitamos una interfaz web moderna para visualizar y gestionar estos lotes usando un mapa SVG interactivo.
 
 USUARIOS OBJETIVO:
+
 1. Compradores potenciales (buscan lotes disponibles)
 2. Vendedores (65 personas, gestionan ventas)
 3. Administrador (owner, supervisa todo)
@@ -332,19 +347,19 @@ ESPECIFICACIONES TÉCNICAS:
 
 2. PALETA DE COLORES:
    Basada en la identidad de Quintas de Otinapa:
-   
+
    Colores Primarios:
    - Verde Quintas: #3D6B1F (principal)
    - Verde Oscuro: #2D5016 (hover, énfasis)
    - Amarillo Ciervo: #F4C430 (acentos, CTA)
-   
+
    Colores de Estatus:
    - Disponible: #10B981 (verde brillante)
    - Apartado: #F59E0B (amarillo/naranja)
    - Vendido: #EF4444 (rojo)
    - Liquidado: #6366F1 (azul/índigo)
    - Bloqueado: #6B7280 (gris)
-   
+
    Colores de UI:
    - Background: #F9FAFB (gris muy claro)
    - Surface: #FFFFFF (blanco)
@@ -356,7 +371,7 @@ ESPECIFICACIONES TÉCNICAS:
    - Headings: Georgia (serif, elegante, del logo)
    - Body: Inter (sans-serif, legible)
    - Números: Roboto Mono (monospace, para precios)
-   
+
    Tamaños:
    - H1: 48px / Bold
    - H2: 32px / Bold
@@ -373,13 +388,13 @@ COMPONENTES A DISEÑAR:
    Contenido:
    - Logo "Quintas de Otinapa" (izquierda, 180px ancho)
    - Navegación horizontal (centro):
-     * Inicio
-     * Lotes Disponibles
-     * Nosotros
-     * Contacto
+     - Inicio
+     - Lotes Disponibles
+     - Nosotros
+     - Contacto
    - Botón CTA "Agendar Visita" (derecha, verde #3D6B1F)
    - Icono usuario (derecha, para login)
-   
+
    Estados:
    - Normal
    - Hover en links
@@ -392,52 +407,47 @@ COMPONENTES A DISEÑAR:
    - Fondo: Textura sutil de terreno o imagen satelital con overlay
    - Lotes como polígonos con colores según estatus
    - Etiquetas de número de lote (visibles en zoom > 50%)
-   
+
    Interacciones:
    - Hover: Aumentar opacidad + borde blanco 3px
    - Click: Seleccionar + borde amarillo 4px + sombra
    - Cursor: pointer en hover
 
 3. PANEL LATERAL DERECHO (30% viewport, 400px ancho)
-   
+
    Estado: Sin Selección
    - Título: "Selecciona un lote"
    - Ilustración: Icono de mapa con cursor
    - Texto: "Haz click en cualquier lote del mapa para ver su información"
    - Botón: "Ver Todos los Lotes" (outline)
-   
+
    Estado: Lote Seleccionado
    - Header:
-     * Número de lote (H2, 32px, Bold)
-     * Badge de estatus (pill, color dinámico)
-     * Botón cerrar (X, top-right)
-   
+     - Número de lote (H2, 32px, Bold)
+     - Badge de estatus (pill, color dinámico)
+     - Botón cerrar (X, top-right)
    - Información (Grid 2 columnas):
-     * Zona: [A/B/C]
-     * Manzana: [01-99]
-     * Área: [1000] m²
-     * Dimensiones: [25 × 40] m
-     * Topografía: [Plano/Pendiente]
-     * Vista: [Sin vista/Parcial/Panorámica/Premium]
-   
+     - Zona: [A/B/C]
+     - Manzana: [01-99]
+     - Área: [1000] m²
+     - Dimensiones: [25 × 40] m
+     - Topografía: [Plano/Pendiente]
+     - Vista: [Sin vista/Parcial/Panorámica/Premium]
    - Precio (Destacado):
-     * Precio lista: $350,000 (36px, Bold, Verde)
-     * Precio por m²: $350 / m² (16px, Gris)
-     * Descuento: -10% (si aplica, rojo)
-   
+     - Precio lista: $350,000 (36px, Bold, Verde)
+     - Precio por m²: $350 / m² (16px, Gris)
+     - Descuento: -10% (si aplica, rojo)
    - Características:
-     * Servicios disponibles: [Luz, Agua, Drenaje]
-     * Acceso directo: [Sí/No]
-   
+     - Servicios disponibles: [Luz, Agua, Drenaje]
+     - Acceso directo: [Sí/No]
    - Notas:
-     * Texto descriptivo del lote
-     * Máximo 3 líneas, expandible
-   
+     - Texto descriptivo del lote
+     - Máximo 3 líneas, expandible
    - Acciones:
-     * Botón "Apartar Lote" (Full width, Verde, Bold)
+     - Botón "Apartar Lote" (Full width, Verde, Bold)
        - Solo visible si estatus = disponible
-     * Botón "Más Información" (Full width, Outline)
-     * Botón "Compartir" (Icono)
+     - Botón "Más Información" (Full width, Outline)
+     - Botón "Compartir" (Icono)
 
 4. LEYENDA (Bottom-Left, Floating)
    Contenido:
@@ -446,10 +456,10 @@ COMPONENTES A DISEÑAR:
    - Border-radius: 12px
    - Título: "Leyenda" (Bold, 14px)
    - Items (vertical):
-     * ● Verde - Disponible (12 lotes)
-     * ● Amarillo - Apartado (5 lotes)
-     * ● Rojo - Vendido (28 lotes)
-     * ● Azul - Liquidado (5 lotes)
+     - ● Verde - Disponible (12 lotes)
+     - ● Amarillo - Apartado (5 lotes)
+     - ● Rojo - Vendido (28 lotes)
+     - ● Azul - Liquidado (5 lotes)
    - Contador dinámico por estatus
 
 5. CONTROLES DE MAPA (Top-Right, Floating)
@@ -457,12 +467,12 @@ COMPONENTES A DISEÑAR:
    - Fondo: Blanco con sombra
    - Border-radius: 8px
    - Botones verticales:
-     * Zoom In (+) - 40x40px
-     * Zoom Out (-) - 40x40px
-     * Separador (línea)
-     * Reset View (⟲) - 40x40px
+     - Zoom In (+) - 40x40px
+     - Zoom Out (-) - 40x40px
+     - Separador (línea)
+     - Reset View (⟲) - 40x40px
    - Indicador de zoom: "150%" (pequeño, abajo)
-   
+
    Estados:
    - Normal
    - Hover (fondo gris claro)
@@ -475,25 +485,24 @@ COMPONENTES A DISEÑAR:
    - Padding: 20px
    - Border-radius: 12px
    - Título: "Filtrar Lotes" (Bold, 16px)
-   
+
    Controles:
    - Dropdown: Estatus
-     * Opciones: Todos, Disponible, Apartado, Vendido, Liquidado
+     - Opciones: Todos, Disponible, Apartado, Vendido, Liquidado
    - Dropdown: Zona
-     * Opciones: Todas, A, B, C
+     - Opciones: Todas, A, B, C
    - Dropdown: Manzana
-     * Opciones: Todas, 01-99
+     - Opciones: Todas, 01-99
    - Range Slider: Precio
-     * Min: $0
-     * Max: $1,000,000
-     * Valores actuales visibles
+     - Min: $0
+     - Max: $1,000,000
+     - Valores actuales visibles
    - Range Slider: Área
-     * Min: 500 m²
-     * Max: 2000 m²
-   
+     - Min: 500 m²
+     - Max: 2000 m²
    - Botón "Aplicar Filtros" (Verde, full width)
    - Link "Limpiar filtros" (pequeño, gris)
-   
+
    Estado Colapsado (Mobile):
    - Solo icono de filtro
    - Expandible con click
@@ -530,8 +539,8 @@ ESTADOS Y VARIANTES:
    - Header: 60px altura, hamburger menu
    - Mapa: Full width, 60% altura
    - Panel: Bottom sheet (40% altura)
-     * Deslizable hacia arriba
-     * Handle visible (línea gris)
+     - Deslizable hacia arriba
+     - Handle visible (línea gris)
    - Leyenda: Minimizada, expandible con tap
    - Controles: Más pequeños, bottom-right
    - Filtros: Modal full screen
@@ -641,12 +650,14 @@ FORMATO DE ENTREGA:
 REFERENCIAS VISUALES:
 
 Estilo deseado:
+
 - Moderno pero elegante
 - Profesional pero accesible
 - Limpio y espacioso
 - Enfoque en el mapa como hero
 
 Inspiración:
+
 - Zillow (navegación de propiedades)
 - Airbnb (mapa interactivo)
 - Google Maps (controles de mapa)
@@ -688,12 +699,14 @@ TIMELINE SUGERIDO:
 CONTACTO:
 
 Para dudas o feedback:
+
 - Email: proyecto@quintasdeotinapa.com
 - Slack: #quintas-diseño
 
 ---
 
 ¡Gracias por tu trabajo en este proyecto!
+
 ```
 
 ---
@@ -703,6 +716,7 @@ Para dudas o feedback:
 ### PROMPT 1: Conversión Figma a Código
 
 ```
+
 BRIEF DE CONVERSIÓN - FIGMA A CÓDIGO REACT
 
 CONTEXTO:
@@ -720,7 +734,7 @@ ESPECIFICACIONES TÉCNICAS:
 
 2. ESTRUCTURA DE ARCHIVOS:
    Generar archivos separados para cada componente:
-   
+
    ```
    frontend/
    ├── app/
@@ -748,115 +762,127 @@ ESPECIFICACIONES TÉCNICAS:
 3. COMPONENTES A GENERAR:
 
    A. MapaSVGInteractivo.tsx
-      Props: ninguna (componente raíz)
-      Estado:
-      ```typescript
-      interface MapState {
-        zoom: number;                    // 0.5 - 3.0
-        pan: { x: number; y: number };
-        selectedLote: Lote | null;
-        loading: boolean;
-        error: string | null;
-      }
-      ```
-      Funciones:
-      - handleLoteClick(lote: Lote): void
-      - handleZoomIn(): void
-      - handleZoomOut(): void
-      - handleReset(): void
-      - handleClosePanel(): void
-      
-      Renderiza:
-      - SVG container con transform
-      - SVGLoteLayer
-      - PanelLote (condicional)
-      - Leyenda
-      - ControlesMapa
-      - Loading state
-      - Error state
+   Props: ninguna (componente raíz)
+   Estado:
+
+   ```typescript
+   interface MapState {
+     zoom: number; // 0.5 - 3.0
+     pan: { x: number; y: number };
+     selectedLote: Lote | null;
+     loading: boolean;
+     error: string | null;
+   }
+   ```
+
+   Funciones:
+   - handleLoteClick(lote: Lote): void
+   - handleZoomIn(): void
+   - handleZoomOut(): void
+   - handleReset(): void
+   - handleClosePanel(): void
+
+   Renderiza:
+   - SVG container con transform
+   - SVGLoteLayer
+   - PanelLote (condicional)
+   - Leyenda
+   - ControlesMapa
+   - Loading state
+   - Error state
 
    B. SVGLoteLayer.tsx
-      Props:
-      ```typescript
-      interface SVGLoteLayerProps {
-        lotes: Lote[];
-        selectedLoteId: number | null;
-        zoom: number;
-        pan: { x: number; y: number };
-        onLoteClick: (lote: Lote) => void;
-      }
-      ```
-      Renderiza:
-      - Paths SVG para cada lote
-      - Colores según estatus
-      - Event handlers (click, hover)
-      - Etiquetas de número (opcional)
+   Props:
+
+   ```typescript
+   interface SVGLoteLayerProps {
+     lotes: Lote[];
+     selectedLoteId: number | null;
+     zoom: number;
+     pan: { x: number; y: number };
+     onLoteClick: (lote: Lote) => void;
+   }
+   ```
+
+   Renderiza:
+   - Paths SVG para cada lote
+   - Colores según estatus
+   - Event handlers (click, hover)
+   - Etiquetas de número (opcional)
 
    C. PanelLote.tsx
-      Props:
-      ```typescript
-      interface PanelLoteProps {
-        lote: Lote | null;
-        onClose: () => void;
-      }
-      ```
-      Renderiza:
-      - Slide-in animation desde derecha
-      - Header con número y badge
-      - Grid de información
-      - Precio destacado
-      - Botones de acción
-      - Responsive: bottom sheet en mobile
+   Props:
+
+   ```typescript
+   interface PanelLoteProps {
+     lote: Lote | null;
+     onClose: () => void;
+   }
+   ```
+
+   Renderiza:
+   - Slide-in animation desde derecha
+   - Header con número y badge
+   - Grid de información
+   - Precio destacado
+   - Botones de acción
+   - Responsive: bottom sheet en mobile
 
    D. Leyenda.tsx
-      Props: ninguna
-      Renderiza:
-      - Lista de estatus con colores
-      - Contador por estatus (opcional)
-      - Fixed bottom-left
-      - Fondo blanco con sombra
+   Props: ninguna
+   Renderiza:
+   - Lista de estatus con colores
+   - Contador por estatus (opcional)
+   - Fixed bottom-left
+   - Fondo blanco con sombra
 
    E. ControlesMapa.tsx
-      Props:
-      ```typescript
-      interface ControlesMapaProps {
-        zoom: number;
-        onZoomIn: () => void;
-        onZoomOut: () => void;
-        onReset: () => void;
-      }
-      ```
-      Renderiza:
-      - Botones verticales
-      - Iconos claros
-      - Indicador de zoom
-      - Fixed top-right
+   Props:
+
+   ```typescript
+   interface ControlesMapaProps {
+     zoom: number;
+     onZoomIn: () => void;
+     onZoomOut: () => void;
+     onReset: () => void;
+   }
+   ```
+
+   Renderiza:
+   - Botones verticales
+   - Iconos claros
+   - Indicador de zoom
+   - Fixed top-right
 
    F. FiltrosMapa.tsx
-      Props:
-      ```typescript
-      interface FiltrosMapaProps {
-        onFilterChange: (filters: Filters) => void;
-      }
-      ```
-      Estado:
-      ```typescript
-      interface Filters {
-        estatus?: string;
-        zona?: string;
-        precioMin?: number;
-        precioMax?: number;
-      }
-      ```
-      Renderiza:
-      - Dropdowns
-      - Range sliders
-      - Botón aplicar
-      - Link limpiar
-      - Colapsable en mobile
+   Props:
+
+   ```typescript
+   interface FiltrosMapaProps {
+     onFilterChange: (filters: Filters) => void;
+   }
+   ```
+
+   Estado:
+
+   ```typescript
+   interface Filters {
+     estatus?: string;
+     zona?: string;
+     precioMin?: number;
+     precioMax?: number;
+   }
+   ```
+
+   Renderiza:
+   - Dropdowns
+   - Range sliders
+   - Botón aplicar
+   - Link limpiar
+   - Colapsable en mobile
 
 4. ESTILOS TAILWIND:
-   
+
    Usar clases utilitarias:
    - Layout: flex, grid, absolute, fixed
    - Spacing: p-4, m-2, gap-4
@@ -865,8 +891,9 @@ ESPECIFICACIONES TÉCNICAS:
    - Shadows: shadow-xl
    - Transitions: transition-all, duration-300
    - Responsive: sm:, md:, lg:
-   
+
    Colores personalizados (ya en tailwind.config.ts):
+
    ```javascript
    colors: {
      'quintas-green': '#3D6B1F',
@@ -876,20 +903,21 @@ ESPECIFICACIONES TÉCNICAS:
    ```
 
 5. INTERACTIVIDAD SVG:
-   
+
    Manipulación de SVG:
    - Usar useRef para acceder al SVG DOM
    - setAttribute para cambiar colores
    - addEventListener para eventos
    - transform para zoom y pan
-   
+
    Ejemplo:
+
    ```typescript
    const svgRef = useRef<SVGSVGElement>(null);
-   
+
    useEffect(() => {
      if (!svgRef.current) return;
-     
+
      const path = svgRef.current.querySelector('#lote-A-01-001');
      if (path) {
        path.setAttribute('fill', '#10B981');
@@ -899,24 +927,29 @@ ESPECIFICACIONES TÉCNICAS:
    ```
 
 6. ANIMACIONES:
-   
+
    Usar Tailwind transitions:
    - Panel: `transition-transform duration-300 ease-in-out`
    - Hover: `transition-opacity duration-200`
    - Zoom: `transition-transform duration-300`
-   
+
    Animaciones personalizadas (si necesario):
+
    ```css
    @keyframes slideIn {
-     from { transform: translateX(100%); }
-     to { transform: translateX(0); }
+     from {
+       transform: translateX(100%);
+     }
+     to {
+       transform: translateX(0);
+     }
    }
    ```
 
 7. TIPOS TYPESCRIPT:
-   
+
    Generar interfaces completas:
-   
+
    ```typescript
    // types/lote.ts (ya existe, usar este)
    interface Lote {
@@ -937,7 +970,7 @@ ESPECIFICACIONES TÉCNICAS:
      vista: string;
      notas: string;
    }
-   
+
    // types/svg.ts (nuevo)
    interface SVGBounds {
      minX: number;
@@ -947,7 +980,7 @@ ESPECIFICACIONES TÉCNICAS:
      width: number;
      height: number;
    }
-   
+
    interface SVGTransform {
      scale: number;
      translateX: number;
@@ -956,19 +989,20 @@ ESPECIFICACIONES TÉCNICAS:
    ```
 
 8. MANEJO DE ESTADO:
-   
+
    Usar React hooks:
    - useState para estado local
    - useEffect para side effects
    - useRef para referencias DOM
    - useMemo para cálculos pesados
    - useCallback para funciones
-   
+
    Ejemplo:
+
    ```typescript
    const [lotes, setLotes] = useState<Lote[]>([]);
    const [loading, setLoading] = useState(true);
-   
+
    useEffect(() => {
      async function cargarLotes() {
        const data = await fetchLotesConSVG();
@@ -980,13 +1014,13 @@ ESPECIFICACIONES TÉCNICAS:
    ```
 
 9. RESPONSIVE:
-   
+
    Breakpoints Tailwind:
    - sm: 640px (mobile landscape)
    - md: 768px (tablet)
    - lg: 1024px (desktop)
    - xl: 1280px (large desktop)
-   
+
    Estrategia:
    - Mobile first (estilos base para mobile)
    - Agregar clases md: y lg: para pantallas grandes
@@ -995,7 +1029,7 @@ ESPECIFICACIONES TÉCNICAS:
    - Controles → más pequeños en mobile
 
 10. ACCESIBILIDAD:
-    
+
     Implementar:
     - aria-label en botones sin texto
     - role="button" en elementos clickeables
@@ -1005,29 +1039,31 @@ ESPECIFICACIONES TÉCNICAS:
     - Semantic HTML (header, main, aside, button)
 
 11. PERFORMANCE:
-    
+
     Optimizaciones:
     - React.memo para componentes puros
     - useMemo para cálculos pesados
     - useCallback para funciones pasadas como props
     - Lazy loading de componentes pesados
     - Debounce en filtros
-    
+
     Ejemplo:
+
     ```typescript
     const MemoizedPanel = React.memo(PanelLote);
-    
+
     const filteredLotes = useMemo(() => {
-      return lotes.filter(lote => lote.estatus === 'disponible');
+      return lotes.filter((lote) => lote.estatus === 'disponible');
     }, [lotes]);
     ```
 
 12. INTEGRACIÓN CON API:
-    
+
     Usar funciones existentes de lib/directus-api.ts:
+
     ```typescript
     import { fetchLotesConSVG } from '@/lib/directus-api';
-    
+
     useEffect(() => {
       async function cargarLotes() {
         try {
@@ -1053,30 +1089,31 @@ FORMATO DE SALIDA:
    - Arrow functions: Sí
 
 2. ESTRUCTURA DE COMPONENTE:
+
    ```typescript
    'use client'; // Si usa hooks
-   
+
    import { useState, useEffect } from 'react';
    import type { Lote } from '@/types/lote';
-   
+
    interface ComponentProps {
      // props
    }
-   
+
    export default function Component({ prop1, prop2 }: ComponentProps) {
      // Estado
      const [state, setState] = useState();
-     
+
      // Effects
      useEffect(() => {
        // ...
      }, []);
-     
+
      // Handlers
      const handleClick = () => {
        // ...
      };
-     
+
      // Render
      return (
        <div className="...">
@@ -1100,6 +1137,7 @@ FORMATO DE SALIDA:
 VALIDACIÓN:
 
 Antes de entregar, verificar:
+
 - [ ] npm run lint sin errores
 - [ ] npm run build exitoso
 - [ ] Todos los componentes tienen tipos
@@ -1154,12 +1192,14 @@ A: Dividirlo en subcomponentes más pequeños.
 CONTACTO:
 
 Para dudas técnicas:
+
 - Email: dev@quintasdeotinapa.com
 - Documentación: /docs/README.md
 
 ---
 
 ¡Gracias por tu trabajo en este proyecto!
+
 ```
 
 ---
@@ -1169,10 +1209,12 @@ Para dudas técnicas:
 ### PROMPT 1: Refactorización Completa
 
 ```
+
 CONTEXTO:
 Estoy migrando el proyecto "Quintas de Otinapa" de Mapbox a SVG nativo. Necesito refactorizar el código existente manteniendo la funcionalidad.
 
 ARCHIVOS ACTUALES:
+
 - frontend/components/MapaInteractivo.tsx (usa Mapbox)
 - frontend/lib/directus-api.ts (tiene conversión UTM)
 - frontend/types/lote.ts (tipos actuales)
@@ -1204,21 +1246,25 @@ TAREAS:
    - Verificar tipos
 
 RESTRICCIONES:
+
 - Mantener compatibilidad con API existente
 - No romper otros componentes
 - Usar TypeScript strict
 - Seguir convenciones del proyecto
 
 FORMATO DE SALIDA:
+
 - Código TypeScript limpio
 - Comentarios explicativos
 - Logs de cambios
 - Lista de archivos modificados
+
 ```
 
 ---
 
-**Documento creado:** 16 de Enero, 2026  
-**Autor:** SuperNinja AI  
-**Estado:** Listo para usar  
+**Documento creado:** 16 de Enero, 2026
+**Autor:** SuperNinja AI
+**Estado:** Listo para usar
 **Versión:** 1.0
+```

@@ -19,4 +19,3 @@ export function normalizePoint(point: SVGPoint, viewBox: SVGBox): SVGPoint {
     y: (point.y - viewBox.minY) / height,
   };
 }
-

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { getVentaById } from '@/lib/ventas-api';
 import { fetchPagos } from '@/lib/pagos-api';
 import { Venta, Pago } from '@/types/erp';
@@ -10,19 +10,21 @@ import { TablaAmortizacion } from '@/components/pagos/TablaAmortizacion';
 import Link from 'next/link';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function DetalleVentaPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = use(params);
   const [venta, setVenta] = useState<Venta | null>(null);
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'detalle' | 'pagos' | 'amortizacion'>('detalle');
 
   useEffect(() => {
+    if (!id) return;
+
     const cargarDatos = async () => {
       setLoading(true);
       try {
@@ -32,9 +34,11 @@ export default function DetalleVentaPage({ params }: PageProps) {
         // Cargar pagos asociados
         const pagosData = await fetchPagos();
         // Filtrar pagos de esta venta (idealmente el API debería soportar filtro por venta_id)
-        const pagosVenta = pagosData.filter(p => 
-          typeof p.venta_id === 'object' ? p.venta_id.id === id : p.venta_id === id
-        );
+        const pagosVenta = pagosData.filter((p) => {
+          if (!p.venta_id) return false;
+          const ventaId = typeof p.venta_id === 'object' ? p.venta_id.id : p.venta_id;
+          return String(ventaId) === String(id);
+        });
         setPagos(pagosVenta);
       } catch (error) {
         console.error('Error cargando datos de venta:', error);
@@ -73,7 +77,8 @@ export default function DetalleVentaPage({ params }: PageProps) {
             Venta #{String(venta.id).substring(0, 8)}
           </h1>
           <p className="text-gray-500">
-            Fecha: {formatDate(venta.fecha_venta)} | Estatus: <span className="uppercase font-semibold">{venta.estatus}</span>
+            Fecha: {formatDate(venta.fecha_venta)} | Estatus:{' '}
+            <span className="uppercase font-semibold">{venta.estatus}</span>
           </p>
         </div>
         <div className="space-x-3">
@@ -133,7 +138,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
               <div className="sm:col-span-2">
                 <dt className="text-sm font-medium text-gray-500">Nombre Completo</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {typeof venta.cliente_id === 'object' 
+                  {typeof venta.cliente_id === 'object'
                     ? `${venta.cliente_id.nombre} ${venta.cliente_id.apellido_paterno} ${venta.cliente_id.apellido_materno || ''}`
                     : 'N/A'}
                 </dd>
@@ -171,8 +176,8 @@ export default function DetalleVentaPage({ params }: PageProps) {
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Precio Lista</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {typeof venta.lote_id === 'object' && venta.lote_id.precio_lista 
-                    ? formatCurrency(venta.lote_id.precio_lista) 
+                  {typeof venta.lote_id === 'object' && venta.lote_id.precio_lista
+                    ? formatCurrency(venta.lote_id.precio_lista)
                     : 'N/A'}
                 </dd>
               </div>
@@ -196,21 +201,15 @@ export default function DetalleVentaPage({ params }: PageProps) {
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Enganche</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatCurrency(venta.enganche)}
-                </dd>
+                <dd className="mt-1 text-sm text-gray-900">{formatCurrency(venta.enganche)}</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Plazo</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {venta.plazo_meses} meses
-                </dd>
+                <dd className="mt-1 text-sm text-gray-900">{venta.plazo_meses} meses</dd>
               </div>
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Tasa Interés</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {venta.tasa_interes}% Anual
-                </dd>
+                <dd className="mt-1 text-sm text-gray-900">{venta.tasa_interes}% Anual</dd>
               </div>
             </dl>
           </div>
@@ -225,9 +224,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
         />
       )}
 
-      {activeTab === 'amortizacion' && (
-        <TablaAmortizacion venta_id={String(venta.id)} />
-      )}
+      {activeTab === 'amortizacion' && <TablaAmortizacion venta_id={String(venta.id)} />}
     </div>
   );
 }

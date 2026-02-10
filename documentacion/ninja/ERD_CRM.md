@@ -14,6 +14,13 @@ erDiagram
     LOTES ||--o{ VENTAS : es_vendido_en
     VENTAS ||--o{ PAGOS : genera
     VENTAS ||--o{ COMISIONES : genera
+    VENTAS ||--o{ SUSCRIPCIONES : tiene
+    SUSCRIPCIONES ||--o{ AMORTIZACIONES : genera
+    PLANES_PAGOS ||--o{ SUSCRIPCIONES : define
+
+    OAUTH_CLIENTS ||--o{ OAUTH_AUTHORIZATION_CODES : genera
+    OAUTH_CLIENTS ||--o{ OAUTH_ACCESS_TOKENS : posee
+    OAUTH_CLIENTS ||--o{ OAUTH_REFRESH_TOKENS : posee
 
     CLIENTES {
         uuid id PK
@@ -25,6 +32,7 @@ erDiagram
         string rfc UK
         string estatus "prospecto, activo, inactivo"
         datetime fecha_registro
+        string stripe_customer_id "nullable"
     }
 
     VENDEDORES {
@@ -60,68 +68,106 @@ erDiagram
         decimal monto_pagado
         decimal mora
         string estatus "pendiente, pagado, atrasado"
+        string stripe_payment_intent_id "UK, nullable"
+        string stripe_customer_id "nullable"
+        string stripe_last4 "nullable"
+        json metodo_pago_detalle "nullable"
     }
 
-    COMISIONES {
+    SUSCRIPCIONES {
         uuid id PK
+        uuid cliente_id FK
         uuid venta_id FK
-        uuid vendedor_id FK
-        decimal monto_comision
-        decimal porcentaje
-        string tipo_comision "enganche, contrato, mensualidad"
-        string estatus "pendiente, pagada"
-        date fecha_pago_programada
+        uuid plan_id FK
+        string stripe_subscription_id UK
+        string estado "active, past_due, canceled"
+        date fecha_inicio
+        date fecha_fin
+    }
+
+    AMORTIZACIONES {
+        uuid id PK
+        uuid suscripcion_id FK
+        int numero_pago
+        date fecha_vencimiento
+        decimal monto_capital
+        decimal monto_interes
+        decimal monto_total
+        string estatus "pendiente, pagado, vencido"
+        uuid pago_id FK
+    }
+
+    PLANES_PAGOS {
+        uuid id PK
+        string nombre
+        string descripcion "nullable"
+        decimal monto_inicial
+    }
+
+    OAUTH_CLIENTS {
+        uuid id PK
+        string client_id UK
+        string client_secret
+        string name
+        json redirect_uris
+        json scopes
+        boolean is_active
+        int rate_limit_per_hour
+        uuid created_by FK
+    }
+
+    OAUTH_AUTHORIZATION_CODES {
+        uuid id PK
+        string code UK
+        uuid client_id FK
+        uuid user_id FK
+        string redirect_uri
+        json scopes
+        timestamp expires_at
+    }
+
+    OAUTH_ACCESS_TOKENS {
+        uuid id PK
+        string access_token UK
+        uuid client_id FK
+        uuid user_id FK
+        json scopes
+        timestamp expires_at
+    }
+
+    OAUTH_REFRESH_TOKENS {
+        uuid id PK
+        string refresh_token UK
+        uuid client_id FK
+        uuid user_id FK
+        json scopes
+        timestamp expires_at
+        boolean revoked
     }
 ```
 
-## 2. Diccionario de Datos
+## 2. Descripción de Tablas
 
-### 2.1. Colección `clientes`
-Almacena la información de prospectos y clientes reales.
-- **Relaciones:**
-    - Uno a Muchos con `ventas` (Un cliente puede comprar múltiples lotes).
-- **Índices Clave:**
-    - `email` (Unique): Evita duplicados.
-    - `rfc` (Unique): Identificador fiscal único.
-    - `estatus`: Para filtrado rápido de prospectos vs clientes.
+### Módulo Clientes
 
-### 2.2. Colección `vendedores`
-Personal de ventas y comisionistas externos.
-- **Relaciones:**
-    - Uno a Muchos con `ventas`.
-    - Uno a Muchos con `comisiones`.
-- **Reglas de Negocio:**
-    - `comision_esquema`: Define cómo se calcula su pago (e.g., 5% fijo o variable según volumen).
+- **clientes**: Almacena la información personal y de contacto de los clientes potenciales y reales. Se vincula con Stripe Customer.
 
-### 2.3. Colección `ventas`
-Tabla pivote central que vincula Quién (Cliente) compró Qué (Lote) a través de Quién (Vendedor) y Cómo (Condiciones).
-- **Foreign Keys:**
-    - `lote_id`: Vincula con inventario existente.
-    - `cliente_id`: Comprador.
-    - `vendedor_id`: Responsable de la venta.
-- **Campos Calculados (Backend):**
-    - `monto_financiado` = `monto_total` - `enganche`.
+### Módulo Ventas
 
-### 2.4. Colección `pagos`
-Tabla de amortización y registro de ingresos.
-- **Flujo:**
-    - Al crear una venta financiada, se generan N registros con estatus `pendiente`.
-    - Al recibir dinero, se actualiza a `pagado` y se registra `fecha_pago`.
-- **Integridad:**
-    - `venta_id` con `ON DELETE CASCADE` (Si se borra la venta -por error-, se borran sus pagos).
+- **ventas**: Registro central de la operación de venta. Vincula un lote con un cliente y un vendedor.
+- **lotes**: (Referencia) Inventario de terrenos disponibles.
+- **vendedores**: Agentes encargados de la venta.
 
-### 2.5. Colección `comisiones`
-Registro de pasivos de la empresa hacia los vendedores.
-- **Trigger Lógico:**
-    - Se genera automáticamente cuando una `venta` cambia de estatus o cuando un `pago` específico (ej. enganche) es realizado.
+### Módulo Financiero
 
-## 3. Estrategia de Implementación en Directus
+- **pagos**: Registro individual de cada pago realizado o programado.
+- **planes_pagos**: Definición de esquemas de financiamiento.
+- **suscripciones**: Manejo de pagos recurrentes vía Stripe.
+- **amortizaciones**: Desglose de pagos de capital e intereses.
 
-1.  **Creación de Colecciones:** Ejecutar script SQL `database/migrations/001_create_crm_schema.sql` directamente en la base de datos MySQL subyacente de Directus.
-2.  **Sincronización:** Una vez creadas las tablas, ir a Directus Admin -> Settings -> Data Model y Directus detectará las nuevas tablas, permitiendo configurarlas como colecciones gestionadas ("System Collections").
-3.  **Configuración de UI:** Configurar interfaces (inputs, dropdowns para enums) manualmente en el Admin Panel para mejorar la UX de los operadores.
+### Módulo Seguridad (OAuth 2.0)
 
-## 4. Consideraciones de Seguridad
-- RLS (Row Level Security) debe configurarse en Directus Roles & Permissions para que:
-    - Vendedores solo vean sus propias ventas/comisiones.
-    - Administradores vean todo.
+- **oauth_clients**: Aplicaciones de terceros registradas para acceder a la API.
+- **oauth_authorization_codes**: Códigos temporales para el flujo de autorización.
+- **oauth_access_tokens**: Tokens de acceso (JWT) para autenticar peticiones.
+- **oauth_refresh_tokens**: Tokens de larga duración para renovar el acceso.

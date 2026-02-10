@@ -12,6 +12,9 @@ erDiagram
     LOTES ||--o{ VENTAS : es_vendido_en
     VENTAS ||--o{ PAGOS : genera
     VENTAS ||--o{ COMISIONES : genera
+    VENTAS ||--o{ SUSCRIPCIONES : tiene
+    SUSCRIPCIONES ||--o{ AMORTIZACIONES : genera
+    PLANES_PAGOS ||--o{ SUSCRIPCIONES : define
 
     CLIENTES {
         uuid id PK
@@ -70,11 +73,43 @@ erDiagram
         string estatus "pendiente, pagada"
         date fecha_pago_programada
     }
+
+    SUSCRIPCIONES {
+        uuid id PK
+        uuid cliente_id FK
+        uuid venta_id FK
+        uuid plan_id FK
+        string stripe_subscription_id UK
+        string estado "active, past_due, canceled"
+        date fecha_inicio
+        date fecha_fin
+    }
+
+    AMORTIZACIONES {
+        uuid id PK
+        uuid suscripcion_id FK
+        int numero_pago
+        date fecha_vencimiento
+        decimal monto_capital
+        decimal monto_interes
+        decimal monto_total
+        string estatus "pendiente, pagado, vencido"
+        uuid pago_id FK
+    }
+
+    PLANES_PAGOS {
+        uuid id PK
+        string nombre
+        int numero_pagos
+        decimal tasa_interes
+        string frecuencia
+    }
 ```
 
 ## Colecciones
 
 ### clientes
+
 Almacena la información de prospectos y clientes reales.
 
 - **Campos:**
@@ -95,6 +130,7 @@ Almacena la información de prospectos y clientes reales.
   - RFC con formato correcto.
 
 ### vendedores
+
 Personal de ventas y comisionistas externos.
 
 - **Campos:**
@@ -110,6 +146,7 @@ Personal de ventas y comisionistas externos.
   - `comisiones`: One-to-Many.
 
 ### ventas
+
 Tabla pivote central que vincula operaciones.
 
 - **Campos:**
@@ -129,6 +166,7 @@ Tabla pivote central que vincula operaciones.
   - `pagos`: One-to-Many (Cascade Delete).
 
 ### pagos
+
 Tabla de amortización y registro de ingresos.
 
 - **Campos:**
@@ -144,6 +182,7 @@ Tabla de amortización y registro de ingresos.
   - `venta`: Many-to-One.
 
 ### comisiones
+
 Registro de pasivos de la empresa hacia los vendedores.
 
 - **Campos:**
@@ -153,30 +192,69 @@ Registro de pasivos de la empresa hacia los vendedores.
   - `monto_comision` (Decimal).
   - `estatus` (String, Enum): `pendiente`, `pagada`.
 
+### planes_pagos
+
+Catálogo de planes de financiamiento disponibles.
+
+- **Campos:**
+  - `id` (UUID, PK).
+  - `nombre` (String, required): Nombre comercial del plan.
+  - `tasa_interes` (Decimal): Tasa anual.
+  - `numero_pagos` (Int): Plazo en meses.
+  - `monto_inicial` (Decimal): Enganche mínimo requerido.
+  - `activo` (Boolean).
+
+### suscripciones
+
+Gestiona la recurrencia de pagos a través de Stripe.
+
+- **Campos:**
+  - `id` (UUID, PK).
+  - `cliente_id` (UUID, FK).
+  - `venta_id` (UUID, FK).
+  - `plan_id` (UUID, FK).
+  - `stripe_subscription_id` (String): ID externo de Stripe.
+  - `estado` (String, Enum): `active`, `past_due`, `canceled`.
+  - `fecha_inicio` (Date).
+  - `fecha_fin` (Date).
+
+### amortizaciones
+
+Detalle financiero de cada pago dentro de una suscripción.
+
+- **Campos:**
+  - `id` (UUID, PK).
+  - `suscripcion_id` (UUID, FK).
+  - `numero_pago` (Int).
+  - `monto_capital` (Decimal).
+  - `monto_interes` (Decimal).
+  - `estatus` (String, Enum).
+
 ## Triggers
 
 En esta arquitectura basada en Directus, los "triggers" se implementan principalmente como Hooks de Lógica de Negocio (Directus Actions) o dentro de los Custom Endpoints.
 
 1.  **Creación de Tabla de Amortización:**
-    -   **Disparador:** `POST /ventas` (Creación exitosa de venta).
-    -   **Acción:** Genera N registros en la colección `pagos` calculando fechas y montos.
-    -   **Ubicación:** `extensions/endpoints/ventas/src/index.js`.
+    - **Disparador:** `POST /ventas` (Creación exitosa de venta).
+    - **Acción:** Genera N registros en la colección `pagos` calculando fechas y montos.
+    - **Ubicación:** `extensions/endpoints/ventas/src/index.js`.
 
 2.  **Actualización de Estatus de Venta (Liquidación):**
-    -   **Disparador:** `POST /pagos` (Pago registrado).
-    -   **Acción:** Verifica si `SUM(monto_pagado) >= monto_total`. Si es así, actualiza `venta.estatus` a `liquidado`.
-    -   **Ubicación:** `extensions/endpoints/pagos/src/index.js`.
+    - **Disparador:** `POST /pagos` (Pago registrado).
+    - **Acción:** Verifica si `SUM(monto_pagado) >= monto_total`. Si es así, actualiza `venta.estatus` a `liquidado`.
+    - **Ubicación:** `extensions/endpoints/pagos/src/index.js`.
 
 3.  **Cálculo Automático de Mora:**
-    -   **Disparador:** `POST /pagos` (Al intentar pagar).
-    -   **Acción:** Si `fecha_actual > fecha_vencimiento`, aplica 5% de mora sobre el monto de la mensualidad.
-    -   **Ubicación:** `extensions/endpoints/pagos/src/index.js`.
+    - **Disparador:** `POST /pagos` (Al intentar pagar).
+    - **Acción:** Si `fecha_actual > fecha_vencimiento`, aplica 5% de mora sobre el monto de la mensualidad.
+    - **Ubicación:** `extensions/endpoints/pagos/src/index.js`.
 
 ## Migraciones
 
 Las migraciones se gestionan mediante scripts SQL y la sincronización de esquema de Directus.
 
 ### Script Inicial (Ejemplo)
+
 `database/migrations/001_create_crm_schema.sql`
 
 ```sql
@@ -190,4 +268,5 @@ CREATE TABLE clientes (
 ```
 
 ### Datos de Prueba (Seeds)
+
 Se recomienda usar el endpoint `/utils/seed` (si está habilitado en desarrollo) para poblar datos iniciales de catálogos.

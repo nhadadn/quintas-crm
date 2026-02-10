@@ -1,0 +1,13 @@
+{
+  "name": "clientes",
+  "version": "1.0.0",
+  "description": "Custom CRUD endpoint for Clientes with strict validation",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "clientes",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  }
+}

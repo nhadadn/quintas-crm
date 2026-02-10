@@ -12,59 +12,68 @@
 ### 1.1 Tecnologías Implementadas
 
 #### Backend (Directus 11.14.0 + MySQL)
+
 ✅ **Directus CMS Headless** configurado y funcional  
 ✅ **Base de datos MySQL** con estructura inicial  
 ✅ **Endpoint personalizado `/mapa-lotes`** implementado:
-  - Convierte lotes a GeoJSON
-  - Maneja geometría de lotes
-  - Soporte para filtros por ID
-  
+
+- Convierte lotes a GeoJSON
+- Maneja geometría de lotes
+- Soporte para filtros por ID
+
 #### Frontend (Next.js 14 + TypeScript)
+
 ✅ **Next.js 14** con App Router configurado  
 ✅ **TypeScript** configurado con tipado estricto  
 ✅ **Tailwind CSS** configurado  
 ✅ **Mapa Interactivo SVG** (migrado de Mapbox):
-  - `MapaSVGInteractivo.tsx` - Componente principal
-  - `SVGLoteLayer.tsx` - Renderizado de lotes SVG
-  - `PanelLote.tsx` - Panel de detalles de lote
-  - `Leyenda.tsx` - Leyenda de estatus
-  - `ControlesMapa.tsx` - Controles de zoom/pan
-  - Conversión UTM a WGS84 implementada (ya no necesaria con SVG)
-  
+
+- `MapaSVGInteractivo.tsx` - Componente principal
+- `SVGLoteLayer.tsx` - Renderizado de lotes SVG
+- `PanelLote.tsx` - Panel de detalles de lote
+- `Leyenda.tsx` - Leyenda de estatus
+- `ControlesMapa.tsx` - Controles de zoom/pan
+- Conversión UTM a WGS84 implementada (ya no necesaria con SVG)
+
 ✅ **Cliente API Directus** (`directus-api.ts`):
-  - Funciones para obtener lotes
-  - Conversión a GeoJSON
-  - Manejo robusto de errores
-  
+
+- Funciones para obtener lotes
+- Conversión a GeoJSON
+- Manejo robusto de errores
+
 ✅ **Sistema de Tipos TypeScript**:
-  - `lote.ts` - Tipos de lotes
-  - `mapa.ts` - Tipos de mapa
-  - `svg.ts` - Tipos SVG
+
+- `lote.ts` - Tipos de lotes
+- `mapa.ts` - Tipos de mapa
+- `svg.ts` - Tipos SVG
 
 #### Scripts y Documentación
+
 ✅ **Script de reparación de base de datos** (`fix-db.mjs`)  
 ✅ **Documentación completa de migración SVG**:
-  - `PLAN_IMPLEMENTACION_SVG.md` (45 KB)
-  - `PROMPTS_HERRAMIENTAS_COMPLETOS.md` (38 KB)
-  - `GUIA_EJECUCION_COMPLETA.md` (28 KB)
-  - `RESUMEN_FINAL_REFACTORIZACION.md` (14 KB)
+
+- `PLAN_IMPLEMENTACION_SVG.md` (45 KB)
+- `PROMPTS_HERRAMIENTAS_COMPLETOS.md` (38 KB)
+- `GUIA_EJECUCION_COMPLETA.md` (28 KB)
+- `RESUMEN_FINAL_REFACTORIZACION.md` (14 KB)
 
 ✅ **Sistema de 8 Agentes Especializados** (Vibe-Coding):
-  - Prompts detallados para cada agente
-  - Flujo de trabajo colaborativo
-  - Metodología iterativa
+
+- Prompts detallados para cada agente
+- Flujo de trabajo colaborativo
+- Metodología iterativa
 
 ### 1.2 Funcionalidades Implementadas
 
-| Componente | Estado | Completitud |
-|------------|--------|-------------|
-| **Arquitectura Base** | ✅ Completo | 100% |
-| **Base de Datos** | ✅ Completo | 100% |
-| **Directus CRM** | ✅ Completo | 100% |
-| **Endpoint `/mapa-lotes`** | ✅ Completo | 100% |
-| **Mapa Interactivo SVG** | 🟡 Parcial | 70% |
-| **Conversión UTM→WGS84** | ✅ Completo | 100% (obsoleto con SVG) |
-| **Sistema de Tipos** | ✅ Completo | 100% |
+| Componente                 | Estado      | Completitud             |
+| -------------------------- | ----------- | ----------------------- |
+| **Arquitectura Base**      | ✅ Completo | 100%                    |
+| **Base de Datos**          | ✅ Completo | 100%                    |
+| **Directus CRM**           | ✅ Completo | 100%                    |
+| **Endpoint `/mapa-lotes`** | ✅ Completo | 100%                    |
+| **Mapa Interactivo SVG**   | 🟡 Parcial  | 70%                     |
+| **Conversión UTM→WGS84**   | ✅ Completo | 100% (obsoleto con SVG) |
+| **Sistema de Tipos**       | ✅ Completo | 100%                    |
 
 ### 1.3 Componentes SVG (Creados pero no integrados)
 
@@ -101,14 +110,14 @@ PROGRESO GLOBAL ERP:          25%
 
 #### Justificación Técnica:
 
-| Aspecto | Evaluación | Razón |
-|---------|------------|-------|
-| **Arquitectura** | ✅ Excelente | Next.js 14 + Directus es stack moderno y escalable |
-| **Código Mapbox** | ⚠️ Obsoleto | Se migró a SVG, código Mapbox debe eliminarse |
-| **Componentes SVG** | 🟡 Parcial | Creados pero no integrados - Requieren completar |
-| **Base de Datos** | ✅ Reutilizable | Solo necesita colecciones adicionales |
-| **Backend** | ✅ Reutilizable | Directus permite extender fácilmente |
-| **Documentación** | ✅ Excelente | Guías completas para implementación |
+| Aspecto             | Evaluación      | Razón                                              |
+| ------------------- | --------------- | -------------------------------------------------- |
+| **Arquitectura**    | ✅ Excelente    | Next.js 14 + Directus es stack moderno y escalable |
+| **Código Mapbox**   | ⚠️ Obsoleto     | Se migró a SVG, código Mapbox debe eliminarse      |
+| **Componentes SVG** | 🟡 Parcial      | Creados pero no integrados - Requieren completar   |
+| **Base de Datos**   | ✅ Reutilizable | Solo necesita colecciones adicionales              |
+| **Backend**         | ✅ Reutilizable | Directus permite extender fácilmente               |
+| **Documentación**   | ✅ Excelente    | Guías completas para implementación                |
 
 #### Análisis de Reutilización:
 
@@ -199,6 +208,7 @@ PROGRESO GLOBAL ERP:          25%
 ### 2.3 Costo-Beneficio de Continuar
 
 #### Opción A: Continuar con código existente
+
 ```
 Inversión:   $50,000 - $75,000 MXN
 Tiempo:      6 - 8 semanas
@@ -209,6 +219,7 @@ Beneficios:  - Ahorro de 60% del trabajo
 ```
 
 #### Opción B: Rehacer desde cero
+
 ```
 Inversión:   $150,000 - $200,000 MXN
 Tiempo:      12 - 16 semanas
@@ -223,6 +234,7 @@ Beneficios:  - Arquitectura personalizada
 **✅ RECOMENDACIÓN: CONTINUAR CON CÓDIGO EXISTENTE**
 
 **Razones:**
+
 1. **Ahorro económico:** $75,000 - $125,000 MXN
 2. **Tiempo de entrega:** 50% más rápido
 3. **Riesgo menor:** Base probada y documentada
@@ -239,12 +251,15 @@ Beneficios:  - Arquitectura personalizada
 # PROMPT: Agente de Arquitectura - Diseño ERP Inmobiliario
 
 ## IDENTIDAD DEL AGENTE
+
 Eres el AGENTE DE ARQUITECTURA del proyecto Quintas de Otinapa ERP Inmobiliario.
 
 ## MISIÓN
+
 Diseñar la arquitectura técnica de un ERP inmobiliario completo tipo Prinex/Intelisis para Quintas de Otinapa, inspirado en la modularidad de Odoo, priorizando escalabilidad, mantenibilidad y eficiencia.
 
 ## CONTEXTO DEL PROYECTO
+
 - **Empresa:** Quintas de Otinapa (inmobiliaria en Otinapa, Guerrero)
 - **Objetivo:** ERP completo para gestión inmobiliaria (no solo CRM)
 - **Módulos requeridos:**
@@ -380,17 +395,20 @@ Diseñar la arquitectura del ERP inmobiliario considerando:
 # PROMPT: Agente de Desarrollo Backend - Implementación ERP
 
 ## IDENTIDAD DEL AGENTE
+
 Eres el AGENTE DE DESARROLLO BACKEND del proyecto Quintas de Otinapa ERP Inmobiliario.
 
 ## MISIÓN
+
 Implementar los endpoints, servicios y lógica de negocio del ERP inmobiliario en Directus, siguiendo la arquitectura definida y priorizando la implementación de módulos críticos para el MVP.
 
 ## CONTEXTO DEL PROYECTO
+
 - **CMS Headless:** Directus 11.14.0
 - **Lenguaje:** JavaScript (CommonJS para extensiones)
 - **Base de Datos:** MySQL
 - **Autenticación:** JWT tokens
-- **Módulos a implementar:** 
+- **Módulos a implementar:**
   1. Clientes (CRM avanzado)
   2. Vendedores (gestión y comisiones)
   3. Ventas (proceso completo)
@@ -402,6 +420,7 @@ Implementar los endpoints, servicios y lógica de negocio del ERP inmobiliario e
 Implementar el backend del ERP con prioridad en:
 
 ### FASE 1: Colecciones y Relaciones (Prioridad CRÍTICA)
+
 1. Crear colección `clientes`:
    - Campos: nombre, email, teléfono, RFC, dirección, notas
    - Relaciones: ventas (uno a muchos)
@@ -423,6 +442,7 @@ Implementar el backend del ERP con prioridad en:
    - Permisos: CRUD por rol
 
 ### FASE 2: Endpoints Personalizados
+
 1. Endpoint `/estadisticas/ventas`:
    - Ventas por período
    - Ventas por vendedor
@@ -440,6 +460,7 @@ Implementar el backend del ERP con prioridad en:
    - Considerar tasas de interés
 
 ### FASE 3: Hooks de Directus
+
 1. Hook `lote.create`:
    - Validar que lote esté disponible
    - Actualizar estatus automáticamente
@@ -455,6 +476,7 @@ Implementar el backend del ERP con prioridad en:
    - Generar recibo
 
 ### FASE 4: Lógica de Negocio
+
 1. Cálculo de comisiones:
    - Esquema: % al enganche + % al contrato + % mensual
    - Configurable por tipo de venta
@@ -550,12 +572,15 @@ Implementar el backend del ERP con prioridad en:
 # PROMPT: Agente de Desarrollo Frontend - Implementación ERP
 
 ## IDENTIDAD DEL AGENTE
+
 Eres el AGENTE DE DESARROLLO FRONTEND del proyecto Quintas de Otinapa ERP Inmobiliario.
 
 ## MISIÓN
+
 Implementar las interfaces de usuario del ERP inmobiliario, completando la integración del mapa SVG y desarrollando los módulos del ERP con prioridad en el mapa interactivo y dashboard principal.
 
 ## CONTEXTO DEL PROYECTO
+
 - **Framework:** Next.js 14 (App Router)
 - **Lenguaje:** TypeScript
 - **UI Library:** React + Tailwind CSS
@@ -565,6 +590,7 @@ Implementar las interfaces de usuario del ERP inmobiliario, completando la integ
 ## TAREA A REALIZAR
 
 ### FASE 1: Completar Mapa SVG Interactivo (PRIORIDAD 1)
+
 1. **Integrar MapaSVGInteractivo:**
    - Conectar con API `/mapa-lotes`
    - Cargar configuración SVG desde API
@@ -597,6 +623,7 @@ Implementar las interfaces de usuario del ERP inmobiliario, completando la integ
    - Búsqueda por número de lote
 
 ### FASE 2: Dashboard Principal (PRIORIDAD 2)
+
 1. **Dashboard Administrador:**
    - KPIs principales: ventas del mes, lotes disponibles, total activos
    - Gráfica de ventas mensuales
@@ -619,6 +646,7 @@ Implementar las interfaces de usuario del ERP inmobiliario, completando la integ
    - Notificaciones
 
 ### FASE 3: Módulos del ERP (PRIORIDAD 3)
+
 1. **Gestión de Clientes:**
    - Lista de clientes (tabla con filtros)
    - Crear nuevo cliente
@@ -723,16 +751,19 @@ Implementar las interfaces de usuario del ERP inmobiliario, completando la integ
 
 ### 3.4 Agente de Bases de Datos
 
-```markdown
+````markdown
 # PROMPT: Agente de Bases de Datos - Diseño ERP
 
 ## IDENTIDAD DEL AGENTE
+
 Eres el AGENTE DE BASES DE DATOS del proyecto Quintas de Otinapa ERP Inmobiliario.
 
 ## MISIÓN
+
 Diseñar y optimizar la estructura de base de datos para el ERP inmobiliario, considerando el esquema existente de lotes y añadiendo las colecciones necesarias para CRM, ventas, pagos y comisiones.
 
 ## CONTEXTO DEL PROYECTO
+
 - **DBMS:** MySQL 8.0+
 - **ORM/Query Builder:** Directus (Knex.js)
 - **Colección existente:** lotes (ya creada y funcional)
@@ -746,6 +777,7 @@ Diseñar las siguientes colecciones en Directus:
 ### FASE 1: Colecciones Principales
 
 #### 1. Colección `clientes`
+
 ```sql
 CREATE TABLE clientes (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -771,8 +803,10 @@ CREATE TABLE clientes (
   INDEX idx_fecha_registro (fecha_registro)
 );
 ```
+````
 
 #### 2. Colección `vendedores`
+
 ```sql
 CREATE TABLE vendedores (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -796,6 +830,7 @@ CREATE TABLE vendedores (
 ```
 
 #### 3. Colección `ventas`
+
 ```sql
 CREATE TABLE ventas (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -828,6 +863,7 @@ CREATE TABLE ventas (
 ```
 
 #### 4. Colección `pagos`
+
 ```sql
 CREATE TABLE pagos (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -854,6 +890,7 @@ CREATE TABLE pagos (
 ```
 
 #### 5. Colección `comisiones`
+
 ```sql
 CREATE TABLE comisiones (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -881,6 +918,7 @@ CREATE TABLE comisiones (
 ### FASE 2: Relaciones y Restricciones
 
 1. **Trigger para actualizar estatus de lote al vender:**
+
 ```sql
 DELIMITER //
 CREATE TRIGGER tr_venta_create_update_lote
@@ -897,6 +935,7 @@ DELIMITER ;
 ```
 
 2. **Trigger para calcular comisiones al crear venta:**
+
 ```sql
 DELIMITER //
 CREATE TRIGGER tr_venta_create_comisiones
@@ -906,13 +945,13 @@ BEGIN
   -- Comisión por enganche (30% del total de comisión)
   DECLARE comision_enganche DECIMAL(12,2);
   DECLARE porcentaje_comision DECIMAL(5,2);
-  
+
   SELECT comision_porcentaje INTO porcentaje_comision
   FROM vendedores
   WHERE id = NEW.vendedor_id;
-  
+
   SET comision_enganche = (NEW.enganche * porcentaje_comision / 100) * 0.30;
-  
+
   INSERT INTO comisiones (
     venta_id, vendedor_id, monto_comision, porcentaje, tipo_comision, estatus
   ) VALUES (
@@ -925,6 +964,7 @@ DELIMITER ;
 ### FASE 3: Índices y Optimizaciones
 
 1. **Índices compuestos para queries frecuentes:**
+
 ```sql
 -- Ventas por vendedor y estatus
 CREATE INDEX idx_ventas_vendedor_estatus ON ventas(vendedor_id, estatus);
@@ -940,10 +980,11 @@ CREATE INDEX idx_ventas_fecha_estatus ON ventas(fecha_venta, estatus);
 ```
 
 2. **Vistas para reportes:**
+
 ```sql
 -- Vista de resumen de ventas
 CREATE VIEW vw_resumen_ventas AS
-SELECT 
+SELECT
   v.id,
   v.fecha_venta,
   l.numero_lote,
@@ -960,7 +1001,7 @@ JOIN vendedores ven ON v.vendedor_id = ven.id;
 
 -- Vista de comisiones por vendedor
 CREATE VIEW vw_comisiones_vendedor AS
-SELECT 
+SELECT
   v.id AS vendedor_id,
   CONCAT(v.nombre, ' ', v.apellido_paterno) AS vendedor_nombre,
   COUNT(c.id) AS total_comisiones,
@@ -1026,7 +1067,8 @@ GROUP BY v.id;
 - **Backend Agent:** Coordinar consultas y optimizaciones
 - **QA Agent:** Validar integridad de datos
 - **Documentation Agent:** Proveer documentación de esquema
-```
+
+````
 
 ---
 
@@ -1324,7 +1366,7 @@ Cada prompt debe incluir:
 - Rol dentro de la tarea.
 
 #### 2. DESCRIPCIÓN EXHAUSTIVA DEL PROBLEMO/TAREA
-- Contexto completo de la fase correspondiente al prompt. 
+- Contexto completo de la fase correspondiente al prompt.
 - Dependencia de otras tareas de agentes para el desarrollo de la tarea.
 - Desafíos específicos de la tarea y fase.
 - Dependencias de otros agentes de existirlo.
@@ -1367,9 +1409,9 @@ Cada prompt debe incluir:
 # PROMPT: Agente de Desarrollo Frontend - Mapa SVG Interactivo
 
 ## 1. AGENTE QUE REALIZARÁ LA ACCIÓN
-**Nombre:** Frontend Development Agent  
-**Rol:** Implementación de interfaces de usuario y experiencias interactivas  
-**Nivel de Autonomía:** Medio-Alto - Desarrolla bajo especificaciones  
+**Nombre:** Frontend Development Agent
+**Rol:** Implementación de interfaces de usuario y experiencias interactivas
+**Nivel de Autonomía:** Medio-Alto - Desarrolla bajo especificaciones
 **Especialidades:** React, Next.js, TypeScript, SVG, mapas interactivos
 
 ## 2. DESCRIPCIÓN EXHAUSTIVA DEL PROBLEMO/TAREA
@@ -1523,11 +1565,11 @@ El sistema requiere un mapa interactivo que:
    # Ejecutar aplicación
    cd frontend
    npm run dev
-   
+
    # Navegar a http://localhost:3000
    # Verificar que el mapa se muestra
    # Verificar que no hay errores en consola
-   ```
+````
 
 2. **Lotes se Renderizan:**
    - Contar cuántos lotes se muestran
@@ -1553,11 +1595,13 @@ El sistema requiere un mapa interactivo que:
    - Botón "Cerrar" funciona
 
 ### Verificación de Performance
+
 1. **Bundle Size:**
+
    ```bash
    cd frontend
    npm run build
-   
+
    # Verificar que .next/static/chunks/ < 1.5 MB
    ```
 
@@ -1578,13 +1622,16 @@ El sistema requiere un mapa interactivo que:
    ```
 
 ### Verificación de Calidad de Código
+
 1. **TypeScript:**
+
    ```bash
    npx tsc --noEmit
    # Verificar zero errors
    ```
 
 2. **ESLint:**
+
    ```bash
    npx eslint frontend/components/mapa-svg/
    # Verificar zero errors
@@ -1597,6 +1644,7 @@ El sistema requiere un mapa interactivo que:
    ```
 
 ### Verificación de Cross-Browser
+
 - Testear en Chrome (última versión)
 - Testear en Firefox (última versión)
 - Testear en Safari (última versión)
@@ -1606,11 +1654,14 @@ El sistema requiere un mapa interactivo que:
 ## 6. DOCUMENTACIÓN DE CAMBIOS
 
 ### Archivos a Documentar
+
 1. Crear/Actualizar `documentacion/ninja/CHANGELOG.md`:
+
    ```markdown
    ## [1.0.0] - 2026-01-30
-   
+
    ### Added
+
    - Mapa SVG interactivo completo
    - Componente MapaSVGInteractivo
    - Componente SVGLoteLayer
@@ -1619,12 +1670,14 @@ El sistema requiere un mapa interactivo que:
    - Componente FiltrosMapa
    - Hook useMapa
    - Utilidades SVG
-   
+
    ### Changed
+
    - page.tsx ahora usa MapaSVGInteractivo
    - Actualizado cliente API para soportar mapa SVG
-   
+
    ### Fixed
+
    - Performance de renderizado de lotes
    - Manejo de errores en carga de mapa
    ```
@@ -1641,6 +1694,7 @@ El sistema requiere un mapa interactivo que:
    - Agregar enlaces a documentación
 
 ### Comunicación con Otros Agentes
+
 1. **Architecture Agent:**
    - Notificar que arquitectura de componentes está implementada
    - Validar que patrones de diseño se siguen
@@ -1660,12 +1714,14 @@ El sistema requiere un mapa interactivo que:
    - Documentar API
 
 ### Ubicación de Documentación
+
 - Documentación técnica: `documentacion/ninja/`
 - Cambios: `documentacion/ninja/CHANGELOG.md`
 - Implementación: `documentacion/ninja/MAPA_SVG_IMPLEMENTACION.md`
 - Guías: `documentacion/ninja/GUIA_USUARIO_MAPA.md`
 
 ### Formato de Documentación
+
 - Markdown con sintaxis estándar
 - Diagramas Mermaid para arquitectura
 - Bloques de código para ejemplos
@@ -1673,6 +1729,7 @@ El sistema requiere un mapa interactivo que:
 - Listas para procedimientos
 
 ### Contenido Mínimo Requerido
+
 1. **Descripción general** del componente
 2. **Props** con tipos y descripciones
 3. **Estado** y manejo
@@ -1681,6 +1738,7 @@ El sistema requiere un mapa interactivo que:
 6. **Troubleshooting** común
 7. **Performance notes**
 8. **Browser compatibility**
+
 ```
 
 ---
@@ -1689,8 +1747,8 @@ El sistema requiere un mapa interactivo que:
 
 ### 6.1 Resumen Ejecutivo
 
-**✅ VIABILIDAD: ALTA**  
-El proyecto Quintas de Otinapa tiene una base sólida (25% completitud) con arquitectura moderna y documentación completa. 
+**✅ VIABILIDAD: ALTA**
+El proyecto Quintas de Otinapa tiene una base sólida (25% completitud) con arquitectura moderna y documentación completa.
 
 **Recomendación:** CONTINUAR con el código existente en lugar de rehacer desde cero.
 
@@ -1807,9 +1865,10 @@ El proyecto Quintas de Otinapa tiene una base sólida (25% completitud) con arqu
 
 ---
 
-**Documento Creado:** 30 de Enero, 2026  
-**Autor:** SuperNinja AI  
-**Estado:** Completo y Listo para Implementación  
+**Documento Creado:** 30 de Enero, 2026
+**Autor:** SuperNinja AI
+**Estado:** Completo y Listo para Implementación
 **Versión:** 1.0
 
 **Próximo Paso:** Validar análisis con stakeholder y aprobar inicio de Fase 1
+```

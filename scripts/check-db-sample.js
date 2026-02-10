@@ -7,10 +7,10 @@ async function checkData() {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'quintas_otinapaV2',
-    port: process.env.DB_PORT || 3306
+    port: process.env.DB_PORT || 3306,
   });
 
-  const [rows] = await connection.query("SELECT id, manzana, numero_lote FROM lotes LIMIT 5");
+  const [rows] = await connection.query('SELECT id, manzana, numero_lote FROM lotes LIMIT 5');
   console.log('Sample Data:', rows);
   await connection.end();
 }

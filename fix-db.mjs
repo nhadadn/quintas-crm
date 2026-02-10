@@ -8,13 +8,13 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 async function main() {
   console.log('🔧 Iniciando reparación de base de datos Directus...');
-  
+
   const config = {
     host: process.env.DB_HOST || '127.0.0.1',
     port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
+    database: process.env.DB_DATABASE,
   };
 
   console.log(`Conectando a ${config.host}:${config.port} como ${config.user}...`);
@@ -29,7 +29,7 @@ async function main() {
       'project_usage',
       'org_name',
       'product_updates',
-      'project_status'
+      'project_status',
     ];
 
     console.log('🔍 Intentando eliminar columnas duplicadas en directus_settings...');
@@ -40,15 +40,14 @@ async function main() {
         console.log(`✅ Columna '${col}' eliminada correctamente.`);
       } catch (error) {
         if (error.code === 'ER_CANT_DROP_FIELD_OR_KEY') {
-           console.log(`ℹ️ Columna '${col}' no existía, saltando.`);
+          console.log(`ℹ️ Columna '${col}' no existía, saltando.`);
         } else {
-           console.warn(`⚠️ Error al intentar borrar '${col}': ${error.message}`);
+          console.warn(`⚠️ Error al intentar borrar '${col}': ${error.message}`);
         }
       }
     }
 
     console.log('🏁 Reparación finalizada. Ahora intenta correr las migraciones de nuevo.');
-
   } catch (error) {
     console.error('❌ Error fatal:', error);
   } finally {
