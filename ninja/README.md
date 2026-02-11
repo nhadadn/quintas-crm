@@ -7,6 +7,7 @@ Esta carpeta `/ninja` contiene la documentación técnica maestra del proyecto Q
 | Archivo | Propósito Crítico | Enlace Directo |
 | :--- | :--- | :--- |
 | **README.md** | Mapa de documentación y guía de uso. | [Ver aquí](./README.md) |
+| **NAVIGATION_GUIDE.md** | 🧭 **Ruta de Aprendizaje** (Onboarding para nuevos devs) | [Ver aquí](./NAVIGATION_GUIDE.md) |
 | **CONTRIBUTING.md** | Guía para colaboradores: Git Flow y estándares. | [Ver aquí](./CONTRIBUTING.md) |
 | **CHANGELOG.md** | Historial de versiones y cambios notables. | [Ver aquí](./CHANGELOG.md) |
 | **ARCHITECTURE.md** | Diseño del sistema, diagramas C4 y decisiones técnicas. | [Ver aquí](./ARCHITECTURE.md) |
