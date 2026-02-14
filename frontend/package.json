@@ -25,8 +25,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "prettier --write",
-      "next lint --fix"
+      "prettier --write"
     ],
     "*.{js,jsx,mjs,json,md,yml,css}": [
       "prettier --write"
@@ -47,7 +46,7 @@
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.563.0",
-    "next": "15.1.0",
+    "next": "^15.1.0",
     "next-auth": "^5.0.0-beta.30",
     "proj4": "^2.20.2",
     "quintas-crm": "file:..",

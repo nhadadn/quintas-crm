@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { getVendedorById, updateVendedor } from '@/lib/vendedores-api';
 import { fetchComisionesByVendedor } from '@/lib/comisiones-api';
@@ -17,6 +18,7 @@ interface PageProps {
 
 export default function DetalleVendedorPage({ params }: PageProps) {
   const { id } = use(params);
+  const { data: session } = useSession();
   const router = useRouter();
   const [vendedor, setVendedor] = useState<Vendedor | null>(null);
   const [comisiones, setComisiones] = useState<Comision[]>([]);
@@ -38,11 +40,11 @@ export default function DetalleVendedorPage({ params }: PageProps) {
     const cargarDatos = async () => {
       setLoading(true);
       try {
-        const vendedorData = await getVendedorById(id);
+        const vendedorData = await getVendedorById(id, session?.accessToken);
         setVendedor(vendedorData);
         reset(vendedorData);
 
-        const comisionesData = await fetchComisionesByVendedor(id);
+        const comisionesData = await fetchComisionesByVendedor(id, session?.accessToken);
         setComisiones(comisionesData);
       } catch (error) {
         console.error('Error cargando datos:', error);
@@ -52,11 +54,11 @@ export default function DetalleVendedorPage({ params }: PageProps) {
     };
 
     cargarDatos();
-  }, [id, reset]);
+  }, [id, reset, session]);
 
   const onSubmit = async (data: Vendedor) => {
     try {
-      const updatedVendedor = await updateVendedor(id, data);
+      const updatedVendedor = await updateVendedor(id, data, session?.accessToken);
       setVendedor(updatedVendedor);
       setIsEditing(false);
       alert('Vendedor actualizado exitosamente');

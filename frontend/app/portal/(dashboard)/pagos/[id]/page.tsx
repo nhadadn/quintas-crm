@@ -2,6 +2,7 @@ import { getPagoById } from '@/lib/pagos-api';
 import { PaymentForm } from '@/components/stripe/PaymentForm';
 import { StripeProviderWrapper } from '@/components/stripe/StripeProviderWrapper';
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
 import { AlertCircle, Calendar, CreditCard, DollarSign, CheckCircle } from 'lucide-react';
 import { auth } from '@/lib/auth';
 
@@ -43,12 +44,12 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
               El estatus actual del pago es:{' '}
               <span className="font-semibold uppercase">{pago.estatus}</span>
             </p>
-            <a
+            <Link
               href="/portal/pagos"
               className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               Volver a mis pagos
-            </a>
+            </Link>
           </div>
         </div>
       );
@@ -161,9 +162,9 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
             <p className="text-red-600">
               No se pudo cargar la información del pago. Por favor intente más tarde.
             </p>
-            <a href="/portal/pagos" className="text-red-700 underline mt-2 inline-block">
+            <Link href="/portal/pagos" className="text-red-700 underline mt-2 inline-block">
               Volver a mis pagos
-            </a>
+            </Link>
           </div>
         </div>
       </div>
