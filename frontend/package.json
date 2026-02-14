@@ -21,7 +21,7 @@
     "test:perf": "playwright test tests/e2e/performance.spec.ts",
     "test:unit": "vitest",
     "test": "playwright test",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
