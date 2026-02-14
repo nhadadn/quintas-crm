@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 
 async function testAdminAccess() {
@@ -7,9 +6,9 @@ async function testAdminAccess() {
     console.log('Logging in...');
     const loginRes = await axios.post('http://localhost:8055/auth/login', {
       email: 'admin@quintas.com',
-      password: 'admin_quintas_2024'
+      password: 'admin_quintas_2024',
     });
-    
+
     const token = loginRes.data.data.access_token;
     console.log('Login successful. Token obtained.');
 
@@ -19,11 +18,11 @@ async function testAdminAccess() {
       const clientesRes = await axios.get('http://localhost:8055/items/clientes', {
         params: {
           sort: '-date_created',
-          limit: 1
+          limit: 1,
         },
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       console.log('Fetch successful!');
       console.log('Data:', clientesRes.data);
@@ -43,11 +42,11 @@ async function testAdminAccess() {
       const clientesRes = await axios.get('http://localhost:8055/items/clientes', {
         params: {
           sort: '-created_at',
-          limit: 1
+          limit: 1,
         },
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       console.log('Fetch successful with created_at!');
       console.log('Data:', clientesRes.data);
@@ -60,7 +59,6 @@ async function testAdminAccess() {
         console.error(err.message);
       }
     }
-
   } catch (error) {
     console.error('Script failed:', error.message);
     if (error.response) {

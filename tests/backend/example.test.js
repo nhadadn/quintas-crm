@@ -5,11 +5,11 @@ describe('Example Test Suite', () => {
     // 1. Arrange
     const { ItemsService } = mockContext.services;
     const itemsServiceInstance = new ItemsService();
-    
+
     itemsServiceInstance.readOne.mockResolvedValue({ id: 1, name: 'Test Item' });
 
     // 2. Act
-    return itemsServiceInstance.readOne(1).then(data => {
+    return itemsServiceInstance.readOne(1).then((data) => {
       // 3. Assert
       expect(data).toEqual({ id: 1, name: 'Test Item' });
       expect(itemsServiceInstance.readOne).toHaveBeenCalledWith(1);

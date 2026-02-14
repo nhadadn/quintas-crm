@@ -18,7 +18,7 @@ describe('Webhook Handler (Stripe)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     router = { ...mockRouter };
-    
+
     // Setup Context & Services
     const { ItemsService } = mockContext.services;
     itemsServiceMock = {
@@ -29,11 +29,11 @@ describe('Webhook Handler (Stripe)', () => {
 
     // Initialize Endpoint
     pagosEndpoint(router, mockContext);
-    
+
     // Extract Webhook Handler
-    const call = router.post.mock.calls.find(call => call[0] === '/webhook');
+    const call = router.post.mock.calls.find((call) => call[0] === '/webhooks/stripe');
     if (call) webhookHandler = call[call.length - 1];
-    
+
     // Mock Env
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
   });
@@ -53,25 +53,32 @@ describe('Webhook Handler (Stripe)', () => {
           id: 'pi_123',
           customer: 'cus_123',
           charges: {
-            data: [{
-              payment_method_details: { card: { last4: '4242' } }
-            }]
-          }
-        }
-      }
+            data: [
+              {
+                payment_method_details: { card: { last4: '4242' } },
+              },
+            ],
+          },
+        },
+      },
     });
 
     // Mock Database Find
-    itemsServiceMock.readByQuery.mockResolvedValue([{ id: 'pago-1' }]);
+    itemsServiceMock.readByQuery
+      .mockResolvedValueOnce([]) // isEventProcessed (log check)
+      .mockResolvedValueOnce([{ id: 'pago-1' }]); // handlePaymentIntentSucceeded (payment lookup)
 
     await webhookHandler(req, res);
 
     expect(stripeService.constructEvent).toHaveBeenCalled();
-    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith('pago-1', expect.objectContaining({
-      estatus: 'pagado',
-      stripe_last4: '4242',
-      metodo_pago: 'tarjeta'
-    }));
+    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith(
+      'pago-1',
+      expect.objectContaining({
+        estatus: 'pagado',
+        stripe_last4: '4242',
+        metodo_pago: 'tarjeta',
+      })
+    );
   });
 
   test('should handle payment_intent.payment_failed event', async () => {
@@ -86,18 +93,23 @@ describe('Webhook Handler (Stripe)', () => {
       data: {
         object: {
           id: 'pi_fail',
-          last_payment_error: { message: 'Insufficient funds' }
-        }
-      }
+          last_payment_error: { message: 'Insufficient funds' },
+        },
+      },
     });
 
-    itemsServiceMock.readByQuery.mockResolvedValue([{ id: 'pago-1', notas: 'Notas previas' }]);
+    itemsServiceMock.readByQuery
+      .mockResolvedValueOnce([]) // isEventProcessed
+      .mockResolvedValueOnce([{ id: 'pago-1', notas: 'Notas previas' }]); // handlePaymentIntentFailed
 
     await webhookHandler(req, res);
 
-    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith('pago-1', expect.objectContaining({
-      notas: expect.stringContaining('Insufficient funds')
-    }));
+    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith(
+      'pago-1',
+      expect.objectContaining({
+        notas: expect.stringContaining('Insufficient funds'),
+      })
+    );
   });
 
   test('should return 400 on invalid signature', async () => {
@@ -119,24 +131,26 @@ describe('Webhook Handler (Stripe)', () => {
 
   test('should warn if secret is missing but process insecurely (dev mode logic)', async () => {
     delete process.env.STRIPE_WEBHOOK_SECRET;
-    
+
     const req = {
       headers: {},
-      body: { 
+      body: {
         type: 'payment_intent.succeeded',
-        data: { object: { id: 'pi_dev' } }
+        data: { object: { id: 'pi_dev' } },
       },
     };
     const res = mockRes();
 
     // Mock Database Find
-    itemsServiceMock.readByQuery.mockResolvedValue([{ id: 'pago-1' }]);
+    itemsServiceMock.readByQuery
+      .mockResolvedValueOnce([]) // isEventProcessed
+      .mockResolvedValueOnce([{ id: 'pago-1' }]);
 
     await webhookHandler(req, res);
 
     // Should NOT call constructEvent
     expect(stripeService.constructEvent).not.toHaveBeenCalled();
-    
+
     // Should still process logic
     expect(itemsServiceMock.updateOne).toHaveBeenCalled();
   });

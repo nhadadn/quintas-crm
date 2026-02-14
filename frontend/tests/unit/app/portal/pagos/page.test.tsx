@@ -28,9 +28,47 @@ describe('Portal Pagos Page', () => {
     vi.clearAllMocks();
   });
 
-  it('renders payments page with table', async () => {
+  it('redirects if not authenticated', async () => {
+    (auth as any).mockResolvedValue(null);
+    const { redirect } = await import('next/navigation');
+    
+    try {
+      await PagosPage();
+    } catch (e) {}
+    
+    expect(redirect).toHaveBeenCalledWith('/portal/auth/login');
+  });
+
+  it('shows info screen for admin roles', async () => {
     (auth as any).mockResolvedValue({
-      user: { name: 'Test User' },
+      user: { name: 'Admin', role: 'Administrator' },
+      accessToken: 'token',
+    });
+
+    const jsx = await PagosPage();
+    render(jsx);
+    
+    expect(screen.getByText('Vista de Pagos (Administrator)')).toBeDefined();
+    expect(screen.getByText('Ir al Dashboard de Pagos')).toBeDefined();
+  });
+
+  it('shows error when profile fetch fails', async () => {
+    (auth as any).mockResolvedValue({
+      user: { name: 'User', role: 'Cliente' },
+      accessToken: 'token',
+    });
+    
+    (getPerfilCliente as any).mockRejectedValue(new Error('Fail'));
+    
+    const jsx = await PagosPage();
+    render(jsx);
+    
+    expect(screen.getByText('Error al cargar pagos')).toBeDefined();
+  });
+
+  it('renders payments page with table on success', async () => {
+    (auth as any).mockResolvedValue({
+      user: { name: 'Test User', role: 'Cliente' },
       accessToken: 'fake-token',
     });
 

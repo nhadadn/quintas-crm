@@ -1,4 +1,3 @@
-
 import { mockContext } from '../../setup';
 
 // Mock express router
@@ -21,7 +20,7 @@ const mockRes = () => {
 const oauthExtension = (router, { services, database }) => {
   router.get('/authorize', async (req, res) => {
     const { client_id, redirect_uri, response_type } = req.query;
-    
+
     if (!client_id) return res.status(401).json({ error: 'unauthorized_client' });
     if (!redirect_uri) return res.status(400).json({ error: 'invalid_request' });
 
@@ -44,13 +43,19 @@ describe('OAuth Authorize Endpoint (Hypothetical)', () => {
     jest.clearAllMocks();
     router = { ...mockRouter };
     oauthExtension(router, mockContext);
-    
-    const call = router.get.mock.calls.find(call => call[0] === '/authorize');
+
+    const call = router.get.mock.calls.find((call) => call[0] === '/authorize');
     if (call) authorizeHandler = call[call.length - 1];
   });
 
   test('should redirect with code for valid request', async () => {
-    const req = { query: { client_id: 'valid-client', redirect_uri: 'http://app.com/cb', response_type: 'code' } };
+    const req = {
+      query: {
+        client_id: 'valid-client',
+        redirect_uri: 'http://app.com/cb',
+        response_type: 'code',
+      },
+    };
     const res = mockRes();
 
     await authorizeHandler(req, res);

@@ -1,4 +1,3 @@
-
 const { requestDirectus, getAuthToken, deleteItem } = require('../helpers/request');
 const ADMIN_EMAIL = 'admin@quintas.com';
 const ADMIN_PASSWORD = 'admin_quintas_2024';
@@ -29,9 +28,9 @@ describe('Flujo OAuth 2.0', () => {
       .send({
         name: appName,
         redirect_uris: ['http://localhost:9999/callback'],
-        scopes: ['read_profile']
+        scopes: ['read_profile'],
       });
-    
+
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveProperty('client_id');
     expect(res.body.data).toHaveProperty('client_secret');
@@ -51,12 +50,12 @@ describe('Flujo OAuth 2.0', () => {
         redirect_uri: 'http://localhost:9999/callback',
         scope: 'read_profile',
         state: 'xyz123',
-        approve: true
+        approve: true,
       });
-    
+
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('redirect_to');
-    
+
     const redirectUrl = new URL(res.body.redirect_to);
     authCode = redirectUrl.searchParams.get('code');
     expect(authCode).toBeDefined();
@@ -65,16 +64,14 @@ describe('Flujo OAuth 2.0', () => {
   test('3. Intercambiar Code por Token', async () => {
     if (!authCode) return;
 
-    const res = await requestDirectus
-      .post('/custom-oauth/token')
-      .send({
-        grant_type: 'authorization_code',
-        code: authCode,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: 'http://localhost:9999/callback'
-      });
-    
+    const res = await requestDirectus.post('/custom-oauth/token').send({
+      grant_type: 'authorization_code',
+      code: authCode,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: 'http://localhost:9999/callback',
+    });
+
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('access_token');
     expect(res.body).toHaveProperty('refresh_token');
@@ -90,7 +87,7 @@ describe('Flujo OAuth 2.0', () => {
     const res = await requestDirectus
       .get('/custom-oauth/me')
       .set('X-Custom-Auth', `Bearer ${accessToken}`); // Use custom header to avoid Directus stripping it
-    
+
     if (res.status !== 200) {
       console.error('OAuth Test Error Body:', JSON.stringify(res.body));
     }
@@ -102,15 +99,13 @@ describe('Flujo OAuth 2.0', () => {
   test('5. Refresh Token Flow', async () => {
     if (!refreshToken) return;
 
-    const res = await requestDirectus
-      .post('/custom-oauth/token')
-      .send({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: clientId,
-        client_secret: clientSecret
-      });
-    
+    const res = await requestDirectus.post('/custom-oauth/token').send({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('access_token');
     // Nuevo access token

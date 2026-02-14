@@ -1,4 +1,3 @@
-
 const { requestDirectus, getAuthToken, createItem, deleteItem } = require('../helpers/request');
 require('dotenv').config();
 const crypto = require('crypto');
@@ -23,10 +22,10 @@ describe('Flujo de Venta Completa', () => {
   afterAll(async () => {
     // Cleanup in reverse order of creation to respect foreign keys
     if (ventaId) {
-        // First delete payments associated with the sale to avoid FK constraints if cascade isn't set
-        // (Assuming Directus or DB handles cascade or we need to delete manually)
-        // For now, let's try deleting the sale.
-        await deleteItem('ventas', ventaId, adminToken);
+      // First delete payments associated with the sale to avoid FK constraints if cascade isn't set
+      // (Assuming Directus or DB handles cascade or we need to delete manually)
+      // For now, let's try deleting the sale.
+      await deleteItem('ventas', ventaId, adminToken);
     }
     if (vendedorId) await deleteItem('vendedores', vendedorId, adminToken);
     if (clienteId) await deleteItem('clientes', clienteId, adminToken);
@@ -45,7 +44,7 @@ describe('Flujo de Venta Completa', () => {
       latitud: 24.0,
       longitud: -104.0,
       manzana: 'M1',
-      zona: 'A'
+      zona: 'A',
     };
     const lote = await createItem('lotes', loteData, adminToken);
     loteId = lote.id;
@@ -57,7 +56,7 @@ describe('Flujo de Venta Completa', () => {
       apellido_paterno: 'Test',
       email: `client.int.${Date.now()}@example.com`,
       telefono: `555${Date.now().toString().slice(-7)}`,
-      rfc: `XAXX${Date.now().toString().slice(-6)}000`
+      rfc: `XAXX${Date.now().toString().slice(-6)}000`,
     };
     const cliente = await createItem('clientes', clienteData, adminToken);
     clienteId = cliente.id;
@@ -68,7 +67,7 @@ describe('Flujo de Venta Completa', () => {
       nombre: 'Vendedor Test',
       apellido_paterno: 'Apellido',
       email: `vendedor.${Date.now()}@example.com`,
-      telefono: '5559876543'
+      telefono: '5559876543',
     };
     const vendedor = await createItem('vendedores', vendedorData, adminToken);
     vendedorId = vendedor.id;
@@ -86,7 +85,7 @@ describe('Flujo de Venta Completa', () => {
       plazo_meses: 12,
       dia_pago: 15,
       interes_anual: 0,
-      estatus: 'activa'
+      estatus: 'activa',
     };
 
     const ventaRes = await requestDirectus
@@ -103,13 +102,13 @@ describe('Flujo de Venta Completa', () => {
     expect(ventaId).toBeDefined();
 
     // Give some time for the async hooks to run
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // 5. Validar que lote se actualiza
     const loteRes = await requestDirectus
       .get(`/items/lotes/${loteId}`)
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     expect(loteRes.body.data.estatus).not.toBe('disponible');
 
     // 6. Validar que se generan amortizaciones
@@ -117,7 +116,7 @@ describe('Flujo de Venta Completa', () => {
       .get('/items/pagos')
       .query({ filter: { venta_id: { _eq: ventaId } } })
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     expect(amortRes.body.data).toBeDefined();
     expect(amortRes.body.data.length).toBeGreaterThan(0);
   });
@@ -127,7 +126,7 @@ describe('Flujo de Venta Completa', () => {
     const pingRes = await requestDirectus
       .get('/endpoint-pagos')
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     if (pingRes.status === 404) {
       console.warn('⚠️ Extension endpoint-pagos not loaded (404). Skipping Payment Flow.');
       return;
@@ -136,19 +135,19 @@ describe('Flujo de Venta Completa', () => {
     // 1. Obtener el siguiente pago pendiente
     const amortRes = await requestDirectus
       .get('/items/pagos')
-      .query({ 
-        filter: { 
+      .query({
+        filter: {
           venta_id: { _eq: ventaId },
-          estatus: { _eq: 'pendiente' }
+          estatus: { _eq: 'pendiente' },
         },
         limit: 1,
-        sort: 'numero_pago'
+        sort: 'numero_pago',
       })
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     if (!amortRes.body.data || amortRes.body.data.length === 0) {
-       console.log('No pending payments found for testing payment flow');
-       return;
+      console.log('No pending payments found for testing payment flow');
+      return;
     }
 
     const pagoPendiente = amortRes.body.data[0];
@@ -160,16 +159,20 @@ describe('Flujo de Venta Completa', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         pago_id: pagoId,
-        cliente_id: clienteId
+        cliente_id: clienteId,
       });
 
     if (intentRes.status !== 200) {
-       console.error('Create Payment Intent Error:', JSON.stringify(intentRes.body));
-       // Fallback if Stripe is not configured properly in test env
-       if (intentRes.status === 500 && intentRes.body.errors && intentRes.body.errors[0].message.includes('Stripe no está configurado')) {
-         console.warn('⚠️ Stripe not configured, skipping payment flow test details');
-         return;
-       }
+      console.error('Create Payment Intent Error:', JSON.stringify(intentRes.body));
+      // Fallback if Stripe is not configured properly in test env
+      if (
+        intentRes.status === 500 &&
+        intentRes.body.errors &&
+        intentRes.body.errors[0].message.includes('Stripe no está configurado')
+      ) {
+        console.warn('⚠️ Stripe not configured, skipping payment flow test details');
+        return;
+      }
     }
 
     expect(intentRes.status).toBe(200);
@@ -197,14 +200,14 @@ describe('Flujo de Venta Completa', () => {
                 payment_method_details: {
                   card: {
                     last4: '4242',
-                    brand: 'visa'
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
+                    brand: 'visa',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     const payloadString = JSON.stringify(payload);
@@ -226,16 +229,16 @@ describe('Flujo de Venta Completa', () => {
     if (webhookRes.status !== 200) {
       console.error('Webhook Error:', webhookRes.text);
     }
-    
+
     expect(webhookRes.status).toBe(200);
 
     // 4. Validar que pago se actualiza a "pagado"
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const pagoRes = await requestDirectus
       .get(`/items/pagos/${pagoId}`)
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     expect(pagoRes.body.data.estatus).toBe('pagado');
     expect(pagoRes.body.data.stripe_payment_intent_id).toBe(paymentIntentId);
     expect(pagoRes.body.data.stripe_last4).toBe('4242');

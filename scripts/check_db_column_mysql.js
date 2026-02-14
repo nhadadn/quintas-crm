@@ -9,7 +9,7 @@ async function checkColumn() {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      port: process.env.DB_PORT
+      port: process.env.DB_PORT,
     });
 
     console.log(`Connected to ${process.env.DB_DATABASE}`);
@@ -20,10 +20,10 @@ async function checkColumn() {
        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'lotes' AND COLUMN_NAME = 'estatus'`,
       [process.env.DB_DATABASE]
     );
-    
+
     if (rows.length > 0) {
       console.log('Column Definition:', JSON.stringify(rows, null, 2));
-      
+
       // Check for NULL values
       const [countResult] = await connection.execute(
         `SELECT COUNT(*) as count FROM lotes WHERE estatus IS NULL`
@@ -34,8 +34,7 @@ async function checkColumn() {
       const [emptyResult] = await connection.execute(
         `SELECT COUNT(*) as count FROM lotes WHERE estatus = ''`
       );
-      console.log("Rows with empty estatus:", emptyResult[0].count);
-
+      console.log('Rows with empty estatus:', emptyResult[0].count);
     } else {
       console.log('Column "estatus" not found in table "lotes".');
       // List columns in lotes to be sure
@@ -44,7 +43,10 @@ async function checkColumn() {
          WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'lotes'`,
         [process.env.DB_DATABASE]
       );
-      console.log('Columns in lotes:', columns.map(c => c.COLUMN_NAME));
+      console.log(
+        'Columns in lotes:',
+        columns.map((c) => c.COLUMN_NAME)
+      );
     }
 
     await connection.end();

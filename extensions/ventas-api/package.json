@@ -10,6 +10,12 @@
     "source": "src/index.js",
     "host": "^11.0.0"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  },
   "dependencies": {
     "zod": "^4.3.6"
   }

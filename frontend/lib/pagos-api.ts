@@ -98,13 +98,71 @@ export async function createPaymentIntent(
   try {
     const response = await directusClient.post('/pagos/create-payment-intent', {
       pago_id: pagoId,
+      monto,
       cliente_id: clienteId,
-      // El backend calcula el monto basado en el ID, pero podemos enviarlo como sanity check si quisiéramos
-      // Por ahora, el backend usa el del DB, así que solo IDs
     });
     return response.data;
   } catch (error) {
     handleAxiosError(error, 'createPaymentIntent');
     throw error;
   }
+}
+
+export async function registrarPagoManual(data: {
+  venta_id?: string | number;
+  pago_id?: string | number;
+  monto: number;
+  fecha_pago: string;
+  metodo_pago: string;
+  referencia?: string;
+  notas?: string;
+}) {
+  try {
+    // El endpoint base POST /pagos maneja el registro manual
+    const response = await directusClient.post('/pagos', data);
+    return response.data;
+  } catch (error) {
+    handleAxiosError(error, 'registrarPagoManual');
+    throw error;
+  }
+}
+
+export async function marcarComoPagado(pagoId: string | number) {
+  // Para marcar como pagado un pago existente sin crear uno nuevo, 
+  // podríamos usar el endpoint manual pasando el pago_id y el monto total pendiente.
+  // Primero obtenemos el pago para saber el monto pendiente.
+  try {
+    const pago = await getPagoById(String(pagoId));
+    if (!pago) throw new Error('Pago no encontrado');
+    
+    // Asumimos pago total
+    const montoAPagar = Number(pago.monto) - Number(pago.monto_pagado || 0);
+    
+    if (montoAPagar <= 0) throw new Error('El pago ya está cubierto');
+
+    return await registrarPagoManual({
+      pago_id: pagoId,
+      venta_id: typeof pago.venta_id === 'object' ? pago.venta_id.id : pago.venta_id,
+      monto: montoAPagar,
+      fecha_pago: new Date().toISOString().split('T')[0],
+      metodo_pago: 'efectivo', // Default, o pasar como param
+      notas: 'Marcado como pagado desde gestión manual'
+    });
+  } catch (error) {
+    console.error('Error al marcar como pagado:', error);
+    throw error;
+  }
+}
+
+export async function descargarReporteIngresos(params: any) {
+    try {
+        const response = await directusClient.get('/pagos/reportes/ingresos', {
+            params,
+            responseType: 'blob' // Importante para descarga de archivos
+        });
+        return response.data;
+    } catch (error) {
+        handleAxiosError(error, 'descargarReporteIngresos');
+        throw error;
+    }
 }

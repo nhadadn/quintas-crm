@@ -1,0 +1,86 @@
+[
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_subscriptions",
+    "action": "create",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_subscriptions",
+    "action": "read",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_subscriptions",
+    "action": "update",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_subscriptions",
+    "action": "delete",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "user_role_id_placeholder",
+    "collection": "stripe_subscriptions",
+    "action": "read",
+    "permissions": {
+      "user_id": {
+        "_eq": "$CURRENT_USER"
+      }
+    },
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_refunds",
+    "action": "read",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "user_role_id_placeholder",
+    "collection": "stripe_refunds",
+    "action": "read",
+    "permissions": {
+      "user_id": {
+        "_eq": "$CURRENT_USER"
+      }
+    },
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "admin_role_id_placeholder",
+    "collection": "stripe_invoices",
+    "action": "read",
+    "permissions": {},
+    "validation": {},
+    "fields": "*"
+  },
+  {
+    "role": "user_role_id_placeholder",
+    "collection": "stripe_invoices",
+    "action": "read",
+    "permissions": {
+      "user_id": {
+        "_eq": "$CURRENT_USER"
+      }
+    },
+    "validation": {},
+    "fields": "*"
+  }
+]

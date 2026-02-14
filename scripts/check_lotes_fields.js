@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
@@ -7,7 +6,7 @@ const dbConfig = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'narizon1',
   database: process.env.DB_DATABASE || 'quintas_otinapaV2',
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
 };
 
 async function checkFields() {
@@ -15,12 +14,12 @@ async function checkFields() {
   try {
     console.log('Connecting to database...', dbConfig.database);
     connection = await mysql.createConnection(dbConfig);
-    
+
     const [rows] = await connection.execute(`
       SELECT * FROM directus_fields 
       WHERE collection = 'lotes' AND field = 'estatus'
     `);
-    
+
     console.log('Fields found for lotes.estatus:', rows);
 
     // Also check the actual column in the lotes table if possible, but Directus manages schema abstractly.
@@ -29,7 +28,6 @@ async function checkFields() {
       SHOW COLUMNS FROM lotes LIKE 'estatus'
     `);
     console.log('DB Column lotes.estatus:', columns);
-
   } catch (error) {
     console.error('❌ Error:', error);
   } finally {

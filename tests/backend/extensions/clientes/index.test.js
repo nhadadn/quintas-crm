@@ -19,28 +19,28 @@ describe('Clientes Extension', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     router = { ...mockRouter };
-    
+
     // Call the extension function
     clientesEndpoint(router, mockContext);
-    
+
     // Extract handler for GET /
-    const getCall = router.get.mock.calls.find(call => call[0] === '/');
+    const getCall = router.get.mock.calls.find((call) => call[0] === '/');
     if (getCall) getHandler = getCall[getCall.length - 1];
 
     // Extract handler for GET /:id
-    const getByIdCall = router.get.mock.calls.find(call => call[0] === '/:id');
+    const getByIdCall = router.get.mock.calls.find((call) => call[0] === '/:id');
     if (getByIdCall) getByIdHandler = getByIdCall[getByIdCall.length - 1];
 
     // Extract handler for POST /
-    const postCall = router.post.mock.calls.find(call => call[0] === '/');
+    const postCall = router.post.mock.calls.find((call) => call[0] === '/');
     if (postCall) postHandler = postCall[postCall.length - 1];
 
     // Extract handler for PATCH /:id
-    const patchCall = router.patch.mock.calls.find(call => call[0] === '/:id');
+    const patchCall = router.patch.mock.calls.find((call) => call[0] === '/:id');
     if (patchCall) patchHandler = patchCall[patchCall.length - 1];
 
     // Extract handler for DELETE /:id
-    const deleteCall = router.delete.mock.calls.find(call => call[0] === '/:id');
+    const deleteCall = router.delete.mock.calls.find((call) => call[0] === '/:id');
     if (deleteCall) deleteHandler = deleteCall[deleteCall.length - 1];
   });
 
@@ -53,24 +53,26 @@ describe('Clientes Extension', () => {
     const res = mockRes();
     const { ItemsService } = mockContext.services;
     const itemsServiceInstance = new ItemsService();
-    
+
     const mockClientes = [{ id: 1, nombre: 'Juan' }];
     itemsServiceInstance.readByQuery.mockResolvedValue(mockClientes);
 
     await getHandler(req, res);
 
-    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(expect.objectContaining({
-      limit: 20,
-      page: 1,
-      filter: {}
-    }));
+    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        limit: 20,
+        page: 1,
+        filter: {},
+      })
+    );
     expect(res.json).toHaveBeenCalledWith({ data: mockClientes });
   });
 
   test('should filter by estatus and email', async () => {
-    const req = { 
-      query: { estatus: 'activo', email: 'test@example.com' }, 
-      accountability: { user: 'admin' } 
+    const req = {
+      query: { estatus: 'activo', email: 'test@example.com' },
+      accountability: { user: 'admin' },
     };
     const res = mockRes();
     const { ItemsService } = mockContext.services;
@@ -78,20 +80,19 @@ describe('Clientes Extension', () => {
 
     await getHandler(req, res);
 
-    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(expect.objectContaining({
-      filter: {
-        _and: [
-          { estatus: { _eq: 'activo' } },
-          { email: { _eq: 'test@example.com' } }
-        ]
-      }
-    }));
+    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: {
+          _and: [{ estatus: { _eq: 'activo' } }, { email: { _eq: 'test@example.com' } }],
+        },
+      })
+    );
   });
 
   test('should search by name/rfc', async () => {
-    const req = { 
-      query: { search: 'Lopez' }, 
-      accountability: { user: 'admin' } 
+    const req = {
+      query: { search: 'Lopez' },
+      accountability: { user: 'admin' },
     };
     const res = mockRes();
     const { ItemsService } = mockContext.services;
@@ -99,19 +100,21 @@ describe('Clientes Extension', () => {
 
     await getHandler(req, res);
 
-    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(expect.objectContaining({
-      filter: {
-        _and: [
-          {
-            _or: [
-              { nombre: { _contains: 'Lopez' } },
-              { apellido: { _contains: 'Lopez' } },
-              { rfc: { _contains: 'Lopez' } },
-            ]
-          }
-        ]
-      }
-    }));
+    expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: {
+          _and: [
+            {
+              _or: [
+                { nombre: { _contains: 'Lopez' } },
+                { apellido: { _contains: 'Lopez' } },
+                { rfc: { _contains: 'Lopez' } },
+              ],
+            },
+          ],
+        },
+      })
+    );
   });
 
   test('should handle service errors', async () => {
@@ -152,8 +155,8 @@ describe('Clientes Extension', () => {
       expect(res.json).toHaveBeenCalledWith({
         data: {
           ...mockCliente,
-          ventas: mockVentas
-        }
+          ventas: mockVentas,
+        },
       });
     });
 
@@ -168,7 +171,9 @@ describe('Clientes Extension', () => {
       await getByIdHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'Cliente 999 no encontrado' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ errors: [{ message: 'Cliente 999 no encontrado' }] })
+      );
     });
   });
 
@@ -184,7 +189,7 @@ describe('Clientes Extension', () => {
       const itemsServiceInstance = new ItemsService();
 
       // Mock check for existing email/rfc
-      itemsServiceInstance.readByQuery.mockResolvedValue([]); 
+      itemsServiceInstance.readByQuery.mockResolvedValue([]);
       // Mock createOne
       itemsServiceInstance.createOne.mockResolvedValue(2);
       // Mock readOne (return created client)
@@ -203,17 +208,28 @@ describe('Clientes Extension', () => {
       await postHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'Nombre y Apellido son obligatorios', code: 'INVALID_PAYLOAD' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [{ message: 'Nombre y Apellido son obligatorios', code: 'INVALID_PAYLOAD' }],
+        })
+      );
     });
 
     test('should validate email format', async () => {
-      const req = { body: { nombre: 'Juan', apellido: 'Perez', email: 'invalid-email' }, accountability: { user: 'admin' } };
+      const req = {
+        body: { nombre: 'Juan', apellido: 'Perez', email: 'invalid-email' },
+        accountability: { user: 'admin' },
+      };
       const res = mockRes();
 
       await postHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'Formato de email inválido', code: 'INVALID_PAYLOAD' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [{ message: 'Formato de email inválido', code: 'INVALID_PAYLOAD' }],
+        })
+      );
     });
 
     test('should prevent duplicate email', async () => {
@@ -229,7 +245,13 @@ describe('Clientes Extension', () => {
       await postHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'El email dup@test.com ya está registrado.', code: 'INVALID_PAYLOAD' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [
+            { message: 'El email dup@test.com ya está registrado.', code: 'INVALID_PAYLOAD' },
+          ],
+        })
+      );
     });
 
     test('should handle DB duplicate error', async () => {
@@ -240,7 +262,7 @@ describe('Clientes Extension', () => {
       const itemsServiceInstance = new ItemsService();
 
       itemsServiceInstance.readByQuery.mockResolvedValue([]); // No duplicate found initially
-      
+
       const dbError = new Error('Duplicate entry');
       dbError.code = 'ER_DUP_ENTRY';
       itemsServiceInstance.createOne.mockRejectedValue(dbError);
@@ -248,7 +270,13 @@ describe('Clientes Extension', () => {
       await postHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'Registro duplicado (Email o RFC ya existe)', code: 'DUPLICATE_ENTRY' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [
+            { message: 'Registro duplicado (Email o RFC ya existe)', code: 'DUPLICATE_ENTRY' },
+          ],
+        })
+      );
     });
   });
 
@@ -257,7 +285,11 @@ describe('Clientes Extension', () => {
   // =================================================================================
   describe('PATCH /:id', () => {
     test('should update client successfully', async () => {
-      const req = { params: { id: 1 }, body: { nombre: 'Updated' }, accountability: { user: 'admin' } };
+      const req = {
+        params: { id: 1 },
+        body: { nombre: 'Updated' },
+        accountability: { user: 'admin' },
+      };
       const res = mockRes();
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
@@ -274,7 +306,11 @@ describe('Clientes Extension', () => {
     });
 
     test('should prevent duplicate email on update', async () => {
-      const req = { params: { id: 1 }, body: { email: 'existing@test.com' }, accountability: { user: 'admin' } };
+      const req = {
+        params: { id: 1 },
+        body: { email: 'existing@test.com' },
+        accountability: { user: 'admin' },
+      };
       const res = mockRes();
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
@@ -285,7 +321,11 @@ describe('Clientes Extension', () => {
       await patchHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ errors: [{ message: 'El email existing@test.com ya está usado por otro cliente.' }] }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [{ message: 'El email existing@test.com ya está usado por otro cliente.' }],
+        })
+      );
     });
   });
 
@@ -302,7 +342,10 @@ describe('Clientes Extension', () => {
       await deleteHandler(req, res);
 
       expect(itemsServiceInstance.updateOne).toHaveBeenCalledWith(1, { estatus: 'inactivo' });
-      expect(res.json).toHaveBeenCalledWith({ success: true, message: 'Cliente 1 marcado como inactivo (Soft Delete)' });
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        message: 'Cliente 1 marcado como inactivo (Soft Delete)',
+      });
     });
   });
 });

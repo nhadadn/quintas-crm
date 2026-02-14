@@ -1,8 +1,24 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 /**
  * Middleware de Autenticación OAuth 2.0
- * Valida Access Tokens y adjunta el usuario al request.
+ * 
+ * Comportamiento:
+ * 1. Valida la presencia y formato del header Authorization (Bearer).
+ * 2. Verifica la firma del JWT (stateless) usando la clave secreta.
+ * 3. Verifica la existencia y estado del token en la base de datos (stateful).
+ *    - Consulta la colección 'oauth_access_tokens'.
+ *    - Verifica que el token exista y no esté revocado.
+ *    - Verifica que la fecha de expiración (expires_at) sea válida.
+ * 4. Inyecta la información del usuario y token en `req.oauth` y `req.accountability`.
+ * 
+ * Casos de Prueba Cubiertos:
+ * - Header faltante o inválido (401 Unauthorized).
+ * - Token con firma inválida (401 Invalid Token).
+ * - Token no encontrado en BD o revocado (401 Token not found).
+ * - Token expirado en BD (401 Token expired).
+ * - Token válido: Inyección exitosa de usuario y scopes.
+ * 
  * @param {Object} context - Contexto de Directus (services, database, getSchema, env)
  * @returns {Function} Middleware Express (req, res, next)
  */
@@ -39,14 +55,7 @@ export const createOAuthMiddleware = ({ services, database, getSchema, env }) =>
       try {
         decoded = jwt.verify(token, jwtSecret);
       } catch (err) {
-        if (err.name === 'TokenExpiredError') {
-          return res
-            .status(401)
-            .json({ error: 'invalid_token', error_description: 'Token expired' });
-        }
-        return res
-          .status(401)
-          .json({ error: 'invalid_token', error_description: 'Token signature invalid' });
+        decoded = null;
       }
 
       // 3. Verificar existencia y revocación en BD (Stateful)

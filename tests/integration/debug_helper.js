@@ -1,4 +1,3 @@
-
 const { getAuthToken } = require('./helpers/request');
 
 (async () => {

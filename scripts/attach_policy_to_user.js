@@ -11,7 +11,7 @@ async function attachPolicy() {
   const loginRes = await fetch(`${DIRECTUS_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
   });
   const token = (await loginRes.json()).data.access_token;
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -23,17 +23,17 @@ async function attachPolicy() {
 
   // Update user
   const updateRes = await fetch(`${DIRECTUS_URL}/users/${USER_ID}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({
-          policies: [POLICY_ID]
-      })
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({
+      policies: [POLICY_ID],
+    }),
   });
 
   if (updateRes.ok) {
-      console.log('✅ Policy attached to USER successfully!');
+    console.log('✅ Policy attached to USER successfully!');
   } else {
-      console.error('❌ Failed to attach policy to user:', await updateRes.text());
+    console.error('❌ Failed to attach policy to user:', await updateRes.text());
   }
 }
 

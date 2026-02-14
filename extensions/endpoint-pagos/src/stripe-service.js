@@ -83,3 +83,112 @@ export const createOrRetrieveCustomer = async (clienteData) => {
     throw error;
   }
 };
+
+// --- Nuevas Funciones Fase 6.1 ---
+
+export const createProductAndPrice = async (planData) => {
+  const stripeInstance = getStripe();
+  const product = await stripeInstance.products.create({
+    name: planData.nombre,
+    description: planData.descripcion,
+  });
+
+  const price = await stripeInstance.prices.create({
+    unit_amount: Math.round(planData.precio_mensual * 100),
+    currency: 'mxn',
+    recurring: { interval: 'month', interval_count: 1 },
+    product: product.id,
+  });
+
+  return { product, price };
+};
+
+export const createSubscription = async ({ customerId, priceId, metadata = {} }) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.subscriptions.create({
+    customer: customerId,
+    items: [{ price: priceId }],
+    metadata,
+    payment_behavior: 'default_incomplete',
+    payment_settings: { save_default_payment_method: 'on_subscription' },
+    expand: ['latest_invoice.payment_intent'],
+  });
+};
+
+export const updateSubscription = async (subscriptionId, newPriceId) => {
+  const stripeInstance = getStripe();
+  const subscription = await stripeInstance.subscriptions.retrieve(subscriptionId);
+  const itemId = subscription.items.data[0].id;
+
+  return await stripeInstance.subscriptions.update(subscriptionId, {
+    items: [
+      {
+        id: itemId,
+        price: newPriceId,
+      },
+    ],
+    proration_behavior: 'create_prorations',
+  });
+};
+
+export const cancelSubscription = async (subscriptionId, immediate = false) => {
+  const stripeInstance = getStripe();
+  if (immediate) {
+    return await stripeInstance.subscriptions.cancel(subscriptionId);
+  } else {
+    return await stripeInstance.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
+  }
+};
+
+export const retrieveSubscription = async (subscriptionId) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.subscriptions.retrieve(subscriptionId);
+};
+
+export const listSubscriptions = async (customerId) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.subscriptions.list({
+    customer: customerId,
+    status: 'all',
+  });
+};
+
+export const pauseSubscription = async (subscriptionId) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.subscriptions.update(subscriptionId, {
+    pause_collection: {
+      behavior: 'mark_uncollectible',
+    },
+  });
+};
+
+export const resumeSubscription = async (subscriptionId) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.subscriptions.update(subscriptionId, {
+    pause_collection: '',
+  });
+};
+
+export const createRefund = async ({ paymentIntentId, amount, reason, metadata = {} }) => {
+  const stripeInstance = getStripe();
+  const params = {
+    payment_intent: paymentIntentId,
+    metadata,
+  };
+  if (amount) {
+    params.amount = Math.round(amount * 100);
+  }
+  // Mapear razones comunes de Stripe
+  if (reason && ['duplicate', 'fraudulent', 'requested_by_customer'].includes(reason)) {
+    params.reason = reason;
+  }
+
+  return await stripeInstance.refunds.create(params);
+};
+
+export const retrieveBalanceTransactions = async (params) => {
+  const stripeInstance = getStripe();
+  return await stripeInstance.balanceTransactions.list(params);
+};

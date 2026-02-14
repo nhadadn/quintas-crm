@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 require('dotenv').config();
 
@@ -12,7 +11,7 @@ async function testCreateLote() {
     console.log('Logging in...');
     const loginRes = await axios.post(`${DIRECTUS_URL}/auth/login`, {
       email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
+      password: ADMIN_PASSWORD,
     });
     const token = loginRes.data.data.access_token;
     console.log('Logged in. Token obtained.');
@@ -28,16 +27,15 @@ async function testCreateLote() {
       latitud: 24.0,
       longitud: -104.0,
       manzana: 'M1',
-      zona: 'A'
+      zona: 'A',
     };
 
     console.log('Creating lote with data:', loteData);
     const createRes = await axios.post(`${DIRECTUS_URL}/items/lotes`, loteData, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     console.log('Lote created successfully:', createRes.data.data);
-
   } catch (error) {
     console.error('❌ Error creating lote:');
     if (error.response) {

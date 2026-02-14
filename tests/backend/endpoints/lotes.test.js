@@ -42,7 +42,7 @@ describe('Lotes API Extension', () => {
 
     beforeEach(() => {
       // Encontrar el handler registrado para GET /
-      const call = router.get.mock.calls.find(call => call[0] === '/');
+      const call = router.get.mock.calls.find((call) => call[0] === '/');
       if (call) {
         getHandler = call[call.length - 1];
       }
@@ -55,37 +55,39 @@ describe('Lotes API Extension', () => {
     test('should return list of lotes successfully', async () => {
       const req = {
         query: { page: 1, limit: 10 },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       const mockLotes = [
         { id: 'lote-1', numero_lote: 'L1', precio: 100000, estatus: 'disponible' },
-        { id: 'lote-2', numero_lote: 'L2', precio: 120000, estatus: 'vendido' }
+        { id: 'lote-2', numero_lote: 'L2', precio: 120000, estatus: 'vendido' },
       ];
 
       itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
 
       await getHandler(req, res);
 
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        data: mockLotes
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: mockLotes,
+        })
+      );
     });
 
     test('should filter by status', async () => {
       const req = {
         query: { status: 'disponible' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       itemsServiceInstance.readByQuery.mockResolvedValue([]);
 
       await getHandler(req, res);
@@ -94,10 +96,8 @@ describe('Lotes API Extension', () => {
       expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           filter: expect.objectContaining({
-            _and: expect.arrayContaining([
-              { estatus: { _eq: 'disponible' } }
-            ])
-          })
+            _and: expect.arrayContaining([{ estatus: { _eq: 'disponible' } }]),
+          }),
         })
       );
     });
@@ -105,13 +105,13 @@ describe('Lotes API Extension', () => {
     test('should filter by zona', async () => {
       const req = {
         query: { zona: 'Norte' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       itemsServiceInstance.readByQuery.mockResolvedValue([]);
 
       await getHandler(req, res);
@@ -119,10 +119,8 @@ describe('Lotes API Extension', () => {
       expect(itemsServiceInstance.readByQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           filter: expect.objectContaining({
-            _and: expect.arrayContaining([
-              { zona: { _eq: 'Norte' } }
-            ])
-          })
+            _and: expect.arrayContaining([{ zona: { _eq: 'Norte' } }]),
+          }),
         })
       );
     });
@@ -130,7 +128,7 @@ describe('Lotes API Extension', () => {
     test('should use cache for list', async () => {
       const req = {
         query: { zona: 'Sur' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res1 = mockRes();
       const res2 = mockRes();
@@ -151,10 +149,10 @@ describe('Lotes API Extension', () => {
     test('should handle generic error in GET /', async () => {
       const req = {
         query: {},
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
-      
+
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
       itemsServiceInstance.readByQuery.mockRejectedValue(new Error('DB Error'));
@@ -162,11 +160,11 @@ describe('Lotes API Extension', () => {
       await getHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        errors: expect.arrayContaining([
-            expect.objectContaining({ message: 'DB Error' })
-        ])
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: expect.arrayContaining([expect.objectContaining({ message: 'DB Error' })]),
+        })
+      );
     });
   });
 
@@ -174,7 +172,7 @@ describe('Lotes API Extension', () => {
     let getByIdHandler;
 
     beforeEach(() => {
-      const call = router.get.mock.calls.find(call => call[0] === '/:id');
+      const call = router.get.mock.calls.find((call) => call[0] === '/:id');
       if (call) {
         getByIdHandler = call[call.length - 1];
       }
@@ -187,13 +185,13 @@ describe('Lotes API Extension', () => {
     test('should return details of a specific lote', async () => {
       const req = {
         params: { id: 'lote-1' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       const mockLote = {
         id: 'lote-1',
         numero_lote: 'L1',
@@ -201,8 +199,8 @@ describe('Lotes API Extension', () => {
         estatus: 'disponible',
         imagenes: [
           { directus_files_id: 'img-1' },
-          { id: 'img-2' } // Caso borde
-        ]
+          { id: 'img-2' }, // Caso borde
+        ],
       };
 
       itemsServiceInstance.readOne.mockResolvedValue(mockLote);
@@ -210,49 +208,51 @@ describe('Lotes API Extension', () => {
 
       await getByIdHandler(req, res);
 
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({
-          id: 'lote-1',
-          imagenes: [
-            'http://localhost:8055/assets/img-1', // Transformación de imagen esperada
-            'http://localhost:8055/assets/img-2'
-          ]
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            id: 'lote-1',
+            imagenes: [
+              'http://localhost:8055/assets/img-1', // Transformación de imagen esperada
+              'http://localhost:8055/assets/img-2',
+            ],
+          }),
         })
-      }));
+      );
     });
 
     test('should return 404 if lote not found', async () => {
       const req = {
         params: { id: 'non-existent' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       itemsServiceInstance.readOne.mockResolvedValue(null);
 
       await getByIdHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        errors: expect.arrayContaining([
-          expect.objectContaining({ code: 'NOT_FOUND' })
-        ])
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: expect.arrayContaining([expect.objectContaining({ code: 'NOT_FOUND' })]),
+        })
+      );
     });
 
     test('should return 403 if forbidden', async () => {
       const req = {
         params: { id: 'forbidden' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       const forbiddenError = new Error('Forbidden');
       forbiddenError.code = 'FORBIDDEN';
       itemsServiceInstance.readOne.mockRejectedValue(forbiddenError);
@@ -265,10 +265,10 @@ describe('Lotes API Extension', () => {
     test('should handle generic error in GET /:id', async () => {
       const req = {
         params: { id: 'l-error' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res = mockRes();
-      
+
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
       itemsServiceInstance.readOne.mockRejectedValue(new Error('DB Detail Error'));
@@ -276,24 +276,24 @@ describe('Lotes API Extension', () => {
       await getByIdHandler(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        errors: expect.arrayContaining([
-            expect.objectContaining({ message: 'DB Detail Error' })
-        ])
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: expect.arrayContaining([expect.objectContaining({ message: 'DB Detail Error' })]),
+        })
+      );
     });
 
     test('should use cache for details', async () => {
       const req = {
         params: { id: 'l-cache' },
-        accountability: { user: 'admin' }
+        accountability: { user: 'admin' },
       };
       const res1 = mockRes();
       const res2 = mockRes();
 
       const { ItemsService } = mockContext.services;
       const itemsServiceInstance = new ItemsService();
-      
+
       itemsServiceInstance.readOne.mockResolvedValue({ id: 'l-cache' });
       mockContext.env = {};
 

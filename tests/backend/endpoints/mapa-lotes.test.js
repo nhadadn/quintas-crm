@@ -34,7 +34,7 @@ describe('Mapa Lotes Endpoint', () => {
   });
 
   test('should respond pong on /ping', () => {
-    const pingHandler = router.get.mock.calls.find(call => call[0] === '/ping')[1];
+    const pingHandler = router.get.mock.calls.find((call) => call[0] === '/ping')[1];
     const res = mockRes();
     pingHandler({}, res);
     expect(res.send).toHaveBeenCalledWith('pong');
@@ -44,113 +44,123 @@ describe('Mapa Lotes Endpoint', () => {
     let getHandler;
 
     beforeEach(() => {
-      getHandler = router.get.mock.calls.find(call => call[0] === '/')[1];
+      getHandler = router.get.mock.calls.find((call) => call[0] === '/')[1];
     });
 
     test('should return GeoJSON feature collection', async () => {
-        const req = {};
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        
-        const mockLotes = [
-            {
-                id: 1,
-                numero_lote: 'L1',
-                geometria: JSON.stringify({ type: 'Polygon', coordinates: [] }),
-                estatus: 'disponible'
-            },
-            {
-                id: 2,
-                numero_lote: 'L2',
-                latitud: 10,
-                longitud: 20, // Should use Point fallback
-                estatus: 'vendido'
-            },
-            {
-                id: 3,
-                numero_lote: 'L3' // No geometry, should be filtered out
-            }
-        ];
+      const req = {};
+      const res = mockRes();
 
-        itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
 
-        await getHandler(req, res);
+      const mockLotes = [
+        {
+          id: 1,
+          numero_lote: 'L1',
+          geometria: JSON.stringify({ type: 'Polygon', coordinates: [] }),
+          estatus: 'disponible',
+        },
+        {
+          id: 2,
+          numero_lote: 'L2',
+          latitud: 10,
+          longitud: 20, // Should use Point fallback
+          estatus: 'vendido',
+        },
+        {
+          id: 3,
+          numero_lote: 'L3', // No geometry, should be filtered out
+        },
+      ];
 
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            type: 'FeatureCollection',
-            features: expect.arrayContaining([
-                expect.objectContaining({ id: 1, geometry: expect.objectContaining({ type: 'Polygon' }) }),
-                expect.objectContaining({ id: 2, geometry: expect.objectContaining({ type: 'Point' }) })
-            ])
-        }));
-        
-        // Check filtering (length should be 2)
-        const jsonCall = res.json.mock.calls[0][0];
-        expect(jsonCall.features).toHaveLength(2);
+      itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+
+      await getHandler(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'FeatureCollection',
+          features: expect.arrayContaining([
+            expect.objectContaining({
+              id: 1,
+              geometry: expect.objectContaining({ type: 'Polygon' }),
+            }),
+            expect.objectContaining({
+              id: 2,
+              geometry: expect.objectContaining({ type: 'Point' }),
+            }),
+          ]),
+        })
+      );
+
+      // Check filtering (length should be 2)
+      const jsonCall = res.json.mock.calls[0][0];
+      expect(jsonCall.features).toHaveLength(2);
     });
 
     test('should handle object geometry (already parsed)', async () => {
-        const req = {};
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        
-        const mockLotes = [
-            {
-                id: 1,
-                geometria: { type: 'Point', coordinates: [0, 0] }
-            }
-        ];
+      const req = {};
+      const res = mockRes();
 
-        itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
 
-        await getHandler(req, res);
+      const mockLotes = [
+        {
+          id: 1,
+          geometria: { type: 'Point', coordinates: [0, 0] },
+        },
+      ];
 
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            features: expect.arrayContaining([
-                expect.objectContaining({ geometry: { type: 'Point', coordinates: [0, 0] } })
-            ])
-        }));
+      itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+
+      await getHandler(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          features: expect.arrayContaining([
+            expect.objectContaining({ geometry: { type: 'Point', coordinates: [0, 0] } }),
+          ]),
+        })
+      );
     });
 
     test('should handle bad geometry JSON', async () => {
-        const req = {};
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        
-        const mockLotes = [
-            {
-                id: 1,
-                geometria: "{ invalid json }"
-            }
-        ];
+      const req = {};
+      const res = mockRes();
 
-        itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
 
-        await getHandler(req, res);
+      const mockLotes = [
+        {
+          id: 1,
+          geometria: '{ invalid json }',
+        },
+      ];
 
-        // Should filter it out as null geometry
-        const jsonCall = res.json.mock.calls[0][0];
-        expect(jsonCall.features).toHaveLength(0);
+      itemsServiceInstance.readByQuery.mockResolvedValue(mockLotes);
+
+      await getHandler(req, res);
+
+      // Should filter it out as null geometry
+      const jsonCall = res.json.mock.calls[0][0];
+      expect(jsonCall.features).toHaveLength(0);
     });
 
     test('should handle DB error in GET /', async () => {
-        const req = {};
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        itemsServiceInstance.readByQuery.mockRejectedValue(new Error('DB Fail'));
+      const req = {};
+      const res = mockRes();
 
-        await getHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
+      itemsServiceInstance.readByQuery.mockRejectedValue(new Error('DB Fail'));
 
-        expect(res.status).toHaveBeenCalledWith(503);
-        expect(res.json).toHaveBeenCalledWith({ error: 'DB Fail' });
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(503);
+      expect(res.json).toHaveBeenCalledWith({ error: 'DB Fail' });
     });
   });
 
@@ -158,62 +168,64 @@ describe('Mapa Lotes Endpoint', () => {
     let getByIdHandler;
 
     beforeEach(() => {
-      getByIdHandler = router.get.mock.calls.find(call => call[0] === '/:id')[1];
+      getByIdHandler = router.get.mock.calls.find((call) => call[0] === '/:id')[1];
     });
 
     test('should return single feature', async () => {
-        const req = { params: { id: 1 } };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        itemsServiceInstance.readOne.mockResolvedValue({
-            id: 1,
-            geometria: JSON.stringify({ type: 'Point', coordinates: [1, 1] })
-        });
+      const req = { params: { id: 1 } };
+      const res = mockRes();
 
-        await getByIdHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
+      itemsServiceInstance.readOne.mockResolvedValue({
+        id: 1,
+        geometria: JSON.stringify({ type: 'Point', coordinates: [1, 1] }),
+      });
 
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            type: 'Feature',
-            id: 1,
-            geometry: expect.objectContaining({ type: 'Point' })
-        }));
+      await getByIdHandler(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'Feature',
+          id: 1,
+          geometry: expect.objectContaining({ type: 'Point' }),
+        })
+      );
     });
 
     test('should return 404 if not found', async () => {
-        const req = { params: { id: 999 } };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        itemsServiceInstance.readOne.mockResolvedValue(null);
+      const req = { params: { id: 999 } };
+      const res = mockRes();
 
-        await getByIdHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
+      itemsServiceInstance.readOne.mockResolvedValue(null);
 
-        expect(res.status).toHaveBeenCalledWith(404);
+      await getByIdHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
     });
 
     test('should handle DB error (ReferenceError bug check)', async () => {
-        const req = { params: { id: 1 } };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const itemsServiceInstance = new ItemsService();
-        itemsServiceInstance.readOne.mockRejectedValue(new Error('DB Fail'));
+      const req = { params: { id: 1 } };
+      const res = mockRes();
 
-        // This is expected to fail with ReferenceError: ServiceUnavailableException is not defined
-        // We wrap it to catch the error if it propagates, or check spy if it doesn't.
-        try {
-            await getByIdHandler(req, res);
-        } catch (e) {
-            // Expected ReferenceError in current code
-            expect(e.name).toBe('ReferenceError');
-            return;
-        }
-        
-        // If fixed, it should be 503 or 500
-        // expect(res.status).toHaveBeenCalledWith(503);
+      const { ItemsService } = mockContext.services;
+      const itemsServiceInstance = new ItemsService();
+      itemsServiceInstance.readOne.mockRejectedValue(new Error('DB Fail'));
+
+      // This is expected to fail with ReferenceError: ServiceUnavailableException is not defined
+      // We wrap it to catch the error if it propagates, or check spy if it doesn't.
+      try {
+        await getByIdHandler(req, res);
+      } catch (e) {
+        // Expected ReferenceError in current code
+        expect(e.name).toBe('ReferenceError');
+        return;
+      }
+
+      // If fixed, it should be 503 or 500
+      // expect(res.status).toHaveBeenCalledWith(503);
     });
   });
 });

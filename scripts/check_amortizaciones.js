@@ -9,7 +9,7 @@ async function checkAmortizacionesColumns() {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      port: process.env.DB_PORT
+      port: process.env.DB_PORT,
     });
 
     console.log(`Connected to ${process.env.DB_DATABASE}`);
@@ -21,9 +21,12 @@ async function checkAmortizacionesColumns() {
        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'pagos'`,
       [process.env.DB_DATABASE]
     );
-    
-    console.log('Columns in pagos:', columns.map(c => c.COLUMN_NAME));
-    
+
+    console.log(
+      'Columns in pagos:',
+      columns.map((c) => c.COLUMN_NAME)
+    );
+
     // Check columns in comisiones
     const [columnsCom] = await connection.execute(
       `SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
@@ -31,15 +34,17 @@ async function checkAmortizacionesColumns() {
        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'comisiones'`,
       [process.env.DB_DATABASE]
     );
-    
-    console.log('Columns in comisiones:', columnsCom.map(c => c.COLUMN_NAME));
+
+    console.log(
+      'Columns in comisiones:',
+      columnsCom.map((c) => c.COLUMN_NAME)
+    );
 
     // Check directus_fields for pagos id
     const [directusField] = await connection.execute(
-        `SELECT * FROM directus_fields WHERE collection = 'pagos' AND field = 'id'`,
+      `SELECT * FROM directus_fields WHERE collection = 'pagos' AND field = 'id'`
     );
     console.log('Directus Field Config for pagos.id:', directusField[0]);
-
 
     await connection.end();
   } catch (error) {

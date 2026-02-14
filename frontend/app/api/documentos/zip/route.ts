@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { documents } = (await request.json()) as { documents: DocumentoPortal[] };
+    const { documents } = await request.json() as { documents: DocumentoPortal[] };
 
     if (!documents || !Array.isArray(documents) || documents.length === 0) {
       return NextResponse.json({ error: 'No documents provided' }, { status: 400 });
@@ -19,18 +19,18 @@ export async function POST(request: NextRequest) {
 
     // Set up archive
     const archive = archiver('zip', {
-      zlib: { level: 9 }, // Sets the compression level.
+      zlib: { level: 9 } // Sets the compression level.
     });
 
     // Create a readable stream from the archive
     // We need to pipe this to the response.
     // In Next.js App Router, we can return a ReadableStream or Buffer.
     // However, archiver works with Node streams. We need to bridge this.
-
+    
     // Alternative: Collect buffer (simple for moderate size) or use TransformStream (complex).
     // Given PDFs are usually small (< 1MB), buffering in memory might be acceptable for < 20 files.
     // But let's try to be streaming-friendly.
-
+    
     // To return a stream in Next.js response:
     const stream = new ReadableStream({
       start(controller) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         archive.on('error', (err) => {
           controller.error(err);
         });
-      },
+      }
     });
 
     // Start processing files asynchronously
@@ -54,23 +54,23 @@ export async function POST(request: NextRequest) {
       for (const doc of documents) {
         try {
           let fetchUrl = doc.url_descarga;
-
+          
           // Determine the correct URL to fetch from
           if (fetchUrl.startsWith('/api/')) {
             // It's an internal API route.
             // We need to map it to the actual source if possible to avoid loopback,
             // or use absolute URL.
             // For receipts: /api/reportes/recibo-pago?id=123 -> Directus /recibos/123/generar
-
+            
             if (doc.tipo === 'recibo' && doc.metadata?.pago_id) {
-              fetchUrl = `${directusUrl}/recibos/${doc.metadata.pago_id}/generar`;
+               fetchUrl = `${directusUrl}/recibos/${doc.metadata.pago_id}/generar`;
             } else if (doc.tipo === 'estado_cuenta') {
-              // Map to Directus extension endpoint if known, or fallback to internal loopback
-              // For now, let's use the internal loopback with full URL
-              fetchUrl = `${appUrl}${doc.url_descarga}`;
+               // Map to Directus extension endpoint if known, or fallback to internal loopback
+               // For now, let's use the internal loopback with full URL
+               fetchUrl = `${appUrl}${doc.url_descarga}`;
             } else {
-              // Default fallback
-              fetchUrl = `${appUrl}${doc.url_descarga}`;
+               // Default fallback
+               fetchUrl = `${appUrl}${doc.url_descarga}`;
             }
           }
 
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
             headers: {
               Authorization: `Bearer ${session.accessToken}`,
               // Forward cookies if needed for internal routes
-              ...(request.headers.get('cookie') ? { Cookie: request.headers.get('cookie')! } : {}),
-            },
+              ...(request.headers.get('cookie') ? { 'Cookie': request.headers.get('cookie')! } : {})
+            }
           });
 
           if (response.ok) {
@@ -92,20 +92,16 @@ export async function POST(request: NextRequest) {
           } else {
             console.error(`Failed to fetch ${doc.id}: ${response.status}`);
             // We can append an error text file or skip
-            archive.append(Buffer.from(`Error downloading ${doc.titulo}`), {
-              name: `ERROR_${doc.id}.txt`,
-            });
+            archive.append(Buffer.from(`Error downloading ${doc.titulo}`), { name: `ERROR_${doc.id}.txt` });
           }
         } catch (error) {
           console.error(`Error processing ${doc.id}:`, error);
-          archive.append(Buffer.from(`Error processing ${doc.titulo}`), {
-            name: `ERROR_${doc.id}.txt`,
-          });
+          archive.append(Buffer.from(`Error processing ${doc.titulo}`), { name: `ERROR_${doc.id}.txt` });
         }
       }
 
       await archive.finalize();
-    })().catch((err) => console.error('Archive generation error:', err));
+    })().catch(err => console.error('Archive generation error:', err));
 
     return new NextResponse(stream, {
       headers: {
@@ -113,8 +109,12 @@ export async function POST(request: NextRequest) {
         'Content-Disposition': `attachment; filename="documentos_quintas.zip"`,
       },
     });
+
   } catch (error) {
     console.error('ZIP generation error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

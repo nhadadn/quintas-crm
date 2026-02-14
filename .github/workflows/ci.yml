@@ -45,9 +45,12 @@ jobs:
   extensions-check:
     name: Extensions Check (Test)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extension: [endpoint-pagos, comisiones, ventas-api, directus-extension-hook-crm-logic]
     defaults:
       run:
-        working-directory: ./extensions/pagos
+        working-directory: ./extensions/${{ matrix.extension }}
 
     steps:
       - uses: actions/checkout@v4
@@ -57,10 +60,10 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: extensions/pagos/package-lock.json
+          cache-dependency-path: extensions/${{ matrix.extension }}/package-lock.json
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Tests
         run: npm test

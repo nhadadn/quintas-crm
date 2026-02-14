@@ -1,6 +1,6 @@
 export default (router, { services, database, getSchema }) => {
   const { ItemsService } = services;
-  
+
   class ServiceUnavailableException extends Error {}
   class ForbiddenException extends Error {}
   class InvalidPayloadException extends Error {}

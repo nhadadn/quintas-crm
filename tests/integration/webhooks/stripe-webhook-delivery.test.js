@@ -21,10 +21,10 @@ describe('Stripe Webhook Delivery', () => {
     const timestamp = Math.floor(Date.now() / 1000);
     const payloadString = JSON.stringify(payload);
     const signedPayload = `${timestamp}.${payloadString}`;
-    
+
     const hmac = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET);
     const sig = hmac.update(signedPayload).digest('hex');
-    
+
     return `t=${timestamp},v1=${sig}`;
   };
 
@@ -46,7 +46,7 @@ describe('Stripe Webhook Delivery', () => {
       nombre: 'Webhook',
       apellido_paterno: 'Tester',
       email: `webhook.test.${Date.now()}@example.com`,
-      telefono: '5555555555'
+      telefono: '5555555555',
     };
     const cliente = await createItem('clientes', clienteData, adminToken);
     clienteId = cliente.id;
@@ -57,7 +57,7 @@ describe('Stripe Webhook Delivery', () => {
       nombre: 'Vendedor',
       apellido_paterno: 'Webhook',
       email: `vendedor.webhook.${Date.now()}@example.com`,
-      comision_porcentaje: 5
+      comision_porcentaje: 5,
     };
     const vendedor = await createItem('vendedores', vendedorData, adminToken);
     vendedorId = vendedor.id;
@@ -74,7 +74,7 @@ describe('Stripe Webhook Delivery', () => {
       latitud: 24.0,
       longitud: -104.0,
       manzana: 'M1',
-      zona: 'A'
+      zona: 'A',
     };
     const lote = await createItem('lotes', loteData, adminToken);
     loteId = lote.id;
@@ -92,42 +92,58 @@ describe('Stripe Webhook Delivery', () => {
       plazo_meses: 12,
       tasa_interes: 10,
       dia_pago: 15,
-      estatus: 'activa'
+      estatus: 'activa',
     };
     const venta = await createItem('ventas', ventaData, adminToken);
     ventaId = venta.id;
     expect(ventaId).toBeDefined();
 
     // Esperar a que los hooks asíncronos generen los pagos
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     // Asegurar que existan los campos necesarios en la colección pagos
     try {
-      const fieldsRes = await requestDirectus.get('/fields/pagos').set('Authorization', `Bearer ${adminToken}`);
-      const fields = fieldsRes.body.data.map(f => f.field);
-      
+      const fieldsRes = await requestDirectus
+        .get('/fields/pagos')
+        .set('Authorization', `Bearer ${adminToken}`);
+      const fields = fieldsRes.body.data.map((f) => f.field);
+
       if (!fields.includes('stripe_payment_intent_id')) {
-        console.warn('⚠️ Campo stripe_payment_intent_id no existe. Creando campos necesarios para Stripe...');
-        await requestDirectus.post('/fields/pagos').set('Authorization', `Bearer ${adminToken}`).send({
-          field: 'stripe_payment_intent_id',
-          type: 'string',
-          meta: { interface: 'input', readonly: false, hidden: false }
-        });
-        await requestDirectus.post('/fields/pagos').set('Authorization', `Bearer ${adminToken}`).send({
-          field: 'stripe_customer_id',
-          type: 'string',
-          meta: { interface: 'input', readonly: false, hidden: false }
-        });
-        await requestDirectus.post('/fields/pagos').set('Authorization', `Bearer ${adminToken}`).send({
-          field: 'stripe_last4',
-          type: 'string',
-          meta: { interface: 'input', readonly: false, hidden: false }
-        });
-        await requestDirectus.post('/fields/pagos').set('Authorization', `Bearer ${adminToken}`).send({
-          field: 'metodo_pago_detalle',
-          type: 'json',
-          meta: { interface: 'input', readonly: false, hidden: false }
-        });
+        console.warn(
+          '⚠️ Campo stripe_payment_intent_id no existe. Creando campos necesarios para Stripe...'
+        );
+        await requestDirectus
+          .post('/fields/pagos')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            field: 'stripe_payment_intent_id',
+            type: 'string',
+            meta: { interface: 'input', readonly: false, hidden: false },
+          });
+        await requestDirectus
+          .post('/fields/pagos')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            field: 'stripe_customer_id',
+            type: 'string',
+            meta: { interface: 'input', readonly: false, hidden: false },
+          });
+        await requestDirectus
+          .post('/fields/pagos')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            field: 'stripe_last4',
+            type: 'string',
+            meta: { interface: 'input', readonly: false, hidden: false },
+          });
+        await requestDirectus
+          .post('/fields/pagos')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            field: 'metodo_pago_detalle',
+            type: 'json',
+            meta: { interface: 'input', readonly: false, hidden: false },
+          });
       }
     } catch (e) {
       console.error('Error verificando/creando campos:', e.message);
@@ -138,10 +154,10 @@ describe('Stripe Webhook Delivery', () => {
       .get('/items/pagos')
       .query({ filter: { venta_id: ventaId }, limit: 1 })
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     expect(pagosRes.body.data.length).toBeGreaterThan(0);
     pagoId = pagosRes.body.data[0].id;
-    
+
     // Asignar un ID de Payment Intent ficticio para testear
     paymentIntentId = `pi_test_${Date.now()}`;
     await requestDirectus
@@ -168,14 +184,14 @@ describe('Stripe Webhook Delivery', () => {
               {
                 payment_method_details: {
                   card: {
-                    last4: '4242'
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
+                    last4: '4242',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     const signature = generateSignature(payload);
@@ -192,7 +208,7 @@ describe('Stripe Webhook Delivery', () => {
     const pagoRes = await requestDirectus
       .get(`/items/pagos/${pagoId}`)
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     const pago = pagoRes.body.data;
     expect(pago.estatus).toBe('pagado');
     expect(pago.stripe_last4).toBe('4242');
@@ -211,9 +227,9 @@ describe('Stripe Webhook Delivery', () => {
           object: 'payment_intent',
           amount: 500000,
           currency: 'mxn',
-          status: 'succeeded'
-        }
-      }
+          status: 'succeeded',
+        },
+      },
     };
 
     const signature = generateSignature(payload);
@@ -225,7 +241,7 @@ describe('Stripe Webhook Delivery', () => {
     const fechaPagoAntes = pagoResBefore.body.data.fecha_pago;
 
     // Esperar 1 segundo para asegurar que si se actualizara, la fecha cambiaría
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
 
     const res = await requestDirectus
       .post('/endpoint-pagos/webhook')
@@ -238,12 +254,12 @@ describe('Stripe Webhook Delivery', () => {
     const pagoResAfter = await requestDirectus
       .get(`/items/pagos/${pagoId}`)
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     // NOTA: Directus guarda fechas con precisión de segundos o milisegundos dependiendo de la DB.
     // Al esperar 1s, si se hubiera actualizado `fecha_pago = new Date()`, debería ser diferente.
     // Sin embargo, si la lógica de idempotencia funciona, no debería haber update.
     // Como implementamos `if (estatus === 'pagado') break;`, no debería haber update.
-    
+
     expect(pagoResAfter.body.data.fecha_pago).toBe(fechaPagoAntes);
   });
 
@@ -252,15 +268,15 @@ describe('Stripe Webhook Delivery', () => {
     // Vamos a buscar otro pago de la misma venta (hay 12).
     const pagosRes = await requestDirectus
       .get('/items/pagos')
-      .query({ 
-        filter: { 
+      .query({
+        filter: {
           venta_id: ventaId,
-          estatus: { _eq: 'pendiente' }
-        }, 
-        limit: 1 
+          estatus: { _eq: 'pendiente' },
+        },
+        limit: 1,
       })
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     const pagoFallidoId = pagosRes.body.data[0].id;
     const paymentIntentFailId = `pi_fail_${Date.now()}`;
 
@@ -279,10 +295,10 @@ describe('Stripe Webhook Delivery', () => {
           id: paymentIntentFailId,
           object: 'payment_intent',
           last_payment_error: {
-            message: 'Fondos insuficientes'
-          }
-        }
-      }
+            message: 'Fondos insuficientes',
+          },
+        },
+      },
     };
 
     const signature = generateSignature(payload);
@@ -298,11 +314,10 @@ describe('Stripe Webhook Delivery', () => {
     const pagoRes = await requestDirectus
       .get(`/items/pagos/${pagoFallidoId}`)
       .set('Authorization', `Bearer ${adminToken}`);
-    
+
     const pago = pagoRes.body.data;
     expect(pago.notas).toContain('Fondos insuficientes');
     // El estatus no cambia según la implementación actual, sigue 'pendiente' (o 'atrasado')
     expect(pago.estatus).not.toBe('pagado');
   });
-
 });

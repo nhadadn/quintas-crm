@@ -23,13 +23,13 @@ describe('Hook: Generación de Amortizaciones', () => {
     };
     ItemsService.mockImplementation(() => itemsServiceMock);
 
-    hookExtension({ filter: jest.fn(), action: actionMock }, mockContext);
+    hookExtension({ filter: jest.fn(), action: actionMock, schedule: jest.fn() }, mockContext);
   });
 
   test('should generate amortizations for financed sales', async () => {
     const handler = registeredHooks['ventas.items.create'];
     const meta = { key: 1 };
-    
+
     // Mock Venta Data
     itemsServiceMock.readOne.mockResolvedValue({
       id: 1,
@@ -46,36 +46,41 @@ describe('Hook: Generación de Amortizaciones', () => {
     await handler(meta, { schema: {}, accountability: { user: 'admin' } });
 
     // Verify Lote update
-    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith(100, expect.objectContaining({
-      estatus: 'apartado',
-      cliente_id: 50
-    }));
+    expect(itemsServiceMock.updateOne).toHaveBeenCalledWith(
+      100,
+      expect.objectContaining({
+        estatus: 'apartado',
+        cliente_id: 50,
+      })
+    );
 
     // Verify Pagos creation
     // First call is ventasService, second is lotesService, third is pagosService (inside generarTablaAmortizacion)
-    // We need to check createMany calls
-    expect(itemsServiceMock.createMany).toHaveBeenCalled();
-    
-    const createCalls = itemsServiceMock.createMany.mock.calls;
-    const pagosCall = createCalls.find(call => call[0][0].numero_pago !== undefined);
-    
+    // We expect direct database insert calls now
+    expect(mockContext.dbChain.insert).toHaveBeenCalled();
+
+    const insertCalls = mockContext.dbChain.insert.mock.calls;
+    const pagosCall = insertCalls.find(
+      (call) => Array.isArray(call[0]) && call[0][0] && call[0][0].numero_pago !== undefined
+    );
+
     expect(pagosCall).toBeDefined();
     const pagos = pagosCall[0];
-    
+
     expect(pagos).toHaveLength(12);
     expect(pagos[0].numero_pago).toBe(1);
     expect(pagos[0].estatus).toBe('pendiente');
-    
+
     // Validate amounts (Principal 100,000, 12 months, 12% annual -> ~8884.88 monthly)
     // Just check total > principal
-    const totalPagado = pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+    const totalPagado = pagos.reduce((sum, p) => sum + parseFloat(p.monto_cuota), 0);
     expect(totalPagado).toBeGreaterThan(100000);
   });
 
   test('should not generate amortizations for cash sales', async () => {
     const handler = registeredHooks['ventas.items.create'];
     const meta = { key: 2 };
-    
+
     itemsServiceMock.readOne.mockResolvedValue({
       id: 2,
       metodo_pago: 'contado',
@@ -85,10 +90,12 @@ describe('Hook: Generación de Amortizaciones', () => {
     await handler(meta, { schema: {}, accountability: { user: 'admin' } });
 
     // Should create commissions but NOT amortizations
-    // We expect createMany for commissions (concept check)
-    const createCalls = itemsServiceMock.createMany.mock.calls;
-    const pagosCall = createCalls.find(call => call[0][0].numero_pago !== undefined);
-    
+    // We expect insert for commissions (concept check)
+    const insertCalls = mockContext.dbChain.insert.mock.calls;
+    const pagosCall = insertCalls.find(
+      (call) => Array.isArray(call[0]) && call[0][0] && call[0][0].numero_pago !== undefined
+    );
+
     expect(pagosCall).toBeUndefined();
   });
 });

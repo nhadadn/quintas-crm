@@ -121,12 +121,14 @@ export interface LoteFilters {
 class DirectusApiError extends Error {
   status?: number;
   originalError?: unknown;
+  isDirectusError: boolean = true;
 
   constructor(message: string, options?: { status?: number; originalError?: unknown }) {
     super(message);
     this.name = 'DirectusError';
     this.status = options?.status;
     this.originalError = options?.originalError;
+    this.isDirectusError = true;
   }
 }
 
@@ -271,7 +273,11 @@ directusClient.interceptors.response.use(
     }
 
     // Retry Logic (Exponential Backoff)
-    if (!config || !config.retry) {
+    if (!config) {
+      return Promise.reject(error);
+    }
+
+    if (!config.retry) {
       config.retry = 0;
     }
 
@@ -303,6 +309,10 @@ export { directusClient };
 // ========================================
 
 export function handleAxiosError(error: unknown, context: string): never {
+  if (error instanceof DirectusApiError || (error as any)?.isDirectusError) {
+    throw error;
+  }
+
   const axiosError = error as AxiosError;
 
   if (!axios.isAxiosError(axiosError)) {
@@ -703,7 +713,7 @@ export async function fetchLotesAsGeoJSON(
         try {
           // IMPORTANTE: Aseguramos no enviar el header Authorization en el reintento
           // Creamos una instancia limpia de axios para evitar interceptores que inyecten el token
-          const publicResponse = await axios.get(`${DIRECTUS_URL}/mapa-lotes`, {
+          const publicResponse = await axios.get(`${DIRECTUS_BASE_URL}/mapa-lotes`, {
             params: buildLotesFilterParams(filters || {}),
           });
           return publicResponse.data;

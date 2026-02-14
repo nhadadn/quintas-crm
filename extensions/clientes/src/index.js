@@ -3,11 +3,31 @@ import { createOAuthMiddleware, requireScopes } from '../../middleware/oauth-aut
 export default (router, context) => {
   const { services, getSchema, env } = context;
   const { ItemsService } = services;
-  
-  const ServiceUnavailableException = class extends Error { constructor(msg) { super(msg); this.status = 503; } };
-  const ForbiddenException = class extends Error { constructor(msg) { super(msg); this.status = 403; } };
-  const InvalidPayloadException = class extends Error { constructor(msg) { super(msg); this.status = 400; } };
-  const NotFoundException = class extends Error { constructor(msg) { super(msg); this.status = 404; } };
+
+  const ServiceUnavailableException = class extends Error {
+    constructor(msg) {
+      super(msg);
+      this.status = 503;
+    }
+  };
+  const ForbiddenException = class extends Error {
+    constructor(msg) {
+      super(msg);
+      this.status = 403;
+    }
+  };
+  const InvalidPayloadException = class extends Error {
+    constructor(msg) {
+      super(msg);
+      this.status = 400;
+    }
+  };
+  const NotFoundException = class extends Error {
+    constructor(msg) {
+      super(msg);
+      this.status = 404;
+    }
+  };
 
   console.log('✅ Endpoint /clientes registrado correctamente');
 

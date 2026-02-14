@@ -18,22 +18,22 @@ const mockRes = () => {
 
 // Mock Knex
 const mockQueryBuilder = {
-    where: jest.fn().mockReturnThis(),
-    join: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    then: jest.fn((resolve) => resolve([])),
-    reduce: jest.fn((cb, init) => [].reduce(cb, init)),
-    length: 0
+  where: jest.fn().mockReturnThis(),
+  join: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  then: jest.fn((resolve) => resolve([])),
+  reduce: jest.fn((cb, init) => [].reduce(cb, init)),
+  length: 0,
 };
 // Make mockKnex a callable function that returns the builder
 const mockKnex = jest.fn(() => mockQueryBuilder);
 
 // Helper to set mock data for Knex
 const setKnexResponse = (data) => {
-    mockQueryBuilder.then = jest.fn((resolve) => resolve(data));
-    mockQueryBuilder.length = data.length;
-    // Mock array methods if needed (reduce is called on the result array, not the builder, usually. 
-    // Wait, await knex() returns the array. So the result of await is what matters.
+  mockQueryBuilder.then = jest.fn((resolve) => resolve(data));
+  mockQueryBuilder.length = data.length;
+  // Mock array methods if needed (reduce is called on the result array, not the builder, usually.
+  // Wait, await knex() returns the array. So the result of await is what matters.
 };
 
 describe('Perfil Endpoint', () => {
@@ -60,192 +60,208 @@ describe('Perfil Endpoint', () => {
     let getHandler;
 
     beforeEach(() => {
-      getHandler = router.get.mock.calls.find(call => call[0] === '/')[1];
+      getHandler = router.get.mock.calls.find((call) => call[0] === '/')[1];
     });
 
     test('should return 401 if not authenticated', async () => {
-        const req = { accountability: null };
-        const res = mockRes();
-        
-        await getHandler(req, res);
+      const req = { accountability: null };
+      const res = mockRes();
 
-        expect(res.status).toHaveBeenCalledWith(401);
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
     });
 
     test('should return 400 if user is not a client and no cliente_id provided', async () => {
-        const req = { accountability: { user: 'user-id', role: 'admin' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        const adminService = new ItemsService();
-        // Mock finding associated client -> None found
-        adminService.readByQuery.mockResolvedValue([]);
+      const req = { accountability: { user: 'user-id', role: 'admin' }, query: {} };
+      const res = mockRes();
 
-        await getHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      const adminService = new ItemsService();
+      // Mock finding associated client -> None found
+      adminService.readByQuery.mockResolvedValue([]);
 
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringContaining('cliente_id es requerido') }));
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: expect.stringContaining('cliente_id es requerido') })
+      );
     });
 
     test('should fetch profile for associated client', async () => {
-        const req = { accountability: { user: 'user-id' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        
-        // 1. Mock finding associated client
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]) // Found client 1
-        }));
+      const req = { accountability: { user: 'user-id' }, query: {} };
+      const res = mockRes();
 
-        // 2. Mock debug ventas check
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([{ id: 10 }])
-        }));
+      const { ItemsService } = mockContext.services;
 
-        // 3. Mock reading client details
-        ItemsService.mockImplementationOnce(() => ({
-            readOne: jest.fn().mockResolvedValue({ id: 1, nombre: 'Juan' })
-        }));
+      // 1. Mock finding associated client
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]), // Found client 1
+      }));
 
-        // 4. Mock reading ventas (Admin context)
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([
-                { id: 10, monto_total: 1000, pagos: [{ monto: 500 }] }
-            ])
-        }));
+      // 2. Mock debug ventas check
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 10 }]),
+      }));
 
-        // 4. Mock Knex statistics
-        // The code calls knex('ventas') then knex('pagos')
-        mockKnex
-            .mockReturnValueOnce({ ...mockQueryBuilder, then: (r) => r([{ monto_total: 1000 }]) }) // ventas
-            .mockReturnValueOnce({ ...mockQueryBuilder, then: (r) => r([{ monto: 500 }]) }); // pagos
+      // 3. Mock reading client details
+      ItemsService.mockImplementationOnce(() => ({
+        readOne: jest.fn().mockResolvedValue({ id: 1, nombre: 'Juan' }),
+      }));
 
-        await getHandler(req, res);
+      // 4. Mock reading ventas (Admin context)
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest
+          .fn()
+          .mockResolvedValue([{ id: 10, monto_total: 1000, pagos: [{ monto: 500 }] }]),
+      }));
 
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            perfil: expect.objectContaining({ id: 1, nombre: 'Juan' }),
-            estadisticas: expect.objectContaining({ total_compras: 1000, total_pagado: 500 })
-        }));
+      // 4. Mock Knex statistics
+      // The code calls knex('ventas') then knex('pagos')
+      mockKnex
+        .mockReturnValueOnce({ ...mockQueryBuilder, then: (r) => r([{ monto_total: 1000 }]) }) // ventas
+        .mockReturnValueOnce({ ...mockQueryBuilder, then: (r) => r([{ monto: 500 }]) }); // pagos
+
+      await getHandler(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perfil: expect.objectContaining({ id: 1, nombre: 'Juan' }),
+          estadisticas: expect.objectContaining({ total_compras: 1000, total_pagado: 500 }),
+        })
+      );
     });
 
     test('should use provided cliente_id if user not associated (Admin case)', async () => {
-        const req = { accountability: { user: 'admin-id' }, query: { cliente_id: 2 } };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        
-        // 1. Mock finding associated client -> None
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([]) 
-        }));
+      const req = { accountability: { user: 'admin-id' }, query: { cliente_id: 2 } };
+      const res = mockRes();
 
-        // 2. Mock debug ventas check
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([])
-        }));
+      const { ItemsService } = mockContext.services;
 
-        // 3. Mock reading client details (Target ID 2)
-        ItemsService.mockImplementationOnce(() => ({
-            readOne: jest.fn().mockResolvedValue({ id: 2, nombre: 'Pedro' })
-        }));
+      // 1. Mock finding associated client -> None
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([]),
+      }));
 
-        // 4. Mock reading ventas
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([])
-        }));
+      // 2. Mock debug ventas check
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([]),
+      }));
 
-        // 5. Mock Knex
-        mockKnex.mockReturnValue({ ...mockQueryBuilder, then: (r) => r([]) });
+      // 3. Mock reading client details (Target ID 2)
+      ItemsService.mockImplementationOnce(() => ({
+        readOne: jest.fn().mockResolvedValue({ id: 2, nombre: 'Pedro' }),
+      }));
 
-        await getHandler(req, res);
+      // 4. Mock reading ventas
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([]),
+      }));
 
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            perfil: expect.objectContaining({ id: 2, nombre: 'Pedro' })
-        }));
+      // 5. Mock Knex
+      mockKnex.mockReturnValue({ ...mockQueryBuilder, then: (r) => r([]) });
+
+      await getHandler(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perfil: expect.objectContaining({ id: 2, nombre: 'Pedro' }),
+        })
+      );
     });
 
     test('should return 404 if client not found', async () => {
-        const req = { accountability: { user: 'user-id' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        
-        // 1. Mock associated client
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]) 
-        }));
+      const req = { accountability: { user: 'user-id' }, query: {} };
+      const res = mockRes();
 
-        // 2. Mock debug ventas check
-        ItemsService.mockImplementationOnce(() => ({
-            readByQuery: jest.fn().mockResolvedValue([])
-        }));
+      const { ItemsService } = mockContext.services;
 
-        // 3. Mock reading client details -> Null
-        ItemsService.mockImplementationOnce(() => ({
-            readOne: jest.fn().mockResolvedValue(null)
-        }));
+      // 1. Mock associated client
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]),
+      }));
 
-        await getHandler(req, res);
+      // 2. Mock debug ventas check
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([]),
+      }));
 
-        expect(res.status).toHaveBeenCalledWith(404);
+      // 3. Mock reading client details -> Null
+      ItemsService.mockImplementationOnce(() => ({
+        readOne: jest.fn().mockResolvedValue(null),
+      }));
+
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
     });
 
     test('should handle fallback if admin context fetch fails', async () => {
-        // This tests lines 146-161 (catch and retry)
-        const req = { accountability: { user: 'user-id' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]) })); // User lookup
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([]) })); // Debug check
-        ItemsService.mockImplementationOnce(() => ({ readOne: jest.fn().mockResolvedValue({ id: 1 }) })); // Client details
-        
-        // Admin Ventas fetch -> Fails
-        const mockReadByQueryAdmin = jest.fn().mockRejectedValue(new Error('Admin Access Fail'));
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: mockReadByQueryAdmin }));
+      // This tests lines 146-161 (catch and retry)
+      const req = { accountability: { user: 'user-id' }, query: {} };
+      const res = mockRes();
 
-        // User Ventas fetch -> Succeeds
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([{ id: 10 }]) }));
+      const { ItemsService } = mockContext.services;
 
-        // Mock Knex
-        mockKnex.mockReturnValue({ ...mockQueryBuilder, then: (r) => r([]) });
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]),
+      })); // User lookup
+      ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([]) })); // Debug check
+      ItemsService.mockImplementationOnce(() => ({
+        readOne: jest.fn().mockResolvedValue({ id: 1 }),
+      })); // Client details
 
-        await getHandler(req, res);
+      // Admin Ventas fetch -> Fails
+      const mockReadByQueryAdmin = jest.fn().mockRejectedValue(new Error('Admin Access Fail'));
+      ItemsService.mockImplementationOnce(() => ({ readByQuery: mockReadByQueryAdmin }));
 
-        // Check that fallback was used (no explicit check, but if it didn't crash, it worked)
-        expect(res.json).toHaveBeenCalled();
-        expect(mockReadByQueryAdmin).toHaveBeenCalled();
+      // User Ventas fetch -> Succeeds
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 10 }]),
+      }));
+
+      // Mock Knex
+      mockKnex.mockReturnValue({ ...mockQueryBuilder, then: (r) => r([]) });
+
+      await getHandler(req, res);
+
+      // Check that fallback was used (no explicit check, but if it didn't crash, it worked)
+      expect(res.json).toHaveBeenCalled();
+      expect(mockReadByQueryAdmin).toHaveBeenCalled();
     });
 
     test('should handle 403 error', async () => {
-        const req = { accountability: { user: 'user-id' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]) })); 
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([]) })); // Debug
-        
-        const error = new Error('Forbidden');
-        error.status = 403;
-        ItemsService.mockImplementationOnce(() => ({ readOne: jest.fn().mockRejectedValue(error) }));
+      const req = { accountability: { user: 'user-id' }, query: {} };
+      const res = mockRes();
 
-        await getHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockResolvedValue([{ id: 1 }]),
+      }));
+      ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockResolvedValue([]) })); // Debug
 
-        expect(res.status).toHaveBeenCalledWith(403);
+      const error = new Error('Forbidden');
+      error.status = 403;
+      ItemsService.mockImplementationOnce(() => ({ readOne: jest.fn().mockRejectedValue(error) }));
+
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
     });
 
     test('should handle 500 error', async () => {
-        const req = { accountability: { user: 'user-id' }, query: {} };
-        const res = mockRes();
-        
-        const { ItemsService } = mockContext.services;
-        ItemsService.mockImplementationOnce(() => ({ readByQuery: jest.fn().mockRejectedValue(new Error('DB Fail')) })); 
+      const req = { accountability: { user: 'user-id' }, query: {} };
+      const res = mockRes();
 
-        await getHandler(req, res);
+      const { ItemsService } = mockContext.services;
+      ItemsService.mockImplementationOnce(() => ({
+        readByQuery: jest.fn().mockRejectedValue(new Error('DB Fail')),
+      }));
 
-        expect(res.status).toHaveBeenCalledWith(500);
+      await getHandler(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
     });
   });
 });

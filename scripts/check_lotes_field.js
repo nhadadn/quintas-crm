@@ -1,4 +1,3 @@
-
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
@@ -13,13 +12,12 @@ async function checkField() {
   let connection;
   try {
     connection = await mysql.createConnection(dbConfig);
-    
+
     const [rows] = await connection.execute(
       `SELECT * FROM directus_fields WHERE collection = 'lotes' AND field = 'estatus'`
     );
-    
-    console.log('Field Definition:', JSON.stringify(rows, null, 2));
 
+    console.log('Field Definition:', JSON.stringify(rows, null, 2));
   } catch (error) {
     console.error('❌ Error:', error);
   } finally {

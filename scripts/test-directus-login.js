@@ -11,7 +11,7 @@ async function testLogin() {
     const response = await axios.post(url, {
       email,
       password,
-      mode: 'json'
+      mode: 'json',
     });
 
     console.log('Login successful!');

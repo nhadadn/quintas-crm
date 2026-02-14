@@ -21,8 +21,6 @@ function invalidateCache(clienteId) {
   cache.delete(clienteId);
 }
 
-
-
 export default (router, context) => {
   const { services, database, getSchema } = context;
   const { ItemsService } = services;
@@ -43,7 +41,7 @@ export default (router, context) => {
       let targetClienteId = req.query.cliente_id;
 
       // 2. Resolver Cliente desde Usuario
-      const schema = req.schema || await getSchema();
+      const schema = req.schema || (await getSchema());
       // Usamos contexto admin para buscar el cliente asociado al usuario (bypass permissions)
       const adminService = new ItemsService('clientes', { schema, database: database });
 
@@ -53,7 +51,9 @@ export default (router, context) => {
         limit: 1,
       });
 
-      console.log(`[Perfil] User: ${currentUserId}, Found Clients: ${JSON.stringify(clientesAsociados)}`);
+      console.log(
+        `[Perfil] User: ${currentUserId}, Found Clients: ${JSON.stringify(clientesAsociados)}`
+      );
 
       if (clientesAsociados && clientesAsociados.length > 0) {
         targetClienteId = clientesAsociados[0].id;
@@ -76,20 +76,23 @@ export default (router, context) => {
       // }
 
       console.log(`[Perfil] Fetching data for client: ${targetClienteId}`);
-      
+
       // DEBUG: Log accountability
-      console.log('[Perfil] Accountability:', JSON.stringify({
-        user: req.accountability?.user,
-        role: req.accountability?.role,
-        admin: req.accountability?.admin,
-        app: req.accountability?.app
-      }));
+      console.log(
+        '[Perfil] Accountability:',
+        JSON.stringify({
+          user: req.accountability?.user,
+          role: req.accountability?.role,
+          admin: req.accountability?.admin,
+          app: req.accountability?.app,
+        })
+      );
 
       // DEBUG: Check admin access to sales
       const ventasService = new ItemsService('ventas', { schema, database: database });
       const adminVentas = await ventasService.readByQuery({
         filter: { cliente_id: { _eq: targetClienteId } },
-        limit: 5
+        limit: 5,
       });
       console.log(`[Perfil] Admin context found sales: ${adminVentas?.length || 0}`);
 
@@ -99,84 +102,83 @@ export default (router, context) => {
         database: database,
         accountability: req.accountability,
       });
-      
+
       try {
         const cliente = await clientesService.readOne(targetClienteId, {
-            fields: ['*'],
+          fields: ['*'],
         });
 
         if (!cliente) {
-            console.log('[Perfil] Cliente not found (readOne returned null)');
-            return res.status(404).json({ error: 'Cliente no encontrado' });
+          console.log('[Perfil] Cliente not found (readOne returned null)');
+          return res.status(404).json({ error: 'Cliente no encontrado' });
         }
 
         // 4b. Fetch ventas explicitly with admin context to ensure field visibility
         const ventasServiceAdmin = new ItemsService('ventas', {
-            schema,
-            database: database
-            // No accountability = admin access (bypassing field permissions)
+          schema,
+          database: database,
+          // No accountability = admin access (bypassing field permissions)
         });
 
         let ventas = [];
         try {
-            ventas = await ventasServiceAdmin.readByQuery({
-                filter: { cliente_id: { _eq: targetClienteId } },
-                fields: [
-                    '*',
-                    'lote_id.numero_lote',
-                    'lote_id.manzana',
-                    'pagos.id',
-                    'pagos.fecha_pago',
-                    'pagos.monto',
-                    'pagos.concepto',
-                    'pagos.estatus',
-                    'pagos.numero_parcialidad',
-                    'pagos.interes',
-                    'pagos.capital',
-                    'pagos.saldo_restante',
-                    'pagos.fecha_vencimiento',
-                    'pagos.venta_id'
-                ]
-            });
+          ventas = await ventasServiceAdmin.readByQuery({
+            filter: { cliente_id: { _eq: targetClienteId } },
+            fields: [
+              '*',
+              'lote_id.numero_lote',
+              'lote_id.manzana',
+              'pagos.id',
+              'pagos.fecha_pago',
+              'pagos.monto',
+              'pagos.concepto',
+              'pagos.estatus',
+              'pagos.numero_parcialidad',
+              'pagos.interes',
+              'pagos.capital',
+              'pagos.saldo_restante',
+              'pagos.fecha_vencimiento',
+              'pagos.venta_id',
+            ],
+          });
         } catch (ventasError) {
-            console.error('[Perfil] Error fetching ventas with pagos (Admin context):', ventasError.message);
-            // Fallback to user context if admin fails for some reason (unlikely)
-             console.log('[Perfil] Retrying with user context (might miss fields)...');
-             try {
-                const ventasServiceUser = new ItemsService('ventas', {
-                    schema,
-                    database,
-                    accountability: req.accountability
-                });
-                ventas = await ventasServiceUser.readByQuery({
-                    filter: { cliente_id: { _eq: targetClienteId } },
-                    fields: [
-                        '*',
-                        'lote_id.numero_lote',
-                        'lote_id.manzana'
-                    ]
-                });
-             } catch (retryError) {
-                 console.error('[Perfil] Retry failed:', retryError.message);
-             }
+          console.error(
+            '[Perfil] Error fetching ventas with pagos (Admin context):',
+            ventasError.message
+          );
+          // Fallback to user context if admin fails for some reason (unlikely)
+          console.log('[Perfil] Retrying with user context (might miss fields)...');
+          try {
+            const ventasServiceUser = new ItemsService('ventas', {
+              schema,
+              database,
+              accountability: req.accountability,
+            });
+            ventas = await ventasServiceUser.readByQuery({
+              filter: { cliente_id: { _eq: targetClienteId } },
+              fields: ['*', 'lote_id.numero_lote', 'lote_id.manzana'],
+            });
+          } catch (retryError) {
+            console.error('[Perfil] Retry failed:', retryError.message);
+          }
         }
 
         cliente.ventas = ventas;
 
         console.log(`[Perfil] Client loaded. Ventas count: ${cliente.ventas?.length || 0}`);
         if (cliente.ventas?.length > 0) {
-            console.log(`[Perfil] First venta ID: ${cliente.ventas[0].id}`);
-            console.log(`[Perfil] Pagos in first venta: ${cliente.ventas[0].pagos?.length || 0}`);
+          console.log(`[Perfil] First venta ID: ${cliente.ventas[0].id}`);
+          console.log(`[Perfil] Pagos in first venta: ${cliente.ventas[0].pagos?.length || 0}`);
         }
 
         // 5. Calcular estadísticas
         const stats = await calcularEstadisticasCliente(targetClienteId, database);
 
         const responseData = {
-            perfil: cliente,
-            estadisticas: stats,
-            timestamp: new Date().toISOString(),
-            source: 'database'
+          perfil: cliente,
+          estadisticas: stats,
+          timestamp: new Date().toISOString(),
+          source: 'database',
         };
 
         // 6. Almacenar en caché
@@ -184,12 +186,12 @@ export default (router, context) => {
 
         res.json(responseData);
       } catch (readError) {
-          console.error('[Perfil] Error reading client:', readError);
-          // If 403, it means permission denied
-          if (readError.status === 403) {
-              return res.status(403).json({ error: 'Permiso denegado para ver este perfil' });
-          }
-          throw readError;
+        console.error('[Perfil] Error reading client:', readError);
+        // If 403, it means permission denied
+        if (readError.status === 403) {
+          return res.status(403).json({ error: 'Permiso denegado para ver este perfil' });
+        }
+        throw readError;
       }
     } catch (error) {
       console.error('❌ Error en GET /perfil:', error);
@@ -199,39 +201,39 @@ export default (router, context) => {
 };
 
 async function calcularEstadisticasCliente(clienteId, knex) {
-    // Implementación básica basada en lo que se espera
-    // Buscar ventas y pagos
-    try {
-        const ventas = await knex('ventas').where({ cliente_id: clienteId });
-        const pagos = await knex('pagos')
-            .join('ventas', 'pagos.venta_id', 'ventas.id')
-            .where('ventas.cliente_id', clienteId);
+  // Implementación básica basada en lo que se espera
+  // Buscar ventas y pagos
+  try {
+    const ventas = await knex('ventas').where({ cliente_id: clienteId });
+    const pagos = await knex('pagos')
+      .join('ventas', 'pagos.venta_id', 'ventas.id')
+      .where('ventas.cliente_id', clienteId);
 
-        const totalComprado = ventas.reduce((acc, v) => acc + (parseFloat(v.monto_total) || 0), 0);
-        const totalPagado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
-        const lotesCount = ventas.length;
-        const pagosCount = pagos.length;
+    const totalComprado = ventas.reduce((acc, v) => acc + (parseFloat(v.monto_total) || 0), 0);
+    const totalPagado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+    const lotesCount = ventas.length;
+    const pagosCount = pagos.length;
 
-        return {
-            total_compras: totalComprado,
-            total_pagado: totalPagado,
-            saldo_pendiente: totalComprado - totalPagado,
-            numero_ventas: lotesCount,
-            pagos_realizados: pagosCount,
-            proximo_pago: {
-                monto: 0,
-                estatus: 'pendiente',
-                fecha_pago: new Date().toISOString()
-            }
-        };
-    } catch (e) {
-        console.error("Error calculando estadisticas:", e);
-        return {
-            total_compras: 0,
-            total_pagado: 0,
-            saldo_pendiente: 0,
-            numero_ventas: 0,
-            pagos_realizados: 0
-        };
-    }
+    return {
+      total_compras: totalComprado,
+      total_pagado: totalPagado,
+      saldo_pendiente: totalComprado - totalPagado,
+      numero_ventas: lotesCount,
+      pagos_realizados: pagosCount,
+      proximo_pago: {
+        monto: 0,
+        estatus: 'pendiente',
+        fecha_pago: new Date().toISOString(),
+      },
+    };
+  } catch (e) {
+    console.error('Error calculando estadisticas:', e);
+    return {
+      total_compras: 0,
+      total_pagado: 0,
+      saldo_pendiente: 0,
+      numero_ventas: 0,
+      pagos_realizados: 0,
+    };
+  }
 }

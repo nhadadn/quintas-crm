@@ -12,6 +12,6 @@ module.exports = async () => {
   } catch (error) {
     console.error('❌ Directus is NOT reachable. Please ensure it is running on port 8055.');
     // We usually want tests to fail fast if the environment isn't ready
-    // throw error; 
+    // throw error;
   }
 };

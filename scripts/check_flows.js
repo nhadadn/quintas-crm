@@ -9,7 +9,7 @@ async function checkFlows() {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      port: process.env.DB_PORT
+      port: process.env.DB_PORT,
     });
 
     console.log('Checking directus_flows...');
@@ -20,10 +20,10 @@ async function checkFlows() {
 
     console.log('Checking triggers on table lotes...');
     const [triggers] = await connection.execute(
-        `SELECT TRIGGER_NAME, ACTION_TIMING, EVENT_MANIPULATION, ACTION_STATEMENT 
+      `SELECT TRIGGER_NAME, ACTION_TIMING, EVENT_MANIPULATION, ACTION_STATEMENT 
          FROM information_schema.TRIGGERS 
          WHERE EVENT_OBJECT_TABLE = 'lotes' AND EVENT_OBJECT_SCHEMA = ?`,
-        [process.env.DB_DATABASE]
+      [process.env.DB_DATABASE]
     );
     console.log('DB Triggers:', JSON.stringify(triggers, null, 2));
 

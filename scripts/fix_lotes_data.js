@@ -9,7 +9,7 @@ async function fixData() {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      port: process.env.DB_PORT
+      port: process.env.DB_PORT,
     });
 
     console.log('Fixing NULL values in lotes.estatus...');
@@ -20,7 +20,7 @@ async function fixData() {
 
     console.log('Ensuring directus_fields is correct...');
     const [result2] = await connection.execute(
-        "UPDATE directus_fields SET required = 0 WHERE collection = 'lotes' AND field = 'estatus'"
+      "UPDATE directus_fields SET required = 0 WHERE collection = 'lotes' AND field = 'estatus'"
     );
     console.log(`Updated ${result2.affectedRows} directus_fields rows.`);
 

@@ -12,7 +12,7 @@ async function fixPolicy() {
   const loginRes = await fetch(`${DIRECTUS_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
   });
   const loginData = await loginRes.json();
   const token = loginData.data.access_token;
@@ -23,10 +23,10 @@ async function fixPolicy() {
   const meData = await meRes.json();
   console.log('Logged in as:', meData.data.email);
   if (meData.data.role) {
-      console.log('Admin Role:', meData.data.role.name, meData.data.role.id);
-      console.log('Admin Access:', meData.data.role.admin_access);
+    console.log('Admin Role:', meData.data.role.name, meData.data.role.id);
+    console.log('Admin Access:', meData.data.role.admin_access);
   } else {
-      console.log('Admin Role: NULL (Super Admin?)');
+    console.log('Admin Role: NULL (Super Admin?)');
   }
 
   // 2. Check Role
@@ -39,15 +39,15 @@ async function fixPolicy() {
     method: 'PATCH',
     headers,
     body: JSON.stringify({
-        policies: [NEW_POLICY_ID]
-    })
+      policies: [NEW_POLICY_ID],
+    }),
   });
 
   if (updateRes.ok) {
-      const updateData = await updateRes.json();
-      console.log('✅ Role updated. New Policies:', updateData.data.policies);
+    const updateData = await updateRes.json();
+    console.log('✅ Role updated. New Policies:', updateData.data.policies);
   } else {
-      console.error('❌ Failed to update role:', updateRes.status, await updateRes.text());
+    console.error('❌ Failed to update role:', updateRes.status, await updateRes.text());
   }
 }
 

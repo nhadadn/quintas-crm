@@ -14,8 +14,10 @@ import {
   Clock,
   AlertCircle,
   CreditCard,
+  RotateCcw,
 } from 'lucide-react';
 import { ModalPagoStripe } from './ModalPagoStripe';
+import { ModalSolicitarReembolso } from './ModalSolicitarReembolso';
 
 interface TablaPagosClienteProps {
   pagos: PagoPerfil[];
@@ -41,11 +43,20 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPagoForPayment, setSelectedPagoForPayment] = useState<PagoPerfil | null>(null);
 
+  // Refund Modal State
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [selectedPagoForRefund, setSelectedPagoForRefund] = useState<PagoPerfil | null>(null);
+
   const itemsPerPage = 10;
 
   const handlePagar = (pago: PagoPerfil) => {
     setSelectedPagoForPayment(pago);
     setIsPaymentModalOpen(true);
+  };
+
+  const handleRefund = (pago: PagoPerfil) => {
+    setSelectedPagoForRefund(pago);
+    setIsRefundModalOpen(true);
   };
 
   const handlePaymentSuccess = () => {
@@ -466,6 +477,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Página anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -473,6 +485,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Siguiente página"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

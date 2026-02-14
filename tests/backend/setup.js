@@ -11,72 +11,98 @@ const mockItemsService = {
 
 // Create a mock class that returns the singleton mock instance
 const MockItemsServiceClass = jest.fn(() => mockItemsService);
+const MockMailServiceClass = jest.fn(() => ({ send: jest.fn() }));
 
-const createMockTrx = () => {
-  const trx = jest.fn(() => {
-    const chain = {
-      where: jest.fn().mockReturnThis(),
-      first: jest.fn().mockResolvedValue({ id: 'pago-1', monto: 1000, monto_pagado: 0, fecha_vencimiento: '2025-01-01', estatus: 'pendiente' }),
-      orderBy: jest.fn().mockReturnThis(),
-      update: jest.fn().mockResolvedValue(1),
-      insert: jest.fn().mockResolvedValue([1]),
-      select: jest.fn().mockReturnThis(),
-      from: jest.fn().mockReturnThis(),
-    };
-    return chain;
-  });
-  trx.commit = jest.fn();
-  trx.rollback = jest.fn();
-  return trx;
+// Mock Database Chain (Singleton for easier testing)
+const mockChain = {
+  select: jest.fn().mockReturnThis(),
+  from: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  whereIn: jest.fn().mockReturnThis(),
+  whereNot: jest.fn().mockReturnThis(),
+  first: jest.fn().mockResolvedValue(null),
+  insert: jest.fn().mockResolvedValue([1]),
+  update: jest.fn().mockResolvedValue(1),
+  delete: jest.fn().mockResolvedValue(1),
+  del: jest.fn().mockResolvedValue(1),
+  orderBy: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  offset: jest.fn().mockReturnThis(),
+  sum: jest.fn().mockReturnThis(),
+  groupBy: jest.fn().mockReturnThis(),
+  groupByRaw: jest.fn().mockReturnThis(),
+  raw: jest.fn((str) => str),
+  count: jest.fn().mockReturnThis(),
+  columnInfo: jest.fn().mockResolvedValue({}),
+  transacting: jest.fn().mockReturnThis(),
+  forUpdate: jest.fn().mockReturnThis(),
+  then: jest.fn(function (resolve, reject) {
+    return Promise.resolve(this.mockResponse || []).then(resolve, reject);
+  }),
+  catch: function (reject) {
+    return Promise.resolve([]).catch(reject);
+  },
 };
 
-// Mock Database (Knex) - Needs to be a function
-const mockDatabase = jest.fn(() => {
-  const chain = {
-    select: jest.fn().mockReturnThis(),
-    from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    first: jest.fn().mockResolvedValue(null),
-    insert: jest.fn().mockResolvedValue([1]),
-    update: jest.fn().mockResolvedValue(1),
-    delete: jest.fn().mockResolvedValue(1),
-    orderBy: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    offset: jest.fn().mockReturnThis(),
-    sum: jest.fn().mockReturnThis(),
-    groupBy: jest.fn().mockReturnThis(),
-    count: jest.fn().mockReturnThis(),
-    columnInfo: jest.fn().mockResolvedValue({}),
-    then: function (resolve, reject) {
-      return Promise.resolve([]).then(resolve, reject);
-    },
-  };
-  return chain;
-});
+// Helper to set mock response for the chain
+mockChain.setMockResponse = function (data) {
+  this.mockResponse = data;
+  return this;
+};
+
+// Mock Database (Knex) - Returns the singleton chain
+const mockDatabase = jest.fn(() => mockChain);
 
 // Attach properties to the function object to simulate knex instance properties
-mockDatabase.select = jest.fn().mockReturnThis();
-mockDatabase.from = jest.fn().mockReturnThis();
-mockDatabase.where = jest.fn().mockReturnThis();
-mockDatabase.first = jest.fn().mockResolvedValue(null);
-mockDatabase.raw = jest.fn();
-mockDatabase.columnInfo = jest.fn().mockResolvedValue({});
+Object.assign(mockDatabase, mockChain);
+
 mockDatabase.transaction = jest.fn((callback) => {
-  const trx = createMockTrx();
+  // Return the same chain for transaction to keep things simple,
+  // or a slightly modified one if needed.
+  // Ideally, transaction object has commit/rollback.
+  const trx = jest.fn(() => mockChain);
+  // Exclude 'then' and 'catch' from trx to prevent await from unwrapping it
+  const { then: _then, catch: _catchFn, ...chainProps } = mockChain;
+  Object.assign(trx, chainProps);
+  trx.commit = jest.fn();
+  trx.rollback = jest.fn();
+
   return callback ? callback(trx) : Promise.resolve(trx);
 });
 
 global.mockContext = {
   services: {
     ItemsService: MockItemsServiceClass,
+    MailService: MockMailServiceClass,
   },
   database: mockDatabase,
+  dbChain: mockChain, // Expose chain for assertions
   getSchema: jest.fn(),
   exceptions: {
-    ServiceUnavailableException: class extends Error { constructor(msg) { super(msg); this.status = 503; } },
-    ForbiddenException: class extends Error { constructor(msg) { super(msg); this.status = 403; } },
-    InvalidPayloadException: class extends Error { constructor(msg) { super(msg); this.status = 400; } },
-    NotFoundException: class extends Error { constructor(msg) { super(msg); this.status = 404; } },
+    ServiceUnavailableException: class extends Error {
+      constructor(msg) {
+        super(msg);
+        this.status = 503;
+      }
+    },
+    ForbiddenException: class extends Error {
+      constructor(msg) {
+        super(msg);
+        this.status = 403;
+      }
+    },
+    InvalidPayloadException: class extends Error {
+      constructor(msg) {
+        super(msg);
+        this.status = 400;
+      }
+    },
+    NotFoundException: class extends Error {
+      constructor(msg) {
+        super(msg);
+        this.status = 404;
+      }
+    },
   },
   env: {
     STRIPE_SECRET_KEY: 'sk_test_123',
@@ -97,6 +123,7 @@ beforeEach(() => {
 const mockRouter = {
   get: jest.fn(),
   post: jest.fn(),
+  put: jest.fn(),
   patch: jest.fn(),
   delete: jest.fn(),
   use: jest.fn(),

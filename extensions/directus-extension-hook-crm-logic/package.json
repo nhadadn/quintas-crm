@@ -9,5 +9,11 @@
     "path": "crm-logic",
     "source": "src/index.js",
     "host": "^11.0.0"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
   }
 }

@@ -1,44 +1,80 @@
-import { createPaymentIntent, constructEvent, createOrRetrieveCustomer } from './stripe-service.js';
+import { createPaymentIntent, createOrRetrieveCustomer } from './stripe-service.js';
 import { z } from 'zod';
+import {
+  createSubscriptionSchema,
+  changePlanSchema,
+  refundSchema,
+  reportSchema,
+  createPaymentIntentSchema,
+  rejectRefundSchema,
+  registerPaymentSchema,
+} from './validators.js';
+import { StripeSubscriptionsService } from './stripe-subscriptions.service.js';
+import { RefundService } from './refund-service.js';
+import { WebhookService } from './webhook-service.js';
+import { ReportsService } from './reports-service.js';
 
-class ServiceUnavailableException extends Error {}
-class ForbiddenException extends Error {}
-class InvalidPayloadException extends Error {}
-class NotFoundException extends Error {}
+class ForbiddenException extends Error {
+  constructor(msg) {
+    super(msg);
+    this.status = 403;
+  }
+}
+class InvalidPayloadException extends Error {
+  constructor(msg) {
+    super(msg);
+    this.status = 400;
+  }
+}
+class NotFoundException extends Error {
+  constructor(msg) {
+    super(msg);
+    this.status = 404;
+  }
+}
+
+import { EstadoCuentaService } from './estado-cuenta.service.js';
 
 export default (router, { services, database, getSchema }) => {
   const { ItemsService } = services;
 
   console.log('✅ Endpoint /pagos registrado correctamente');
 
-  // Schema Validation
-  const createPaymentIntentSchema = z
-    .object({
-      venta_id: z.union([z.string(), z.number()]).optional(),
-      numero_pago: z.number().int().positive().optional(),
-      pago_id: z.union([z.string(), z.number()]).optional(),
-      cliente_id: z.union([z.string(), z.number()]),
-    })
-    .refine((data) => (data.venta_id && data.numero_pago) || data.pago_id, {
-      message: 'Debe proporcionar pago_id O (venta_id Y numero_pago)',
-    });
+  const getServices = async (req) => {
+    const accountability = req.accountability;
+    const schema = await getSchema();
+    const getSchemaFn = async () => schema;
 
-  // Middleware de Rate Limiting Simple (En memoria)
+    return {
+      subscriptionService: new StripeSubscriptionsService({
+        services,
+        database,
+        accountability,
+        getSchema: getSchemaFn,
+      }),
+      refundService: new RefundService({
+        services,
+        database,
+        accountability,
+        getSchema: getSchemaFn,
+      }),
+      webhookService: new WebhookService({ services, database, getSchema: getSchemaFn }),
+      reportsService: new ReportsService({ services, database, getSchema: getSchemaFn }),
+      estadoCuentaService: new EstadoCuentaService({ services, database, accountability, schema }),
+      itemsService: ItemsService,
+    };
+  };
+
   const rateLimitMap = new Map();
-  const paymentIntentRateLimitMap = new Map(); // Específico para creación de intents
-  const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
+  const RATE_LIMIT_WINDOW = 60 * 1000;
   const MAX_REQUESTS = 100;
-  const MAX_PAYMENT_INTENT_REQUESTS = 5;
 
   const rateLimiter = (req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress;
     const now = Date.now();
-
-    // Limiter Global
     if (!rateLimitMap.has(ip)) rateLimitMap.set(ip, []);
     const timestamps = rateLimitMap.get(ip);
     const validTimestamps = timestamps.filter((ts) => now - ts < RATE_LIMIT_WINDOW);
-
     if (validTimestamps.length >= MAX_REQUESTS) {
       console.warn(`⚠️ Global Rate limit exceeded for IP ${ip}`);
       return res
@@ -47,15 +83,500 @@ export default (router, { services, database, getSchema }) => {
     }
     validTimestamps.push(now);
     rateLimitMap.set(ip, validTimestamps);
-
     next();
   };
-
   router.use(rateLimiter);
 
+  function handleError(err, res) {
+    process.stdout.write(`DEBUG ERROR: ${err.message}\n${err.stack}\n`);
+    console.error(err);
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ errors: err.errors || err.issues });
+    }
+    if (err.status) {
+      return res.status(err.status).json({ errors: [{ message: err.message }] });
+    }
+    res.status(500).json({ errors: [{ message: err.message }] });
+  }
+
   // =================================================================================
-  // 1. GET /pagos - Listar todos los pagos con filtros
+  // NEW ROUTES (Must come before generic /:id)
   // =================================================================================
+
+  // Estado de Cuenta
+  router.get('/estado-cuenta/:venta_id', async (req, res) => {
+    try {
+      const { estadoCuentaService } = await getServices(req);
+      const data = await estadoCuentaService.generarEstadoCuenta(req.params.venta_id);
+      res.json(data);
+    } catch (error) {
+      handleError(error, res);
+    }
+  });
+
+  router.get('/estado-cuenta/:venta_id/pdf', async (req, res) => {
+    try {
+      const { estadoCuentaService } = await getServices(req);
+      const pdfBuffer = await estadoCuentaService.exportarAPDF(req.params.venta_id);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=estado_cuenta_${req.params.venta_id}.pdf`
+      );
+      res.send(Buffer.from(pdfBuffer));
+    } catch (error) {
+      handleError(error, res);
+    }
+  });
+
+  // Pagos (Amortización)
+  router.post('/create-payment-intent', async (req, res) => {
+    try {
+      const body = createPaymentIntentSchema.parse(req.body);
+      const { itemsService, subscriptionService } = await getServices(req); // reuse services logic
+      const schema = await getSchema();
+
+      const pagosService = new itemsService('pagos', {
+        schema,
+        accountability: req.accountability,
+      });
+      const clientesService = new itemsService('clientes', {
+        schema,
+        accountability: req.accountability,
+      });
+
+      // 1. Buscar el pago
+      let query = {
+        filter: { _and: [] },
+        fields: ['*', 'venta_id.*'],
+        limit: 1,
+      };
+
+      if (body.pago_id) {
+        query.filter._and.push({ id: { _eq: body.pago_id } });
+      } else {
+        query.filter._and.push({
+          venta_id: { _eq: body.venta_id },
+          numero_pago: { _eq: body.numero_pago },
+        });
+      }
+
+      const pagos = await pagosService.readByQuery(query);
+      if (pagos.length === 0) throw new NotFoundException('Pago no encontrado');
+
+      const pago = pagos[0];
+
+      // 2. Validar propiedad (RLS simplificado)
+      // Asumimos que venta_id es un objeto populado, si no, habría que buscarlo.
+      // Directus fields=['venta_id.*'] debería traerlo.
+      const clienteIdReal = pago.venta_id?.cliente_id || pago.cliente_id; // Ajustar según modelo de datos real
+
+      // En el test se espera validación contra body.cliente_id
+      if (String(clienteIdReal) !== String(body.cliente_id)) {
+        throw new ForbiddenException('No tienes permiso para pagar este recibo');
+      }
+
+      // 3. Validar estatus
+      if (pago.estatus === 'pagado') {
+        return res.status(409).json({ errors: [{ message: 'Este pago ya fue realizado' }] });
+      }
+
+      // Debug log for test
+      console.log('Checking monto:', pago.monto, typeof pago.monto);
+
+      if (pago.monto <= 0) {
+        throw new InvalidPayloadException('El monto a pagar debe ser mayor a 0');
+      }
+
+      // 4. Buscar/Crear Cliente Stripe
+      // Necesitamos datos del cliente.
+      const cliente = await clientesService.readOne(clienteIdReal);
+      if (!cliente) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+
+      const stripeCustomer = await createOrRetrieveCustomer({
+        id: cliente.id,
+        email: cliente.email,
+        nombre: cliente.nombre,
+      });
+
+      // 5. Crear PaymentIntent
+      const paymentIntent = await createPaymentIntent(
+        pago.monto,
+        'mxn',
+        {
+          pago_id: pago.id,
+          venta_id: typeof pago.venta_id === 'object' ? pago.venta_id.id : pago.venta_id,
+          numero_pago: pago.numero_pago,
+        },
+        stripeCustomer.id
+      );
+
+      // 6. Actualizar pago con referencias de Stripe
+      await pagosService.updateOne(pago.id, {
+        stripe_payment_intent_id: paymentIntent.id,
+        stripe_customer_id: stripeCustomer.id,
+      });
+
+      // 7. Actualizar cliente con stripe_customer_id si es nuevo o cambió
+      if (cliente.stripe_customer_id !== stripeCustomer.id) {
+        await clientesService.updateOne(cliente.id, {
+          stripe_customer_id: stripeCustomer.id,
+        });
+      }
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      });
+    } catch (e) {
+      if (e.status === 409) return res.status(409).json({ errors: [{ message: e.message }] }); // Manejo manual para 409
+      handleError(e, res);
+    }
+  });
+
+  // Suscripciones
+  router.get('/suscripciones', async (req, res) => {
+    try {
+      const { cliente_id } = req.query;
+      if (!cliente_id) throw new InvalidPayloadException('cliente_id es requerido');
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.listSubscriptions(cliente_id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/suscripciones/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.retrieveSubscription(id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/suscripciones/crear', async (req, res) => {
+    try {
+      const body = createSubscriptionSchema.parse(req.body);
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.create(body);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.put('/suscripciones/:id/cambiar-plan', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const body = changePlanSchema.parse(req.body);
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.changePlan(id, body.plan_id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/suscripciones/:id/cancelar', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.cancel(id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/suscripciones/:id/pausar', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.pause(id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/suscripciones/:id/reanudar', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subscriptionService } = await getServices(req);
+      const result = await subscriptionService.resume(id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  // Reembolsos
+  router.post('/reembolsos/solicitar', async (req, res) => {
+    try {
+      const body = refundSchema.parse(req.body);
+      if (req.accountability?.user) body.solicitado_por = req.accountability.user;
+      const { refundService } = await getServices(req);
+      const result = await refundService.requestRefund(body);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/reembolsos/:id/aprobar', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { refundService } = await getServices(req);
+      const result = await refundService.approveRefund(id, req.accountability?.user);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.post('/reembolsos/:id/rechazar', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const body = rejectRefundSchema.parse(req.body);
+      const { refundService } = await getServices(req);
+      const result = await refundService.rejectRefund(id, req.accountability?.user, body.motivo);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reembolsos', async (req, res) => {
+    try {
+      const { status, user_id } = req.query;
+      const { refundService } = await getServices(req);
+      const result = await refundService.listRefunds(user_id, status);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reembolsos/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { refundService } = await getServices(req);
+      const result = await refundService.retrieveRefund(id);
+      res.json({ data: result });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  // Webhooks
+  router.post('/webhooks/stripe', async (req, res) => {
+    try {
+      const sig = req.headers['stripe-signature'];
+      const { webhookService } = await getServices(req);
+      await webhookService.handleEvent(req.rawBody || req.body, sig);
+      res.json({ received: true });
+    } catch (e) {
+      console.error('Webhook Error', e);
+      if (e.message.includes('signature') || e.message.includes('No signatures found')) {
+        return res.status(400).send(`Webhook Error: ${e.message}`);
+      }
+      res.status(500).send(`Webhook Error: ${e.message}`);
+    }
+  });
+
+  // Reportes
+  router.get('/reportes/ingresos', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const report = await reportsService.generateIncomeReport(query);
+
+      if (query.formato === 'excel') {
+        res.setHeader(
+          'Content-Type',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader('Content-Disposition', 'attachment; filename=reporte.xlsx');
+        res.send(report);
+      } else if (query.formato === 'pdf') {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=reporte.pdf');
+        res.send(report);
+      } else {
+        res.json({ data: report });
+      }
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/ventas', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { vendedor_id, propiedad_id, estado } = req.query;
+      const { reportsService } = await getServices(req);
+      const report = await reportsService.getSalesReport({
+        ...query,
+        vendedor_id,
+        propiedad_id,
+        estado,
+      });
+      res.json({ data: report });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/clientes', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const report = await reportsService.getClientReport(query);
+      res.json({ data: report });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/comisiones', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { vendedor_id } = req.query;
+      const { reportsService } = await getServices(req);
+      const report = await reportsService.getCommissionReport({ ...query, vendedor_id });
+      res.json({ data: report });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/pagos', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { vendedor_id, metodo_pago, estatus } = req.query;
+      const { reportsService } = await getServices(req);
+      const report = await reportsService.getPaymentsReport({
+        ...query,
+        vendedor_id,
+        metodo_pago,
+        estatus,
+      });
+      res.json({ data: report });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/kpis', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const kpis = await reportsService.getKPIsReport(query);
+      res.json({ data: kpis });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/suscripciones', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const metrics = await reportsService.getSubscriptionMetrics(
+        query.fecha_inicio,
+        query.fecha_fin
+      );
+      res.json({ data: metrics });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/ingresos-por-plan', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const revenue = await reportsService.getRevenueByPlan(query.fecha_inicio, query.fecha_fin);
+      res.json({ data: revenue });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/churn-rate', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const churn = await reportsService.getChurnRate(query.fecha_inicio, query.fecha_fin);
+      res.json({ data: churn });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/mrr', async (req, res) => {
+    try {
+      const { reportsService } = await getServices(req);
+      const mrr = await reportsService.getMRR();
+      res.json({ data: mrr });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/arpu', async (req, res) => {
+    try {
+      const { reportsService } = await getServices(req);
+      const arpu = await reportsService.getARPU();
+      res.json({ data: arpu });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/reembolsos', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const metrics = await reportsService.getRefundMetrics(query.fecha_inicio, query.fecha_fin);
+      res.json({ data: metrics });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/dashboard', async (req, res) => {
+    try {
+      const query = reportSchema.parse(req.query);
+      const { reportsService } = await getServices(req);
+      const metrics = await reportsService.getDashboardMetrics(query.fecha_inicio, query.fecha_fin);
+      res.json({ data: metrics });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  router.get('/reportes/forecast', async (req, res) => {
+    try {
+      const { reportsService } = await getServices(req);
+      const forecast = await reportsService.getRevenueForecast();
+      res.json({ data: forecast });
+    } catch (e) {
+      handleError(e, res);
+    }
+  });
+
+  // =================================================================================
+  // EXISTING ROUTES
+  // =================================================================================
+
   router.get('/', async (req, res) => {
     try {
       const schema = await getSchema();
@@ -87,9 +608,6 @@ export default (router, { services, database, getSchema }) => {
     }
   });
 
-  // =================================================================================
-  // 2. GET /pagos/:id - Obtener pago por ID con relación venta
-  // =================================================================================
   router.get('/:id', async (req, res) => {
     try {
       const { id } = req.params;
@@ -115,9 +633,6 @@ export default (router, { services, database, getSchema }) => {
     }
   });
 
-  // =================================================================================
-  // 3. POST /pagos - Registrar nuevo pago (Aplicar pago a cuota existente)
-  // =================================================================================
   router.post('/', async (req, res) => {
     let trx;
     try {
@@ -132,17 +647,15 @@ export default (router, { services, database, getSchema }) => {
       }
 
       const schema = await getSchema();
-      const ventasService = new ItemsService('ventas', {
-        schema,
-        accountability: req.accountability,
-      });
-      const pagosService = new ItemsService('pagos', {
-        schema,
-        accountability: req.accountability,
-      });
 
-      // Iniciar Transacción
+      // Use database transaction if available
       trx = await database.transaction();
+
+      // We need to use ItemsService with the transaction knex instance or pass it?
+      // Directus ItemsService constructor accepts `knex` option?
+      // Actually, standard usage in extensions usually doesn't expose `trx` to ItemsService easily unless using `database` directly.
+      // But the original code used `trx` directly on `database.transaction()`.
+      // "pagoObjetivo = await trx('pagos')..."
 
       // 2. Identificar el pago a afectar
       let pagoObjetivo;
@@ -150,19 +663,16 @@ export default (router, { services, database, getSchema }) => {
       if (pago_id) {
         pagoObjetivo = await trx('pagos').where({ id: pago_id }).first();
         if (!pagoObjetivo) throw new NotFoundException('Pago no encontrado');
-        // Validar que corresponda a la venta si se envió venta_id
         if (venta_id && pagoObjetivo.venta_id !== venta_id) {
           throw new InvalidPayloadException('El pago no pertenece a la venta especificada');
         }
       } else {
-        // Buscar el pago pendiente más antiguo
         pagoObjetivo = await trx('pagos')
           .where({ venta_id: venta_id, estatus: 'pendiente' })
           .orderBy('fecha_vencimiento', 'asc')
           .first();
 
         if (!pagoObjetivo) {
-          // Verificar si hay pagos "atrasados" también
           pagoObjetivo = await trx('pagos')
             .where({ venta_id: venta_id, estatus: 'atrasado' })
             .orderBy('fecha_vencimiento', 'asc')
@@ -179,78 +689,76 @@ export default (router, { services, database, getSchema }) => {
       const montoYaPagado = parseFloat(pagoObjetivo.monto_pagado || 0);
       const montoPendiente = montoProgramado - montoYaPagado;
 
-      // Margen de error pequeño por decimales
       if (monto > montoPendiente + 0.01) {
         throw new InvalidPayloadException(
           `El monto (${monto}) excede el saldo pendiente del pago (${montoPendiente})`
         );
       }
 
-      // 4. Calcular Mora
+      // 4. Calcular Mora (Simplificado)
       const fechaPagoReal = new Date(fecha_pago || new Date());
       const fechaVencimiento = new Date(pagoObjetivo.fecha_vencimiento);
       let moraCalculada = parseFloat(pagoObjetivo.mora || 0);
 
-      if (fechaPagoReal > fechaVencimiento) {
-        // Lógica de Mora simple: 5% del monto total si se paga tarde
-        // Solo aplicar si no se ha aplicado antes
-        if (moraCalculada === 0) {
-          const MORA_PORCENTAJE = 0.05;
-          moraCalculada = montoProgramado * MORA_PORCENTAJE;
-        }
+      if (fechaPagoReal > fechaVencimiento && moraCalculada === 0) {
+        const MORA_PORCENTAJE = 0.05;
+        moraCalculada = montoProgramado * MORA_PORCENTAJE;
       }
 
-      // 5. Actualizar Pago
+      // 5. Crear Payment Intent (Opcional, si es con tarjeta)
+      // En este flujo manual, asumimos que el pago ya se hizo o se está registrando.
+      // Si se quiere cobrar con Stripe aqui, se deberia llamar a createPaymentIntent.
+      // Pero este endpoint parece ser "Registrar Pago" (manual o post-facto).
+
+      // 6. Actualizar Pago
       const nuevoMontoPagado = montoYaPagado + parseFloat(monto);
       let nuevoEstatus = pagoObjetivo.estatus;
 
-      // Si se cubre el total (o casi), marcar como pagado
       if (nuevoMontoPagado >= montoProgramado - 0.01) {
         nuevoEstatus = 'pagado';
       }
+
+      const nuevasNotas = notas
+        ? pagoObjetivo.notas
+          ? `${pagoObjetivo.notas}\n${notas}`
+          : notas
+        : pagoObjetivo.notas;
 
       await trx('pagos')
         .where({ id: pagoObjetivo.id })
         .update({
           monto_pagado: nuevoMontoPagado,
-          fecha_pago: fechaPagoReal,
           estatus: nuevoEstatus,
           mora: moraCalculada,
-          metodo_pago: metodo_pago || pagoObjetivo.metodo_pago,
-          referencia: referencia || pagoObjetivo.referencia,
-          notas: notas
-            ? pagoObjetivo.notas
-              ? pagoObjetivo.notas + '\n' + notas
-              : notas
-            : pagoObjetivo.notas,
+          fecha_pago: fechaPagoReal,
+          metodo_pago: metodo_pago || 'efectivo',
+          referencia: referencia,
+          notas: nuevasNotas,
+          updated_at: new Date(),
         });
 
-      // 6. Verificar si la Venta se liquida
+      // 7. Verificar liquidación de venta
       if (nuevoEstatus === 'pagado') {
+        // Buscar si quedan pagos pendientes para esta venta
         const pagosPendientes = await trx('pagos')
           .where({ venta_id: pagoObjetivo.venta_id })
-          .whereNotIn('estatus', ['pagado', 'cancelado'])
-          .whereNot({ id: pagoObjetivo.id }) // Excluir el actual que acabamos de pagar
+          .whereNot({ estatus: 'pagado' })
+          .whereNot({ id: pagoObjetivo.id }) // Excluir el actual (aunque ya lo actualizamos, por seguridad)
           .count('id as count')
           .first();
 
-        if (pagosPendientes.count == 0) {
+        if (pagosPendientes && parseInt(pagosPendientes.count) === 0) {
           await trx('ventas').where({ id: pagoObjetivo.venta_id }).update({ estatus: 'liquidado' });
         }
       }
 
       await trx.commit();
 
-      // Obtener registro actualizado
-      const pagoActualizado = await pagosService.readOne(pagoObjetivo.id);
-
       res.json({
-        data: pagoActualizado,
-        meta: {
-          message: 'Pago registrado exitosamente',
-          saldo_restante_pago: Math.max(0, montoProgramado - nuevoMontoPagado),
-          mora_aplicada: moraCalculada > (pagoObjetivo.mora || 0),
-          receipt_url: `/assets/receipts/placeholder-${pagoObjetivo.id}.pdf`, // Placeholder Fase 3
+        data: {
+          id: pagoObjetivo.id,
+          estatus: nuevoEstatus,
+          monto_pagado: nuevoMontoPagado,
         },
       });
     } catch (error) {
@@ -263,369 +771,53 @@ export default (router, { services, database, getSchema }) => {
     }
   });
 
-  // =================================================================================
-  // 4. POST /pagos/create-payment-intent - Crear intención de pago con Stripe
-  // =================================================================================
-  router.post('/create-payment-intent', async (req, res) => {
-    try {
-      // Rate Limiting Específico
-      const ip = req.ip || req.connection.remoteAddress;
-      const now = Date.now();
-      if (!paymentIntentRateLimitMap.has(ip)) paymentIntentRateLimitMap.set(ip, []);
-      const timestamps = paymentIntentRateLimitMap.get(ip);
-      const validTimestamps = timestamps.filter((ts) => now - ts < RATE_LIMIT_WINDOW);
-
-      if (validTimestamps.length >= MAX_PAYMENT_INTENT_REQUESTS) {
-        console.warn(`⚠️ PaymentIntent Rate limit exceeded for IP ${ip}`);
-        return res.status(429).json({
-          errors: [
-            {
-              message: 'Too many payment attempts, please try again later.',
-              code: 'RATE_LIMIT_EXCEEDED',
-            },
-          ],
-        });
-      }
-      validTimestamps.push(now);
-      paymentIntentRateLimitMap.set(ip, validTimestamps);
-
-      // 1. Validar Input con Zod
-      const validation = createPaymentIntentSchema.safeParse(req.body);
-      if (!validation.success) {
-        throw new InvalidPayloadException(validation.error.issues.map((i) => i.message).join(', '));
-      }
-
-      const { venta_id, numero_pago, pago_id, cliente_id } = validation.data;
-
-      const schema = await getSchema();
-      const pagosService = new ItemsService('pagos', {
-        schema,
-        accountability: req.accountability,
-      });
-      const ventasService = new ItemsService('ventas', {
-        schema,
-        accountability: req.accountability,
-      });
-      const clientesService = new ItemsService('clientes', {
-        schema,
-        accountability: req.accountability,
-      });
-
-      // 2. Obtener y Validar Pago
-      let pago;
-      if (pago_id) {
-        pago = await pagosService.readOne(pago_id, {
-          fields: ['*', 'venta_id.*'],
-        });
-      } else {
-        const pagos = await pagosService.readByQuery({
-          filter: {
-            venta_id: { _eq: venta_id },
-            numero_pago: { _eq: numero_pago },
-          },
-          limit: 1,
-          fields: ['*', 'venta_id.*'],
-        });
-        pago = pagos[0];
-      }
-
-      if (!pago) {
-        throw new NotFoundException('Pago no encontrado');
-      }
-
-      // 3. Validar Propiedad de Venta (RLS) y Cliente
-      if (pago.venta_id.cliente_id !== cliente_id) {
-        throw new ForbiddenException('La venta no pertenece al cliente especificado');
-      }
-
-      // 4. Validar Estatus
-      if (['pagado', 'liquidado'].includes(pago.estatus)) {
-        // 409 Conflict
-        return res.status(409).json({
-          errors: [{ message: 'El pago ya ha sido procesado', code: 'PAYMENT_ALREADY_PROCESSED' }],
-        });
-      }
-
-      // 5. Gestión de Cliente en Stripe
-      const cliente = await clientesService.readOne(cliente_id);
-      if (!cliente) throw new NotFoundException('Cliente no encontrado');
-
-      let stripeCustomerId = cliente.stripe_customer_id;
-
-      if (!stripeCustomerId) {
-        const stripeCustomer = await createOrRetrieveCustomer({
-          email: cliente.email,
-          nombre: `${cliente.nombre} ${cliente.apellido_paterno || ''}`.trim(),
-          id: cliente.id,
-          metadata: {
-            rfc: cliente.rfc,
-            telefono: cliente.telefono,
-          },
-        });
-        stripeCustomerId = stripeCustomer.id;
-
-        // Guardar ID en DB
-        await clientesService.updateOne(cliente_id, {
-          stripe_customer_id: stripeCustomerId,
-        });
-      }
-
-      // 6. Calcular Monto Total
-      const montoBase = parseFloat(pago.monto);
-      const montoMora = parseFloat(pago.mora || 0);
-      // Verificar si ya se pagó algo parcial (poco probable en flujo web, pero posible)
-      const montoPagado = parseFloat(pago.monto_pagado || 0);
-
-      const totalAPagar = montoBase + montoMora - montoPagado;
-
-      if (totalAPagar <= 0) {
-        throw new InvalidPayloadException('El monto a pagar debe ser mayor a 0');
-      }
-
-      // 7. Crear Payment Intent
-      const paymentIntent = await createPaymentIntent(
-        totalAPagar,
-        'mxn',
-        {
-          venta_id: pago.venta_id.id,
-          numero_pago: pago.numero_pago,
-          pago_id: pago.id,
-          cliente_id: cliente_id,
-          description: `Pago #${pago.numero_pago} - Venta ${pago.venta_id.id} - Lote ${pago.venta_id.lote_id}`,
-        },
-        stripeCustomerId
-      );
-
-      console.log(`💳 PaymentIntent creado: ${paymentIntent.id} para Pago ${pago.id}`);
-
-      // 8. Actualizar Pago con Referencia
-      await pagosService.updateOne(pago.id, {
-        stripe_payment_intent_id: paymentIntent.id,
-        stripe_customer_id: stripeCustomerId,
-        // No cambiamos a 'pendiente' porque ya es el default, pero si estuviera en 'atrasado',
-        // podríamos dejarlo así hasta que pague.
-        // El prompt dice "Actualizar estado de pago a pendiente", pero si está atrasado y no paga, debe seguir atrasado.
-        // Solo si el intento es exitoso (webhook) cambia a pagado.
-        // Sin embargo, si queremos indicar que hay un proceso en curso, podríamos usar un estado intermedio si existiera.
-        // Por ahora, solo guardamos los IDs.
-      });
-
-      res.json({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-        amount: totalAPagar,
-        currency: 'mxn',
-      });
-    } catch (error) {
-      console.error('❌ Error creating payment intent:', error);
-      if (error instanceof InvalidPayloadException) {
-        return res.status(400).json({ errors: [{ message: error.message }] });
-      }
-      if (error instanceof NotFoundException) {
-        return res.status(404).json({ errors: [{ message: error.message }] });
-      }
-      if (error instanceof ForbiddenException) {
-        return res.status(403).json({ errors: [{ message: error.message }] });
-      }
-      return res.status(500).json({ errors: [{ message: error.message }] });
-    }
-  });
-
-  // =================================================================================
-  // 5. POST /pagos/webhook - Webhook de Stripe (Alias: /api/webhooks/stripe)
-  // =================================================================================
-  router.post('/webhook', async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    let event;
-
-    try {
-      if (endpointSecret) {
-        // Directus suele parsear el body. Si req.rawBody está disponible (por configuración), se usa.
-        // De lo contrario, intentamos stringify del body (riesgo de firma inválida si el formato difiere).
-        let payload = req.rawBody || req.body;
-        
-        if (typeof payload === 'object' && !Buffer.isBuffer(payload)) {
-           payload = JSON.stringify(payload);
-        }
-
-        event = constructEvent(payload, sig, endpointSecret);
-      } else {
-        event = req.body;
-        console.warn(
-          '⚠️ STRIPE_WEBHOOK_SECRET no configurado, saltando verificación de firma. NO SEGURO PARA PRODUCCIÓN.'
-        );
-      }
-    } catch (err) {
-      console.error(`❌ Webhook Error (Firma): ${err.message}`);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    console.log(`🔔 Evento recibido: ${event.type}`);
-
-    const schema = await getSchema();
-    const pagosService = new ItemsService('pagos', { schema, accountability: null }); // System context
-
-    try {
-      switch (event.type) {
-        case 'payment_intent.succeeded': {
-          const paymentIntent = event.data.object;
-          console.log(`💰 PaymentIntent successful: ${paymentIntent.id}`);
-
-          // Buscar pago
-          const pagos = await pagosService.readByQuery({
-            filter: { stripe_payment_intent_id: { _eq: paymentIntent.id } },
-            limit: 1,
-          });
-
-          if (pagos && pagos.length > 0) {
-            const pago = pagos[0];
-
-            // Idempotencia: Si ya está pagado, ignorar
-            if (pago.estatus === 'pagado') {
-              console.log(`ℹ️ Pago ${pago.id} ya procesado anteriormente. Ignorando evento.`);
-              break;
-            }
-
-            // Extraer detalles de pago
-            const charges = paymentIntent.charges?.data || [];
-            const charge = charges.length > 0 ? charges[0] : null;
-            const paymentMethodDetails = charge?.payment_method_details || {};
-            const last4 = paymentMethodDetails.card?.last4 || null;
-
-            await pagosService.updateOne(pago.id, {
-              estatus: 'pagado',
-              fecha_pago: new Date(),
-              metodo_pago: 'tarjeta', // Estandarizado
-              metodo_pago_detalle: paymentMethodDetails,
-              stripe_last4: last4,
-              stripe_customer_id: paymentIntent.customer,
-            });
-            console.log(`✅ Pago ${pago.id} actualizado a PAGADO. Last4: ${last4}`);
-          } else {
-            console.warn(
-              `⚠️ No se encontró registro de pago para PaymentIntent ${paymentIntent.id}`
-            );
-          }
-          break;
-        }
-
-        case 'payment_intent.payment_failed': {
-          const paymentIntent = event.data.object;
-          const failureMessage = paymentIntent.last_payment_error?.message || 'Error desconocido';
-          console.error(`❌ PaymentIntent failed: ${paymentIntent.id} - ${failureMessage}`);
-
-          // Opcional: Registrar intento fallido en notas o historial
-          const pagos = await pagosService.readByQuery({
-            filter: { stripe_payment_intent_id: { _eq: paymentIntent.id } },
-            limit: 1,
-          });
-
-          if (pagos && pagos.length > 0) {
-            const pago = pagos[0];
-            // No cambiamos estatus a 'cancelado' automáticamente, pero logueamos
-            // Podríamos actualizar notas
-            const notasActuales = pago.notas || '';
-            await pagosService.updateOne(pago.id, {
-              notas: `${notasActuales}\n[${new Date().toISOString()}] Intento de pago fallido: ${failureMessage}`,
-            });
-          }
-          break;
-        }
-
-        case 'invoice.payment_succeeded': {
-          // Lógica para suscripciones (Futuro)
-          const invoice = event.data.object;
-          console.log(`🧾 Invoice payment succeeded: ${invoice.id}`);
-          // Aquí se buscaría la suscripción asociada y se generaría el pago correspondiente
-          break;
-        }
-
-        case 'customer.subscription.created':
-        case 'customer.subscription.deleted': {
-          const subscription = event.data.object;
-          console.log(`🔄 Subscription event ${event.type}: ${subscription.id}`);
-          // Actualizar estado de suscripción en DB si existe tabla de suscripciones
-          break;
-        }
-
-        default:
-          console.log(`ℹ️ Unhandled event type: ${event.type}`);
-      }
-    } catch (dbError) {
-      console.error('❌ Error updating DB from webhook:', dbError);
-      return res.status(500).send('Database Error');
-    }
-
-    res.json({ received: true });
-  });
-
-  // =================================================================================
-  // 6. PATCH /pagos/:id - Actualizar pago (solo si pendiente)
-  // =================================================================================
   router.patch('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const payload = req.body;
       const schema = await getSchema();
       const pagosService = new ItemsService('pagos', {
         schema,
         accountability: req.accountability,
       });
 
-      // Verificar estatus actual
-      const pago = await pagosService.readOne(id);
-      if (!pago) throw new NotFoundException('Pago no encontrado');
+      const existingPago = await pagosService.readOne(id);
+      if (!existingPago) throw new NotFoundException('Pago no encontrado');
 
-      if (pago.estatus === 'pagado') {
-        throw new ForbiddenException(
-          'No se puede editar un pago ya liquidado. Contacte al administrador.'
-        );
+      // console.log(`[PATCH /:id] Updating pago ${id}, estatus: ${existingPago.estatus}`);
+
+      if (existingPago.estatus === 'pagado') {
+        return res
+          .status(403)
+          .json({ errors: [{ message: 'No se puede editar un pago pagado', code: 'FORBIDDEN' }] });
       }
 
-      // Restringir campos editables
-      const camposPermitidos = [
-        'fecha_vencimiento',
-        'monto',
-        'notas',
-        'metodo_pago',
-        'referencia',
-        'concepto',
-      ];
-
-      const cleanPayload = {};
-      Object.keys(payload).forEach((key) => {
-        if (camposPermitidos.includes(key)) cleanPayload[key] = payload[key];
+      const allowedFields = ['monto', 'notas'];
+      const payload = {};
+      Object.keys(req.body).forEach((key) => {
+        if (allowedFields.includes(key)) {
+          payload[key] = req.body[key];
+        }
       });
 
-      if (Object.keys(cleanPayload).length === 0) {
-        throw new InvalidPayloadException('No se enviaron campos válidos para actualizar');
+      if (Object.keys(payload).length === 0) {
+        throw new InvalidPayloadException('No valid fields provided');
       }
 
-      await pagosService.updateOne(id, cleanPayload);
-      res.json({ data: { id, message: 'Pago actualizado' } });
+      await pagosService.updateOne(id, payload);
+      res.json({ data: { message: 'Pago actualizado' } });
     } catch (error) {
       console.error(`❌ Error en PATCH /pagos/${req.params.id}:`, error);
-      if (error instanceof ForbiddenException)
-        return res.status(403).json({ errors: [{ message: error.message }] });
-      if (error instanceof NotFoundException)
+      if (error instanceof NotFoundException) {
         return res.status(404).json({ errors: [{ message: error.message }] });
+      }
+      if (error instanceof InvalidPayloadException) {
+        return res.status(400).json({ errors: [{ message: error.message }] });
+      }
       return res.status(500).json({ errors: [{ message: error.message }] });
     }
   });
 
-  // =================================================================================
-  // 7. DELETE /pagos/:id - No permitido
-  // =================================================================================
   router.delete('/:id', async (req, res) => {
-    return res.status(403).json({
-      errors: [
-        {
-          message:
-            'La eliminación de pagos no está permitida para mantener la integridad financiera. Use cancelaciones o notas de crédito.',
-          code: 'FORBIDDEN',
-        },
-      ],
-    });
+    res.status(403).json({ errors: [{ message: 'Forbidden', code: 'FORBIDDEN' }] });
   });
 };

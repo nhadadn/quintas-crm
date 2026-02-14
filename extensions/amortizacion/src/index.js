@@ -7,7 +7,9 @@ export default (router) => {
 
       // Validations
       if (monto_total === undefined || plazo_meses === undefined) {
-        return res.status(400).json({ errors: [{ message: 'Faltan campos obligatorios: monto_total, plazo_meses' }] });
+        return res
+          .status(400)
+          .json({ errors: [{ message: 'Faltan campos obligatorios: monto_total, plazo_meses' }] });
       }
 
       const principal = parseFloat(monto_total) - parseFloat(enganche || 0);
@@ -20,7 +22,9 @@ export default (router) => {
       if (monthlyRate <= 0) {
         monthlyPayment = principal / months;
       } else {
-        monthlyPayment = (principal * (monthlyRate * Math.pow(1 + monthlyRate, months))) / (Math.pow(1 + monthlyRate, months) - 1);
+        monthlyPayment =
+          (principal * (monthlyRate * Math.pow(1 + monthlyRate, months))) /
+          (Math.pow(1 + monthlyRate, months) - 1);
       }
 
       const table = [];
@@ -47,7 +51,7 @@ export default (router) => {
           monto_pago: (capital + interest).toFixed(2),
           interes: interest.toFixed(2),
           capital: capital.toFixed(2),
-          saldo: (balance < 0.01 ? 0 : balance).toFixed(2)
+          saldo: (balance < 0.01 ? 0 : balance).toFixed(2),
         });
       }
 
@@ -57,10 +61,9 @@ export default (router) => {
           tasa_anual: annualRate,
           plazo_meses: months,
           cuota_mensual: monthlyPayment.toFixed(2),
-          tabla_amortizacion: table
-        }
+          tabla_amortizacion: table,
+        },
       });
-
     } catch (error) {
       console.error('❌ Error en /amortizacion/generar:', error);
       res.status(500).json({ errors: [{ message: error.message }] });

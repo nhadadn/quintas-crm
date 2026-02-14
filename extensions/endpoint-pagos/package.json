@@ -30,6 +30,9 @@
   },
   "dependencies": {
     "stripe": "^20.3.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "exceljs": "^4.4.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.1"
   }
 }

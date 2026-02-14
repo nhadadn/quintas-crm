@@ -40,25 +40,25 @@ describe('Hook: Validación de Inventario', () => {
     mockContext.database = databaseMock;
 
     // Load Extension
-    hookExtension({ filter: filterMock, action: actionMock }, mockContext);
+    hookExtension({ filter: filterMock, action: actionMock, schedule: jest.fn() }, mockContext);
   });
 
   describe('lotes.items.create', () => {
     test('should set default estatus to "disponible" if not provided', async () => {
       const handler = registeredHooks['filter:lotes.items.create'];
       const payload = { nombre: 'Lote 1' };
-      
+
       const result = await handler(payload);
-      
+
       expect(result.estatus).toBe('disponible');
     });
 
     test('should keep provided estatus', async () => {
       const handler = registeredHooks['filter:lotes.items.create'];
       const payload = { nombre: 'Lote 1', estatus: 'apartado' };
-      
+
       const result = await handler(payload);
-      
+
       expect(result.estatus).toBe('apartado');
     });
   });
@@ -74,7 +74,7 @@ describe('Hook: Validación de Inventario', () => {
     test('should throw error if lote does not exist', async () => {
       const handler = registeredHooks['filter:ventas.items.create'];
       const payload = { lote_id: 999 };
-      
+
       databaseMock.first.mockResolvedValue(null);
 
       await expect(handler(payload)).rejects.toThrow('El lote con ID 999 no existe');
@@ -83,7 +83,7 @@ describe('Hook: Validación de Inventario', () => {
     test('should throw error if lote is not available', async () => {
       const handler = registeredHooks['filter:ventas.items.create'];
       const payload = { lote_id: 1 };
-      
+
       databaseMock.first.mockResolvedValue({ estatus: 'vendido' });
 
       await expect(handler(payload)).rejects.toThrow('El lote no está disponible');
@@ -92,7 +92,7 @@ describe('Hook: Validación de Inventario', () => {
     test('should pass validation if lote is available', async () => {
       const handler = registeredHooks['filter:ventas.items.create'];
       const payload = { lote_id: 1 };
-      
+
       databaseMock.first.mockResolvedValue({ estatus: 'disponible' });
 
       const result = await handler(payload);
