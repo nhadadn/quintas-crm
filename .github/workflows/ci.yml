@@ -16,6 +16,8 @@ jobs:
   frontend-check:
     name: Frontend Check (Lint & Test)
     runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
     defaults:
       run:
         working-directory: ./frontend
@@ -48,6 +50,8 @@ jobs:
     strategy:
       matrix:
         extension: [endpoint-pagos, comisiones, ventas-api, directus-extension-hook-crm-logic]
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
     defaults:
       run:
         working-directory: ./extensions/${{ matrix.extension }}
