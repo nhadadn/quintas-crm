@@ -17,6 +17,8 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "quintas-crm": "file:../..",
     "zod": "^4.3.6"
   }
 }
