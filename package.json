@@ -2,6 +2,9 @@
   "name": "quintas-crm",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "index.js",
   "scripts": {
     "start": "npx -y --package node@22 --package directus@latest -- directus start",
@@ -37,9 +40,12 @@
     ]
   },
   "lint-staged": {
-    "*.{js,mjs,json,md}": [
+    "*.{js,mjs}": [
       "prettier --write",
       "eslint --fix"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
     ]
   },
   "keywords": [],
