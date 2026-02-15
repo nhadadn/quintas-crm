@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPaymentIntent, createSubscription, getPaymentStatus } from '@/lib/stripe-api';
 import { directusClient } from '@/lib/directus-api';
@@ -27,11 +26,15 @@ describe('Stripe API', () => {
 
       const result = await createPaymentIntent(1000, 1, 'cus_123');
 
-      expect(directusClient.post).toHaveBeenCalledWith('/stripe/create-payment-intent', {
-        amount: 1000,
-        pago_id: 1,
-        cliente_id: 'cus_123',
-      });
+      expect(directusClient.post).toHaveBeenCalledWith(
+        '/pagos/create-payment-intent',
+        {
+          amount: 1000,
+          pago_id: 1,
+          cliente_id: 'cus_123',
+        },
+        expect.objectContaining({ headers: {} }),
+      );
       expect(result).toEqual(mockResponse.data);
     });
   });
@@ -50,11 +53,15 @@ describe('Stripe API', () => {
 
       const result = await createSubscription('cus_123', 'sale_123', 'plan_123');
 
-      expect(directusClient.post).toHaveBeenCalledWith('/stripe/create-subscription', {
-        cliente_id: 'cus_123',
-        venta_id: 'sale_123',
-        plan_id: 'plan_123',
-      });
+      expect(directusClient.post).toHaveBeenCalledWith(
+        '/pagos/create-subscription',
+        {
+          cliente_id: 'cus_123',
+          venta_id: 'sale_123',
+          plan_id: 'plan_123',
+        },
+        expect.objectContaining({ headers: {} }),
+      );
       expect(result).toEqual(mockResponse.data);
     });
   });
@@ -70,7 +77,10 @@ describe('Stripe API', () => {
 
       const result = await getPaymentStatus('pi_123');
 
-      expect(directusClient.get).toHaveBeenCalledWith('/stripe/payment-status/pi_123');
+      expect(directusClient.get).toHaveBeenCalledWith(
+        '/stripe/payment-status/pi_123',
+        expect.objectContaining({ headers: {} }),
+      );
       expect(result).toEqual(mockResponse.data);
     });
   });

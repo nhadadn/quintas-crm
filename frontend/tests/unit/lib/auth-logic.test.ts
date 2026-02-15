@@ -27,7 +27,11 @@ describe('Auth Logic - authorizeUser', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    process.env = { ...originalEnv, DIRECTUS_URL: 'http://localhost:8055', ENABLE_MOCK_AUTH: 'false' };
+    process.env = {
+      ...originalEnv,
+      DIRECTUS_URL: 'http://localhost:8055',
+      ENABLE_MOCK_AUTH: 'false',
+    };
     vi.clearAllMocks();
 
     // Setup axios mock structure
@@ -61,7 +65,7 @@ describe('Auth Logic - authorizeUser', () => {
 
   it('should return user object on successful login as Cliente', async () => {
     const mockAuthClient = (axios.create as any)();
-    
+
     // 1. Login response
     mockAuthClient.post.mockResolvedValueOnce({
       data: {
@@ -111,13 +115,13 @@ describe('Auth Logic - authorizeUser', () => {
 
     expect(mockAuthClient.post).toHaveBeenCalledWith(
       'http://localhost:8055/auth/login',
-      expect.objectContaining({ email: 'john@example.com' })
+      expect.objectContaining({ email: 'john@example.com' }),
     );
   });
 
   it('should throw InactiveAccountError if user status is not active', async () => {
     const mockAuthClient = (axios.create as any)();
-    
+
     mockAuthClient.post.mockResolvedValueOnce({
       data: { data: { access_token: 't', refresh_token: 'r', expires: 1 } },
     });
@@ -137,7 +141,7 @@ describe('Auth Logic - authorizeUser', () => {
 
   it('should throw AccessDeniedError if role is not allowed', async () => {
     const mockAuthClient = (axios.create as any)();
-    
+
     mockAuthClient.post.mockResolvedValueOnce({
       data: { data: { access_token: 't', refresh_token: 'r', expires: 1 } },
     });
@@ -157,43 +161,49 @@ describe('Auth Logic - authorizeUser', () => {
 
   it('should throw InvalidCredentialsError on 401', async () => {
     const mockAuthClient = (axios.create as any)();
-    
+
     const error: any = new Error('401');
     error.isAxiosError = true;
     error.response = { status: 401 };
-    
+
     mockAuthClient.post.mockRejectedValueOnce(error);
 
-    await expect(authorizeUser({ email: 'e', password: 'p' })).rejects.toThrow('Credenciales inválidas');
+    await expect(authorizeUser({ email: 'e', password: 'p' })).rejects.toThrow(
+      'Credenciales inválidas',
+    );
   });
 
   it('should throw ServiceUnavailableError on ECONNREFUSED', async () => {
     const mockAuthClient = (axios.create as any)();
-    
+
     const error: any = new Error('connect ECONNREFUSED');
     error.code = 'ECONNREFUSED';
-    
+
     mockAuthClient.post.mockRejectedValueOnce(error);
 
-    await expect(authorizeUser({ email: 'e', password: 'p' })).rejects.toThrow('El servicio de autenticación no está disponible');
+    await expect(authorizeUser({ email: 'e', password: 'p' })).rejects.toThrow(
+      'El servicio de autenticación no está disponible',
+    );
   });
 
   it('should return mock admin user if ENABLE_MOCK_AUTH is true and connection fails', async () => {
     process.env.ENABLE_MOCK_AUTH = 'true';
     const mockAuthClient = (axios.create as any)();
-    
+
     const error: any = new Error('connect ECONNREFUSED');
     error.code = 'ECONNREFUSED';
-    
+
     mockAuthClient.post.mockRejectedValueOnce(error);
 
     const result = await authorizeUser({ email: 'admin@quintas.com', password: 'any' });
 
-    expect(result).toEqual(expect.objectContaining({
-      email: 'admin@quintas.com',
-      role: 'Administrator',
-      id: 'mock-admin-id'
-    }));
+    expect(result).toEqual(
+      expect.objectContaining({
+        email: 'admin@quintas.com',
+        role: 'Administrator',
+        id: 'mock-admin-id',
+      }),
+    );
   });
 });
 
@@ -231,7 +241,7 @@ describe('Auth Callbacks', () => {
         role: 'admin',
         id: '1',
         clienteId: 'c1',
-        vendedorId: 'v1'
+        vendedorId: 'v1',
       };
       const account = {};
       const token = {};
@@ -245,14 +255,14 @@ describe('Auth Callbacks', () => {
         role: 'admin',
         id: '1',
         clienteId: 'c1',
-        vendedorId: 'v1'
+        vendedorId: 'v1',
       });
     });
 
     it('should return existing token if not expired', async () => {
       const token = {
         expiresAt: Date.now() + 100000, // Valid
-        accessToken: 'at'
+        accessToken: 'at',
       };
 
       const result = await jwtCallback({ token });
@@ -264,7 +274,7 @@ describe('Auth Callbacks', () => {
       const token = {
         expiresAt: Date.now() - 1000, // Expired
         accessToken: 'old-at',
-        refreshToken: 'old-rt'
+        refreshToken: 'old-rt',
       };
 
       const mockAuthClient = (axios.create as any)();
@@ -273,9 +283,9 @@ describe('Auth Callbacks', () => {
           data: {
             access_token: 'new-at',
             refresh_token: 'new-rt',
-            expires: 300000
-          }
-        }
+            expires: 300000,
+          },
+        },
       });
 
       const result = await jwtCallback({ token });
@@ -284,7 +294,7 @@ describe('Auth Callbacks', () => {
       expect(result.refreshToken).toBe('new-rt');
       expect(mockAuthClient.post).toHaveBeenCalledWith(
         'http://localhost:8055/auth/refresh',
-        expect.objectContaining({ refresh_token: 'old-rt' })
+        expect.objectContaining({ refresh_token: 'old-rt' }),
       );
     });
   });
@@ -296,7 +306,7 @@ describe('Auth Callbacks', () => {
         id: '1',
         clienteId: 'c1',
         vendedorId: 'v1',
-        accessToken: 'at'
+        accessToken: 'at',
       };
       const session = { user: {} };
 

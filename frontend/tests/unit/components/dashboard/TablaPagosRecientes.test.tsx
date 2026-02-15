@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { TablaPagosRecientes } from '@/components/dashboard/TablaPagosRecientes';
@@ -64,7 +63,7 @@ describe('TablaPagosRecientes', () => {
     // Should render the identificador from the object
     expect(screen.getByText('Lote L-BUG-FIXED')).toBeDefined();
   });
-  
+
   it('handles object in numero_lote without identifier gracefully', () => {
     const badData = [
       {
@@ -87,14 +86,14 @@ describe('TablaPagosRecientes', () => {
 
   it('filters payments by status', async () => {
     render(<TablaPagosRecientes data={mockPagos} />);
-    
+
     // Initially shows all
     expect(screen.getByText('Lote L-501')).toBeDefined();
 
     // Select 'pendiente' - should filter out 'pagado'
     const select = screen.getByRole('combobox');
     const { fireEvent } = await import('@testing-library/react');
-    
+
     fireEvent.change(select, { target: { value: 'pendiente' } });
     expect(screen.queryByText('Lote L-501')).toBeNull();
     expect(screen.getByText('No se encontraron pagos')).toBeDefined();

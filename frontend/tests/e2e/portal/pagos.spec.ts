@@ -17,7 +17,7 @@ test.describe('Portal de Pagos', () => {
 
   test.skip('Ver Historial de Pagos', async ({ paymentPage, page }) => {
     await paymentPage.goto();
-    
+
     // Si hay error de carga (ej. API caída o usuario sin perfil), el test debe manejarlo
     const errorMsg = page.getByRole('alert'); // O ErrorMessage component structure
     if (await page.getByText('Error al cargar pagos').isVisible()) {
@@ -28,18 +28,23 @@ test.describe('Portal de Pagos', () => {
 
     // Validar que se muestra tabla de pagos
     await expect(page.getByRole('heading', { name: /Mis Pagos|Historial/i })).toBeVisible();
-    
+
     // Validar datos (ejemplo genérico)
     // await expect(page.locator('table')).toBeVisible();
   });
 
   test.skip('Realizar Pago con Stripe', async ({ paymentPage }) => {
     await paymentPage.goto();
-    
+
     // Verificar si hay botón de pagar antes de intentar
     if (await paymentPage.payButton.isVisible()) {
       await paymentPage.initiatePayment();
-      await paymentPage.fillStripeForm(STRIPE_CARDS.success, STRIPE_CARDS.expiry, STRIPE_CARDS.cvc, STRIPE_CARDS.zip);
+      await paymentPage.fillStripeForm(
+        STRIPE_CARDS.success,
+        STRIPE_CARDS.expiry,
+        STRIPE_CARDS.cvc,
+        STRIPE_CARDS.zip,
+      );
       await paymentPage.confirmPayment();
       await expect(paymentPage.successMessage).toBeVisible();
     } else {
@@ -53,7 +58,12 @@ test.describe('Portal de Pagos', () => {
 
     if (await paymentPage.payButton.isVisible()) {
       await paymentPage.initiatePayment();
-      await paymentPage.fillStripeForm(STRIPE_CARDS.fail, STRIPE_CARDS.expiry, STRIPE_CARDS.cvc, STRIPE_CARDS.zip);
+      await paymentPage.fillStripeForm(
+        STRIPE_CARDS.fail,
+        STRIPE_CARDS.expiry,
+        STRIPE_CARDS.cvc,
+        STRIPE_CARDS.zip,
+      );
       await paymentPage.confirmPayment();
       await expect(paymentPage.errorMessage).toBeVisible();
     } else {

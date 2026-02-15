@@ -14,14 +14,15 @@ test.describe('Dashboard Comisiones', () => {
             ventas_mes_actual: 10,
             crecimiento_mes_anterior: 5,
             comisiones_totales: 100000,
-            lotes_vendidos_mes: 2
+            lotes_vendidos_mes: 2,
           },
         }),
       });
     });
 
     // Mock Comisiones API
-    await page.route('**/api/dashboard/comisiones-vendedor**', async (route) => { // Adjust URL pattern as needed
+    await page.route('**/api/dashboard/comisiones-vendedor**', async (route) => {
+      // Adjust URL pattern as needed
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -51,8 +52,8 @@ test.describe('Dashboard Comisiones', () => {
     // Navigate and login
     await loginPage.goto();
     // Assuming we have a test user. If not, this might fail in real execution without env vars.
-    await loginPage.login('admin@quintas.com', 'Admin123!'); 
-    
+    await loginPage.login('admin@quintas.com', 'Admin123!');
+
     // Navigate to dashboard comisiones
     await page.goto('/dashboard/comisiones');
 
@@ -61,7 +62,7 @@ test.describe('Dashboard Comisiones', () => {
 
     // Verify KPI Cards
     await expect(page.getByText('Comisiones Totales')).toBeVisible();
-    
+
     // Verify Table Data
     await expect(page.getByText('Vendedor Test')).toBeVisible();
     await expect(page.getByText('Vendedor Sin Datos')).toBeVisible();
@@ -70,13 +71,13 @@ test.describe('Dashboard Comisiones', () => {
     // The specific format depends on locale, but we check it doesn't show "NaN" or crash
     const row = page.getByRole('row', { name: 'Vendedor Sin Datos' });
     await expect(row).toBeVisible();
-    
+
     // Check for no console errors
     const consoleErrors: string[] = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error') consoleErrors.push(msg.text());
     });
-    
+
     expect(consoleErrors).toEqual([]);
   });
 });

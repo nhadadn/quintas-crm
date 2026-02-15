@@ -5,8 +5,9 @@
 -- Ventas
 CREATE INDEX idx_ventas_fecha_venta ON ventas(fecha_venta);
 CREATE INDEX idx_ventas_vendedor_id ON ventas(vendedor_id);
-CREATE INDEX idx_ventas_propiedad_id ON ventas(propiedad_id);
 CREATE INDEX idx_ventas_estatus ON ventas(estatus);
+-- Índice compuesto para filtros por cliente y vendedor en reportes y dashboard
+CREATE INDEX idx_ventas_cliente_vendedor ON ventas(cliente_id, vendedor_id);
 
 -- Pagos
 CREATE INDEX idx_pagos_fecha_pago ON pagos(fecha_pago);
@@ -15,7 +16,7 @@ CREATE INDEX idx_pagos_metodo_pago ON pagos(metodo_pago);
 CREATE INDEX idx_pagos_venta_id ON pagos(venta_id);
 
 -- Clientes
-CREATE INDEX idx_clientes_date_created ON clientes(date_created);
+CREATE INDEX idx_clientes_fecha_registro ON clientes(fecha_registro);
 CREATE INDEX idx_clientes_estatus ON clientes(estatus);
 
 -- Comisiones

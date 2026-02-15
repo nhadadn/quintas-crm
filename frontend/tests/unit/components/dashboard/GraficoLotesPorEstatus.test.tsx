@@ -8,16 +8,16 @@ import { LotesPorEstatus } from '@/types/dashboard';
 const mocks = vi.hoisted(() => ({
   tooltipActive: true,
   tooltipPayload: [
-    { 
-      payload: { 
-        estatus: 'disponible', 
-        cantidad: 10, 
-        area_total: 5000, 
-        valor_total: 1000000, 
-        porcentaje_ocupacion: 50 
-      } 
-    }
-  ] as any[]
+    {
+      payload: {
+        estatus: 'disponible',
+        cantidad: 10,
+        area_total: 5000,
+        valor_total: 1000000,
+        porcentaje_ocupacion: 50,
+      },
+    },
+  ] as any[],
 }));
 
 // Mock Recharts to allow testing the Tooltip content
@@ -25,16 +25,18 @@ vi.mock('recharts', async (importOriginal) => {
   const original = await importOriginal<typeof import('recharts')>();
   return {
     ...original,
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: any) => (
+      <div data-testid="responsive-container">{children}</div>
+    ),
     BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
     // Mock Tooltip to render its content immediately with test data
     Tooltip: ({ content }: any) => {
       if (React.isValidElement(content)) {
         // Inject props that Recharts would normally inject
-        return React.cloneElement(content as React.ReactElement, { 
+        return React.cloneElement(content as React.ReactElement, {
           active: mocks.tooltipActive,
           payload: mocks.tooltipPayload,
-          label: 'disponible'
+          label: 'disponible',
         });
       }
       return null;
@@ -81,7 +83,7 @@ describe('GraficoLotesPorEstatus Component', () => {
     render(<GraficoLotesPorEstatus data={mockData} />);
     expect(screen.queryByText('disponible')).toBeNull();
   });
-  
+
   it('does not render tooltip when payload data is missing', () => {
     mocks.tooltipActive = true;
     mocks.tooltipPayload = [{ payload: null }];
@@ -91,15 +93,17 @@ describe('GraficoLotesPorEstatus Component', () => {
 
   it('renders tooltip with default values when data is missing', () => {
     mocks.tooltipActive = true;
-    mocks.tooltipPayload = [{
-      payload: {
-        estatus: null,
-        cantidad: 10,
-        area_total: null,
-        valor_total: null,
-        porcentaje_ocupacion: 50
-      }
-    }];
+    mocks.tooltipPayload = [
+      {
+        payload: {
+          estatus: null,
+          cantidad: 10,
+          area_total: null,
+          valor_total: null,
+          porcentaje_ocupacion: 50,
+        },
+      },
+    ];
     render(<GraficoLotesPorEstatus data={mockData} />);
     expect(screen.getByText('Desconocido')).toBeDefined();
     expect(screen.getByText('Valor: $0')).toBeDefined();

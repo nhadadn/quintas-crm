@@ -1,7 +1,11 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import { directusClient, handleAxiosError, UnauthorizedError, ForbiddenError } from '@/lib/directus-api';
+import {
+  directusClient,
+  handleAxiosError,
+  UnauthorizedError,
+  ForbiddenError,
+} from '@/lib/directus-api';
 
 // Mock axios
 vi.mock('axios', () => {
@@ -32,8 +36,8 @@ describe('Directus API Enhanced', () => {
         isAxiosError: true,
         response: {
           status: 401,
-          data: { 
-            errors: [{ message: 'Invalid credentials' }] 
+          data: {
+            errors: [{ message: 'Invalid credentials' }],
           },
         },
         message: 'Request failed',
@@ -71,8 +75,8 @@ describe('Directus API Enhanced', () => {
         response: {
           status: 403,
           data: {
-            errors: [{ message: 'You do not have permission' }]
-          }
+            errors: [{ message: 'You do not have permission' }],
+          },
         },
         message: 'Forbidden',
       };

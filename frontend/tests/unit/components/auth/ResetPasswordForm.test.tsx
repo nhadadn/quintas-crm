@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
@@ -34,38 +33,46 @@ describe('ResetPasswordForm Component', () => {
     (resetPassword as any).mockResolvedValue({ success: true, message: 'Contraseña cambiada' });
 
     render(<ResetPasswordForm />);
-    
+
     // Fill form
-    fireEvent.change(screen.getByLabelText(/nueva contraseña/i), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText(/confirmar contraseña/i), { target: { value: 'password123' } });
-    
+    fireEvent.change(screen.getByLabelText(/nueva contraseña/i), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText(/confirmar contraseña/i), {
+      target: { value: 'password123' },
+    });
+
     // Submit
     const form = screen.getByRole('button', { name: /cambiar contraseña/i }).closest('form');
     if (form) fireEvent.submit(form);
 
     await waitFor(() => {
-        expect(resetPassword).toHaveBeenCalled();
+      expect(resetPassword).toHaveBeenCalled();
     });
 
     // Check success message
     await waitFor(() => {
-        expect(screen.getByText('Contraseña cambiada')).toBeDefined();
+      expect(screen.getByText('Contraseña cambiada')).toBeDefined();
     });
   });
 
   it('shows error message after submit failure', async () => {
     (resetPassword as any).mockResolvedValue({ success: false, message: 'Error al cambiar' });
-    
+
     render(<ResetPasswordForm />);
-    
-    fireEvent.change(screen.getByLabelText(/nueva contraseña/i), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText(/confirmar contraseña/i), { target: { value: 'password123' } });
-    
+
+    fireEvent.change(screen.getByLabelText(/nueva contraseña/i), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText(/confirmar contraseña/i), {
+      target: { value: 'password123' },
+    });
+
     const form = screen.getByRole('button', { name: /cambiar contraseña/i }).closest('form');
     if (form) fireEvent.submit(form);
 
     await waitFor(() => {
-        expect(screen.getByText('Error al cambiar')).toBeDefined();
+      expect(screen.getByText('Error al cambiar')).toBeDefined();
     });
   });
 });

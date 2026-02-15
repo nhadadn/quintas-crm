@@ -12,10 +12,10 @@ const mocks = vi.hoisted(() => ({
       payload: {
         name: 'Pagado',
         value: 10,
-        monto_total: 1000
-      }
-    }
-  ] as any[]
+        monto_total: 1000,
+      },
+    },
+  ] as any[],
 }));
 
 // Mock recharts to avoid rendering issues in JSDOM and test internal components
@@ -23,7 +23,9 @@ vi.mock('recharts', async (importOriginal) => {
   const OriginalModule = await importOriginal<typeof import('recharts')>();
   return {
     ...OriginalModule,
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: any) => (
+      <div data-testid="responsive-container">{children}</div>
+    ),
     PieChart: ({ children }: any) => <div data-testid="pie-chart">{children}</div>,
     Pie: ({ children }: any) => <div data-testid="pie">{children}</div>,
     Cell: () => <div data-testid="cell" />,
@@ -32,7 +34,7 @@ vi.mock('recharts', async (importOriginal) => {
       if (React.isValidElement(content)) {
         return React.cloneElement(content as React.ReactElement, {
           active: mocks.tooltipActive,
-          payload: mocks.tooltipPayload
+          payload: mocks.tooltipPayload,
         });
       }
       return null;
@@ -43,8 +45,8 @@ vi.mock('recharts', async (importOriginal) => {
         return content({
           payload: [
             { value: 'Pagado', color: '#22c55e' },
-            { value: 'Pendiente', color: '#eab308' }
-          ]
+            { value: 'Pendiente', color: '#eab308' },
+          ],
         });
       }
       return null;
@@ -62,7 +64,7 @@ describe('GraficoPagosPorEstatus', () => {
     mocks.tooltipActive = true;
     render(<GraficoPagosPorEstatus data={mockData} />);
     expect(screen.getByText('Estatus de Pagos')).toBeInTheDocument();
-    
+
     // Check center text (total)
     expect(screen.getByText('15')).toBeInTheDocument(); // 10 + 5
   });
@@ -85,13 +87,15 @@ describe('GraficoPagosPorEstatus', () => {
 
   it('renders tooltip with default values when data is missing', () => {
     mocks.tooltipActive = true;
-    mocks.tooltipPayload = [{
-      payload: {
-        name: 'Pagado',
-        value: 10,
-        monto_total: null
-      }
-    }];
+    mocks.tooltipPayload = [
+      {
+        payload: {
+          name: 'Pagado',
+          value: 10,
+          monto_total: null,
+        },
+      },
+    ];
     render(<GraficoPagosPorEstatus data={mockData} />);
     expect(screen.getByText('Monto: $0')).toBeInTheDocument();
   });
@@ -112,7 +116,9 @@ describe('GraficoPagosPorEstatus', () => {
   });
 
   it('renders with fallback color/label for unknown status', () => {
-    const unknownData: any[] = [{ estatus: 'unknown_status', cantidad: 10, monto_total: 100, porcentaje_puntuales: 0 }];
+    const unknownData: any[] = [
+      { estatus: 'unknown_status', cantidad: 10, monto_total: 100, porcentaje_puntuales: 0 },
+    ];
     render(<GraficoPagosPorEstatus data={unknownData} />);
     // Check if it renders without crashing (fallback color logic is internal to Pie/Cell which we mock)
     // But we can check if the data processed uses the fallback label (original status)

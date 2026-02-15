@@ -1,6 +1,7 @@
 # Documentación del Flujo de Autenticación
 
 ## Resumen
+
 El sistema utiliza **NextAuth.js v5** para la gestión de sesiones y autenticación, integrándose con **Directus** como proveedor de identidad. Se implementa el patrón de credenciales (Credentials Provider) donde NextAuth actúa como proxy entre el frontend y la API de Directus.
 
 ## Arquitectura

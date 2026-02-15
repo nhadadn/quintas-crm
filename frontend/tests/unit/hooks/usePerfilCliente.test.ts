@@ -1,4 +1,3 @@
-
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePerfilCliente } from '@/hooks/usePerfilCliente';
@@ -22,7 +21,7 @@ describe('usePerfilCliente Hook', () => {
   it('retorna datos del cliente cuando está autenticado', async () => {
     const mockData = {
       perfil: { id: 1, nombre: 'Test User' },
-      estadisticas: { total_pagado: 100 }
+      estadisticas: { total_pagado: 100 },
     };
     (getPerfilCliente as any).mockResolvedValue(mockData);
 
@@ -46,7 +45,7 @@ describe('usePerfilCliente Hook', () => {
     await waitFor(() => {
       expect(result.current.error).toBe('API Error');
     });
-    
+
     expect(result.current.loading).toBe(false);
   });
 });

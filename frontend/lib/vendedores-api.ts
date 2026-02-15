@@ -18,10 +18,12 @@ export async function fetchVendedores(token?: string): Promise<Vendedor[]> {
   }
 }
 
-export async function getVendedorById(id: string): Promise<Vendedor> {
+export async function getVendedorById(id: string, token?: string): Promise<Vendedor> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await directusClient.get<DirectusResponse<Vendedor>>(
       `/items/vendedores/${id}`,
+      { headers },
     );
     return response.data.data;
   } catch (error) {
@@ -30,8 +32,12 @@ export async function getVendedorById(id: string): Promise<Vendedor> {
   }
 }
 
-export async function createVendedor(vendedor: Omit<Vendedor, 'id'>): Promise<Vendedor> {
+export async function createVendedor(
+  vendedor: Omit<Vendedor, 'id'>,
+  token?: string,
+): Promise<Vendedor> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     /**
      * 📝 NOTA TÉCNICA: Generación de ID en Cliente (Client-Side ID Generation)
      * ---------------------------------------------------------------------
@@ -62,6 +68,7 @@ export async function createVendedor(vendedor: Omit<Vendedor, 'id'>): Promise<Ve
     const response = await directusClient.post<DirectusResponse<Vendedor>>(
       '/items/vendedores',
       payload,
+      { headers },
     );
     return response.data.data;
   } catch (error) {
@@ -70,11 +77,17 @@ export async function createVendedor(vendedor: Omit<Vendedor, 'id'>): Promise<Ve
   }
 }
 
-export async function updateVendedor(id: string, updates: Partial<Vendedor>): Promise<Vendedor> {
+export async function updateVendedor(
+  id: string,
+  updates: Partial<Vendedor>,
+  token?: string,
+): Promise<Vendedor> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await directusClient.patch<DirectusResponse<Vendedor>>(
       `/items/vendedores/${id}`,
       updates,
+      { headers },
     );
     return response.data.data;
   } catch (error) {

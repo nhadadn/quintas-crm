@@ -5,7 +5,7 @@ export async function fetchVentas(token?: string): Promise<Venta[]> {
   try {
     const response = await directusClient.get<DirectusResponse<Venta[]>>('/items/ventas', {
       params: {
-        fields: '*.*', // Obtener relaciones (cliente, vendedor, lote)
+        fields: '*,lote_id.*,cliente_id.*,vendedor_id.*', // Incluir relaciones explícitas
         sort: '-fecha_venta',
         limit: -1,
       },
@@ -22,7 +22,7 @@ export async function getVentaById(id: string, token?: string): Promise<Venta> {
   try {
     const response = await directusClient.get<DirectusResponse<Venta>>(`/items/ventas/${id}`, {
       params: {
-        fields: '*.*', // Obtener relaciones
+        fields: '*,lote_id.*,cliente_id.*,vendedor_id.*', // Incluir lote completo y demás relaciones
       },
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

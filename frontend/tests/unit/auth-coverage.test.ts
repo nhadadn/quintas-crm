@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import axios from 'axios';
 
@@ -18,7 +17,7 @@ vi.mock('next-auth', () => {
       this.name = 'AuthError';
     }
   }
-  
+
   class CredentialsSignin extends Error {
     code: string;
     constructor(msg?: string) {
@@ -44,7 +43,7 @@ describe('Auth Coverage Tests', () => {
   const originalEnv = process.env;
   let mockPost: Mock;
   let mockGet: Mock;
-  
+
   // Dynamic imports to handle module reset
   let refreshAccessToken: any;
   let authorizeUser: any;
@@ -53,7 +52,11 @@ describe('Auth Coverage Tests', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    process.env = { ...originalEnv, DIRECTUS_URL: 'http://localhost:8055', ENABLE_MOCK_AUTH: 'false' };
+    process.env = {
+      ...originalEnv,
+      DIRECTUS_URL: 'http://localhost:8055',
+      ENABLE_MOCK_AUTH: 'false',
+    };
     vi.clearAllMocks();
 
     mockPost = vi.fn();
@@ -66,7 +69,7 @@ describe('Auth Coverage Tests', () => {
         request: { use: vi.fn() },
         response: { use: vi.fn() },
       },
-      defaults: { headers: { common: {} } }
+      defaults: { headers: { common: {} } },
     });
 
     // Mock axios.isAxiosError
@@ -99,8 +102,8 @@ describe('Auth Coverage Tests', () => {
     it('should throw error if response is invalid', async () => {
       mockPost.mockResolvedValue({
         data: {
-          data: {} // Missing access_token
-        }
+          data: {}, // Missing access_token
+        },
       });
 
       const token = { refreshToken: 'valid_refresh_token' };
@@ -120,7 +123,7 @@ describe('Auth Coverage Tests', () => {
         },
       });
 
-      const token = { 
+      const token = {
         accessToken: 'old_token',
         refreshToken: 'old_refresh_token',
         expiresAt: Date.now() - 1000,
@@ -128,11 +131,13 @@ describe('Auth Coverage Tests', () => {
 
       const result = await refreshAccessToken(token as any);
 
-      expect(result).toEqual(expect.objectContaining({
-        accessToken: 'new_access_token',
-        refreshToken: 'new_refresh_token',
-        error: undefined
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          accessToken: 'new_access_token',
+          refreshToken: 'new_refresh_token',
+          error: undefined,
+        }),
+      );
     });
 
     it('should use default expiry if not provided', async () => {
@@ -140,7 +145,7 @@ describe('Auth Coverage Tests', () => {
         data: {
           data: {
             access_token: 'new_at',
-            refresh_token: 'new_rt'
+            refresh_token: 'new_rt',
             // expires missing
           },
         },
@@ -168,7 +173,7 @@ describe('Auth Coverage Tests', () => {
       process.env.NEXT_PUBLIC_DIRECTUS_URL = '';
 
       const credentials = { email: 'test@example.com', password: 'password' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -180,8 +185,8 @@ describe('Auth Coverage Tests', () => {
       // Login success
       mockPost.mockResolvedValueOnce({
         data: {
-          data: { access_token: 't', refresh_token: 'r', expires: 3600 }
-        }
+          data: { access_token: 't', refresh_token: 'r', expires: 3600 },
+        },
       });
 
       // User info - inactive
@@ -190,13 +195,13 @@ describe('Auth Coverage Tests', () => {
           data: {
             id: 'user_id',
             status: 'suspended',
-            role: { name: 'Cliente' }
-          }
-        }
+            role: { name: 'Cliente' },
+          },
+        },
       });
 
       const credentials = { email: 'inactive@example.com', password: 'p' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -208,8 +213,8 @@ describe('Auth Coverage Tests', () => {
       // Login success
       mockPost.mockResolvedValueOnce({
         data: {
-          data: { access_token: 't', refresh_token: 'r', expires: 3600 }
-        }
+          data: { access_token: 't', refresh_token: 'r', expires: 3600 },
+        },
       });
 
       // User info - invalid role
@@ -218,13 +223,13 @@ describe('Auth Coverage Tests', () => {
           data: {
             id: 'user_id',
             status: 'active',
-            role: { name: 'Guest' }
-          }
-        }
+            role: { name: 'Guest' },
+          },
+        },
       });
 
       const credentials = { email: 'guest@example.com', password: 'p' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -239,7 +244,7 @@ describe('Auth Coverage Tests', () => {
       mockPost.mockRejectedValue(error);
 
       const credentials = { email: 'wrong@example.com', password: 'p' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -248,14 +253,12 @@ describe('Auth Coverage Tests', () => {
     });
 
     it('should re-throw AuthError instances', async () => {
-      // Mock authorizeUser to throw an AuthError internally? 
+      // Mock authorizeUser to throw an AuthError internally?
       // Actually we are testing authorizeUser, so we need to make it throw.
       // But authorizeUser catches errors. It only re-throws if it's instance of AuthError.
-      
-      // Let's simulate an error that IS an AuthError but coming from axios? 
+      // Let's simulate an error that IS an AuthError but coming from axios?
       // Unlikely axios returns AuthError.
       // But maybe we can mock one of the internal calls to throw AuthError.
-      
       // Since we can't easily inject into the middle of the function without more mocking,
       // let's skip this edge case or try to simulate it if possible.
       // Wait, InvalidCredentialsError IS a CredentialsSignin which is an AuthError (in our mock).
@@ -264,7 +267,6 @@ describe('Auth Coverage Tests', () => {
       // if (error instanceof AuthError || error instanceof CredentialsSignin) { throw error; }
     });
 
-
     it('should handle Cliente role and lookup clienteId', async () => {
       // Login success
       mockPost.mockResolvedValueOnce({
@@ -272,9 +274,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'access_token',
             refresh_token: 'refresh_token',
-            expires: 3600
-          }
-        }
+            expires: 3600,
+          },
+        },
       });
 
       // User info
@@ -286,27 +288,27 @@ describe('Auth Coverage Tests', () => {
             last_name: 'Doe',
             email: 'client@example.com',
             role: { name: 'Cliente' },
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       });
 
       // Cliente lookup success
       mockGet.mockResolvedValueOnce({
         data: {
-          data: [
-            { id: 'cliente_123' }
-          ]
-        }
+          data: [{ id: 'cliente_123' }],
+        },
       });
 
       const credentials = { email: 'client@example.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        role: 'Cliente',
-        clienteId: 'cliente_123'
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          role: 'Cliente',
+          clienteId: 'cliente_123',
+        }),
+      );
     });
 
     it('should handle Cliente role with no matching cliente record', async () => {
@@ -316,9 +318,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'access_token',
             refresh_token: 'refresh_token',
-            expires: 3600
-          }
-        }
+            expires: 3600,
+          },
+        },
       });
 
       // User info
@@ -330,25 +332,27 @@ describe('Auth Coverage Tests', () => {
             last_name: 'Doe',
             email: 'client@example.com',
             role: { name: 'Cliente' },
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       });
 
       // Cliente lookup empty
       mockGet.mockResolvedValueOnce({
         data: {
-          data: []
-        }
+          data: [],
+        },
       });
 
       const credentials = { email: 'client@example.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        role: 'Cliente',
-        clienteId: undefined
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          role: 'Cliente',
+          clienteId: undefined,
+        }),
+      );
     });
 
     it('should handle Vendedor role and lookup vendedorId', async () => {
@@ -358,9 +362,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'access_token',
             refresh_token: 'refresh_token',
-            expires: 3600
-          }
-        }
+            expires: 3600,
+          },
+        },
       });
 
       // User info
@@ -372,27 +376,27 @@ describe('Auth Coverage Tests', () => {
             last_name: 'Doe',
             email: 'vendor@example.com',
             role: { name: 'Vendedor' },
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       });
 
       // Vendedor lookup success
       mockGet.mockResolvedValueOnce({
         data: {
-          data: [
-            { id: 'vendedor_123' }
-          ]
-        }
+          data: [{ id: 'vendedor_123' }],
+        },
       });
 
       const credentials = { email: 'vendor@example.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        role: 'Vendedor',
-        vendedorId: 'vendedor_123'
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          role: 'Vendedor',
+          vendedorId: 'vendedor_123',
+        }),
+      );
     });
 
     it('should handle Vendedor role with no matching vendedor record', async () => {
@@ -402,9 +406,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'access_token',
             refresh_token: 'refresh_token',
-            expires: 3600
-          }
-        }
+            expires: 3600,
+          },
+        },
       });
 
       // User info
@@ -416,35 +420,46 @@ describe('Auth Coverage Tests', () => {
             last_name: 'Doe',
             email: 'vendor@example.com',
             role: { name: 'Vendedor' },
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       });
 
       // Vendedor lookup empty
       mockGet.mockResolvedValueOnce({
         data: {
-          data: []
-        }
+          data: [],
+        },
       });
 
       const credentials = { email: 'vendor@example.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        role: 'Vendedor',
-        vendedorId: undefined
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          role: 'Vendedor',
+          vendedorId: undefined,
+        }),
+      );
     });
 
     it('should skip entity lookup for Administrator role', async () => {
       // Login success
       mockPost.mockResolvedValueOnce({
-        data: { data: { access_token: 't', refresh_token: 'r', expires: 3600 } }
+        data: { data: { access_token: 't', refresh_token: 'r', expires: 3600 } },
       });
       // User info
       mockGet.mockResolvedValueOnce({
-        data: { data: { id: 'u1', first_name: 'A', last_name: 'D', email: 'a@e.com', role: { name: 'Administrator' }, status: 'active' } }
+        data: {
+          data: {
+            id: 'u1',
+            first_name: 'A',
+            last_name: 'D',
+            email: 'a@e.com',
+            role: { name: 'Administrator' },
+            status: 'active',
+          },
+        },
       });
 
       const result = await authorizeUser({ email: 'a@e.com', password: 'p' });
@@ -462,9 +477,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'access_token',
             refresh_token: 'refresh_token',
-            expires: 3600
-          }
-        }
+            expires: 3600,
+          },
+        },
       });
 
       // User info
@@ -476,9 +491,9 @@ describe('Auth Coverage Tests', () => {
             last_name: 'Doe',
             email: 'client@example.com',
             role: { name: 'Cliente' },
-            status: 'active'
-          }
-        }
+            status: 'active',
+          },
+        },
       });
 
       // Cliente lookup fails
@@ -488,10 +503,12 @@ describe('Auth Coverage Tests', () => {
       const result = await authorizeUser(credentials);
 
       // Should still return user but without clienteId
-      expect(result).toEqual(expect.objectContaining({
-        role: 'Cliente',
-        clienteId: undefined
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          role: 'Cliente',
+          clienteId: undefined,
+        }),
+      );
     });
 
     it('should use Mock Auth when enabled and Directus is unreachable', async () => {
@@ -504,11 +521,13 @@ describe('Auth Coverage Tests', () => {
       const credentials = { email: 'admin@quintas.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        id: 'mock-admin-id',
-        email: 'admin@quintas.com',
-        role: 'Administrator'
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'mock-admin-id',
+          email: 'admin@quintas.com',
+          role: 'Administrator',
+        }),
+      );
     });
 
     it('should use Mock Auth for Client when enabled', async () => {
@@ -521,12 +540,14 @@ describe('Auth Coverage Tests', () => {
       const credentials = { email: 'cliente@quintas.com', password: 'password' };
       const result = await authorizeUser(credentials);
 
-      expect(result).toEqual(expect.objectContaining({
-        id: 'mock-client-id',
-        email: 'cliente@quintas.com',
-        role: 'Cliente',
-        clienteId: '1'
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'mock-client-id',
+          email: 'cliente@quintas.com',
+          role: 'Cliente',
+          clienteId: '1',
+        }),
+      );
     });
 
     it('should match ECONNREFUSED in various error properties', async () => {
@@ -579,7 +600,7 @@ describe('Auth Coverage Tests', () => {
       mockPost.mockRejectedValue(error);
 
       const credentials = { email: 'admin@quintas.com', password: 'password' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -594,7 +615,7 @@ describe('Auth Coverage Tests', () => {
       mockPost.mockRejectedValue(error);
 
       const credentials = { email: 'unknown@example.com', password: 'password' };
-      
+
       try {
         await authorizeUser(credentials);
       } catch (error: any) {
@@ -622,7 +643,7 @@ describe('Auth Coverage Tests', () => {
         role: 'admin',
         id: '1',
         clienteId: 'c1',
-        vendedorId: 'v1'
+        vendedorId: 'v1',
       };
       const account = {};
 
@@ -635,14 +656,14 @@ describe('Auth Coverage Tests', () => {
         role: 'admin',
         id: '1',
         clienteId: 'c1',
-        vendedorId: 'v1'
+        vendedorId: 'v1',
       });
     });
 
     it('should return existing token if not expired', async () => {
       const token = {
         expiresAt: Date.now() + 100000, // Not expired
-        accessToken: 'old'
+        accessToken: 'old',
       };
 
       const result = await jwtCallback({ token });
@@ -653,7 +674,7 @@ describe('Auth Coverage Tests', () => {
     it('should refresh token if expired', async () => {
       const token = {
         expiresAt: Date.now() - 1000, // Expired
-        refreshToken: 'rt'
+        refreshToken: 'rt',
       };
 
       // Mock refreshAccessToken to return new token
@@ -662,9 +683,9 @@ describe('Auth Coverage Tests', () => {
           data: {
             access_token: 'new_at',
             refresh_token: 'new_rt',
-            expires: 300000
-          }
-        }
+            expires: 300000,
+          },
+        },
       });
 
       const result = await jwtCallback({ token });
@@ -680,7 +701,7 @@ describe('Auth Coverage Tests', () => {
         id: '1',
         clienteId: 'c1',
         vendedorId: 'v1',
-        accessToken: 'at'
+        accessToken: 'at',
       };
       const session = { user: {} };
 
@@ -695,7 +716,7 @@ describe('Auth Coverage Tests', () => {
 
     it('should pass error to session if token has error', async () => {
       const token = {
-        error: 'RefreshAccessTokenError'
+        error: 'RefreshAccessTokenError',
       };
       const session = { user: {} };
 

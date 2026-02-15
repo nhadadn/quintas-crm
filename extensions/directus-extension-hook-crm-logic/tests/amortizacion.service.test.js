@@ -27,6 +27,8 @@ describe('AmortizacionService', () => {
 
     // Make the database function return the query builder
     mockDatabase = vi.fn(() => mockQueryBuilder);
+    // Provide a basic transaction wrapper
+    mockDatabase.transaction = vi.fn(async (fn) => await fn(mockDatabase));
 
     service = new AmortizacionService({
       database: mockDatabase,
@@ -117,16 +119,18 @@ describe('AmortizacionService', () => {
 
       await service.registrarPago(pago);
 
-      // Should update cuota-1 to pagado
+      // Debe insertar en ledger pagos_movimientos dentro de transacción
       expect(mockDatabase).toHaveBeenCalledWith('amortizacion');
-
-      // Verify update call arguments matching actual implementation
-      expect(mockQueryBuilder.update).toHaveBeenCalledWith({
-        monto_pagado: 1055.82,
-        estatus: 'pagado',
-        fecha_pago: expect.any(Date),
-        updated_at: expect.any(Date),
-      });
+      expect(mockDatabase).toHaveBeenCalledWith('pagos_movimientos');
+      expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          venta_id: 'venta-1',
+          numero_pago: 1,
+          monto: 1055.82,
+          tipo: 'abono',
+          estatus: 'aplicado',
+        })
+      );
     });
 
     it('handles partial payment', async () => {
@@ -152,12 +156,16 @@ describe('AmortizacionService', () => {
 
       await service.registrarPago(pago);
 
-      expect(mockQueryBuilder.update).toHaveBeenCalledWith({
-        monto_pagado: 500,
-        estatus: 'parcial',
-        fecha_pago: null,
-        updated_at: expect.any(Date),
-      });
+      expect(mockDatabase).toHaveBeenCalledWith('pagos_movimientos');
+      expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          venta_id: 'venta-1',
+          numero_pago: 1,
+          monto: 500,
+          tipo: 'abono',
+          estatus: 'aplicado',
+        })
+      );
     });
 
     it('prioritizes penalty payments', async () => {

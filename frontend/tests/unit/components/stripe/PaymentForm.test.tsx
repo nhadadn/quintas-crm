@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PaymentForm } from '@/components/stripe/PaymentForm';
@@ -39,7 +38,7 @@ describe('PaymentForm', () => {
     vi.clearAllMocks();
     (createPaymentIntent as any).mockResolvedValue({});
     mockCreatePaymentMethod.mockResolvedValue({ error: null });
-    
+
     // Default mock for useStripePayment
     vi.mocked(useStripePayment).mockReturnValue({
       processPayment: mockProcessPayment,
@@ -47,19 +46,13 @@ describe('PaymentForm', () => {
       error: null,
       clearError: mockClearError,
     });
-    
+
     mockProcessPayment.mockResolvedValue({ id: 'pi_123' });
   });
 
   it('renders correctly', async () => {
     render(
-      <PaymentForm 
-        ventaId="123" 
-        numeroPago={1} 
-        monto={1000} 
-        pagoId={1} 
-        clienteId="cus_123" 
-      />
+      <PaymentForm ventaId="123" numeroPago={1} monto={1000} pagoId={1} clienteId="cus_123" />,
     );
 
     await waitFor(() => {
@@ -70,13 +63,7 @@ describe('PaymentForm', () => {
 
   it('handles submission flow', async () => {
     render(
-      <PaymentForm 
-        ventaId="123" 
-        numeroPago={1} 
-        monto={1000} 
-        pagoId={1} 
-        clienteId="cus_123" 
-      />
+      <PaymentForm ventaId="123" numeroPago={1} monto={1000} pagoId={1} clienteId="cus_123" />,
     );
 
     await waitFor(() => {
@@ -89,13 +76,13 @@ describe('PaymentForm', () => {
     await waitFor(() => {
       expect(mockCreatePaymentMethod).toHaveBeenCalled();
     });
-    
+
     // Confirmation modal should appear
     expect(screen.getByText('Confirmar Pago')).toBeDefined();
-    
+
     // Confirm
     fireEvent.click(screen.getByText('Confirmar'));
-    
+
     await waitFor(() => {
       expect(mockProcessPayment).toHaveBeenCalledWith(1000, 1, 'cus_123');
     });
@@ -116,13 +103,7 @@ describe('PaymentForm', () => {
     });
 
     render(
-      <PaymentForm 
-        ventaId="123" 
-        numeroPago={1} 
-        monto={1000} 
-        pagoId={1} 
-        clienteId="cus_123" 
-      />
+      <PaymentForm ventaId="123" numeroPago={1} monto={1000} pagoId={1} clienteId="cus_123" />,
     );
 
     await waitFor(() => {

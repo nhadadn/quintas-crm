@@ -9,7 +9,7 @@ export class PortalPage {
     this.page = page;
     // Ajustar selectores según la implementación real del Navbar/Sidebar
     this.logoutButton = page.getByRole('button', { name: 'Cerrar Sesión' });
-    this.userName = page.locator('.text-right.font-medium.text-white'); 
+    this.userName = page.locator('.text-right.font-medium.text-white');
   }
 
   async goto() {
@@ -24,7 +24,7 @@ export class PortalPage {
       // Pequeña pausa para animación
       await this.page.waitForTimeout(500);
     }
-    
+
     // Buscar cualquier botón de cerrar sesión y forzar click
     // Esto maneja tanto el botón de escritorio como el de móvil
     const logoutBtn = this.page.locator('button').filter({ hasText: 'Cerrar Sesión' }).first();

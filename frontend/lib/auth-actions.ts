@@ -49,31 +49,32 @@ export async function authenticate(prevState: string | undefined, formData: Form
 
     // Intenta iniciar sesión con redirect: false
     try {
-       console.log('[AuthAction] Calling signIn with redirect: false');
-       const result = await signIn('credentials', {
-         ...data,
-         redirect: false,
-       });
-       console.log('[AuthAction] signIn result:', result);
+      console.log('[AuthAction] Calling signIn with redirect: false');
+      const result = await signIn('credentials', {
+        ...data,
+        redirect: false,
+      });
+      console.log('[AuthAction] signIn result:', result);
 
-       if (result?.error) {
-          console.error('[AuthAction] signIn returned error:', result.error);
-          throw new CredentialsSignin();
-       }
+      if (result?.error) {
+        console.error('[AuthAction] signIn returned error:', result.error);
+        throw new CredentialsSignin();
+      }
 
-       console.log('[AuthAction] Login successful');
-       return undefined;
-     } catch (signInError) {
+      console.log('[AuthAction] Login successful');
+      return undefined;
+    } catch (signInError) {
       console.error('[AuthAction] signIn threw error:', signInError);
-      
+
       // Si el error es AuthError, lo manejamos
       if (signInError instanceof AuthError) {
         throw signInError;
       }
-      
+
       // Si es NEXT_REDIRECT, lo manejamos aquí
-      const isRedirect = (signInError as Error).message === 'NEXT_REDIRECT' || 
-                         (signInError as any).digest?.startsWith('NEXT_REDIRECT');
+      const isRedirect =
+        (signInError as Error).message === 'NEXT_REDIRECT' ||
+        (signInError as any).digest?.startsWith('NEXT_REDIRECT');
       if (isRedirect) {
         console.log('[AuthAction] Caught NEXT_REDIRECT in inner block, returning success');
         return undefined;
@@ -104,9 +105,10 @@ export async function authenticate(prevState: string | undefined, formData: Form
       }
     }
 
-    const isRedirect = (error as Error).message === 'NEXT_REDIRECT' || 
-                       (error as any).digest?.startsWith('NEXT_REDIRECT');
-    
+    const isRedirect =
+      (error as Error).message === 'NEXT_REDIRECT' ||
+      (error as any).digest?.startsWith('NEXT_REDIRECT');
+
     if (isRedirect) {
       console.log('[AuthAction] Caught NEXT_REDIRECT in outer block, returning success');
       return undefined;

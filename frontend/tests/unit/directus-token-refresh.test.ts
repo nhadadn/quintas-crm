@@ -12,10 +12,10 @@ const { mockAxiosInstance, mockGetSession } = vi.hoisted(() => {
   instance.get = vi.fn();
   instance.post = vi.fn();
   instance.defaults = { headers: { common: {} } };
-  
-  return { 
+
+  return {
     mockAxiosInstance: instance,
-    mockGetSession: vi.fn()
+    mockGetSession: vi.fn(),
   };
 });
 
@@ -43,7 +43,8 @@ describe('Directus API Auth Refresh Logic', () => {
     // Obtener el callback de error del interceptor de respuesta una sola vez
     // directus-api.ts registra el interceptor al cargarse
     if (mockAxiosInstance.interceptors.response.use.mock.calls.length > 0) {
-      responseInterceptorErrorCallback = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
+      responseInterceptorErrorCallback =
+        mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
     }
   });
 
@@ -68,13 +69,13 @@ describe('Directus API Auth Refresh Logic', () => {
     // Configurar escenario
     const error401 = {
       isAxiosError: true,
-      response: { 
-        status: 401, 
-        data: { errors: [{ message: 'Token expired' }] } 
+      response: {
+        status: 401,
+        data: { errors: [{ message: 'Token expired' }] },
       },
-      config: { 
+      config: {
         headers: { Authorization: 'Bearer old-token' },
-        _retry: undefined 
+        _retry: undefined,
       },
     };
 
@@ -96,9 +97,9 @@ describe('Directus API Auth Refresh Logic', () => {
     const error401Retry = {
       isAxiosError: true,
       response: { status: 401 },
-      config: { 
+      config: {
         headers: { Authorization: 'Bearer old-token' },
-        _retry: true // Ya se intentó
+        _retry: true, // Ya se intentó
       },
     };
 
@@ -149,19 +150,19 @@ describe('Directus API Auth Refresh Logic', () => {
     // No debe reintentar
     expect(mockAxiosInstance).not.toHaveBeenCalled();
   });
-  
+
   it('fetchAllLotes debería usar el token proporcionado', async () => {
     mockAxiosInstance.get.mockResolvedValueOnce({ data: { data: [] } });
-    
+
     await fetchAllLotes('my-token');
-    
+
     expect(mockAxiosInstance.get).toHaveBeenCalledWith(
       '/items/lotes',
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer my-token'
-        })
-      })
+          Authorization: 'Bearer my-token',
+        }),
+      }),
     );
   });
 });

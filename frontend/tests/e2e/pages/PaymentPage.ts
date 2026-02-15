@@ -34,7 +34,7 @@ export class PaymentPage {
   async confirmPayment() {
     // Click en pagar dentro del formulario si es necesario, o el botón global
     await this.page.getByRole('button', { name: /Pagar/i }).click();
-    
+
     // Confirmar en modal si existe
     if (await this.confirmButton.isVisible()) {
       await this.confirmButton.click();

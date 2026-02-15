@@ -1,7 +1,7 @@
 import React from 'react';
 import { auth } from '@/lib/auth';
 import { getPerfilCliente, PerfilResponse, PagoPerfil } from '@/lib/perfil-api';
-import { agregarPagosDeVentas } from '@/lib/pagos-helpers';
+import { agregarMovimientosDeVentas } from '@/lib/pagos-helpers';
 import { redirect } from 'next/navigation';
 import { ErrorMessage } from '@/components/portal/ErrorMessage';
 import { TablaPagosCliente } from '@/components/portal/pagos/TablaPagosCliente';
@@ -29,8 +29,8 @@ export default async function PagosPage() {
             Vista de Pagos ({role})
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Como administrador/vendedor, no tienes un historial de pagos personal.
-            Por favor, utiliza el Dashboard Administrativo para ver los pagos de los clientes.
+            Como administrador/vendedor, no tienes un historial de pagos personal. Por favor,
+            utiliza el Dashboard Administrativo para ver los pagos de los clientes.
           </p>
           <a
             href="/dashboard/pagos"
@@ -66,8 +66,8 @@ export default async function PagosPage() {
 
   const { perfil, estadisticas } = perfilData;
 
-  // Aggregate payments from all sales safely using helper
-  const allPagos: PagoPerfil[] = agregarPagosDeVentas(perfil.ventas);
+  // Historial desde ledger: pagos_movimientos (incluye reembolsos)
+  const allPagos: PagoPerfil[] = agregarMovimientosDeVentas(perfil.ventas);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">

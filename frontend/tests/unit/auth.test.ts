@@ -56,18 +56,20 @@ describe('Auth Client Logic', () => {
       expect.objectContaining({
         refresh_token: 'old_refresh_token',
         mode: 'json',
-      })
+      }),
     );
 
-    expect(newToken).toEqual(expect.objectContaining({
-      accessToken: 'new_access_token',
-      refreshToken: 'new_refresh_token',
-    }));
+    expect(newToken).toEqual(
+      expect.objectContaining({
+        accessToken: 'new_access_token',
+        refreshToken: 'new_refresh_token',
+      }),
+    );
     expect(newToken.error).toBeUndefined();
   });
 
   it('should handle refresh error', async () => {
-     // Setup axios mock to fail
+    // Setup axios mock to fail
     const mockPost = vi.fn().mockRejectedValue(new Error('Refresh failed'));
 
     (axios.create as any).mockReturnValue({

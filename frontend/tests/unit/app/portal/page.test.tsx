@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import PortalClientePage from '@/app/portal/(dashboard)/page';
@@ -40,14 +39,16 @@ describe('Portal Page', () => {
       perfil: {
         nombre: 'Test User',
         email: 'test@example.com',
-        ventas: [{ 
-          id: 1, 
-          lote_id: { numero_lote: 'L1', manzana: 'M1' }, 
-          estatus: 'active', 
-          pagos: [
-            { numero_parcialidad: 1, fecha_pago: '2023-01-01', monto: 1000, estatus: 'pagado' }
-          ] 
-        }],
+        ventas: [
+          {
+            id: 1,
+            lote_id: { numero_lote: 'L1', manzana: 'M1' },
+            estatus: 'active',
+            pagos: [
+              { numero_parcialidad: 1, fecha_pago: '2023-01-01', monto: 1000, estatus: 'pagado' },
+            ],
+          },
+        ],
       },
       estadisticas: {
         total_pagado: 1000,
@@ -74,7 +75,7 @@ describe('Portal Page', () => {
     } catch (e) {
       // redirect throws usually
     }
-    
+
     expect(redirect).toHaveBeenCalledWith('/portal/auth/login');
   });
 

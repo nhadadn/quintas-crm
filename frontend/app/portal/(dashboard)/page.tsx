@@ -22,7 +22,7 @@ export default async function PortalClientePage() {
   // Si no es rol "Cliente", mostrar vista informativa y botón al Dashboard administrativo.
   // Esto previene errores al intentar cargar perfil de cliente para usuarios administrativos.
   const role = session.user?.role || '';
-  
+
   if (role !== 'Cliente') {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -31,8 +31,8 @@ export default async function PortalClientePage() {
             Vista de Portal ({role || 'Sin Rol'})
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Este portal está diseñado exclusivamente para Clientes.
-            Como usuario con rol <strong>{role}</strong>, no tienes un estado de cuenta asociado aquí.
+            Este portal está diseñado exclusivamente para Clientes. Como usuario con rol{' '}
+            <strong>{role}</strong>, no tienes un estado de cuenta asociado aquí.
           </p>
           <a
             href="/dashboard"
@@ -104,24 +104,21 @@ export default async function PortalClientePage() {
     },
   ];
 
-  // Map payments to TablaAmortizacion format
+  // Map amortización a formato de Tabla
   let amortizacionData: FilaAmortizacion[] = [];
-  if (ventaActiva && Array.isArray(ventaActiva.pagos)) {
-    // Sort by payment date or number safely
-    const sortedPagos = [...ventaActiva.pagos].sort((a, b) => {
-      const dateA = a.fecha_pago ? new Date(a.fecha_pago).getTime() : 0;
-      const dateB = b.fecha_pago ? new Date(b.fecha_pago).getTime() : 0;
-      return dateA - dateB;
-    });
-
-    amortizacionData = sortedPagos.map((pago, index) => ({
-      numero_pago: pago.numero_parcialidad || index + 1,
-      fecha_vencimiento: pago.fecha_pago || '', // Handle missing date
-      cuota: Number(pago.monto || 0),
-      interes: Number(pago.interes || 0),
-      capital: Number(pago.capital || pago.monto || 0), // Default to full amount if not split
-      saldo_restante: Number(pago.saldo_restante || 0),
-      estatus: pago.estatus,
+  const cuotas = (ventaActiva as any)?.amortizacion || [];
+  if (ventaActiva && Array.isArray(cuotas)) {
+    const sortedCuotas = [...cuotas].sort(
+      (a, b) => Number(a.numero_pago || 0) - Number(b.numero_pago || 0),
+    );
+    amortizacionData = sortedCuotas.map((cuota: any) => ({
+      numero_pago: Number(cuota.numero_pago || 0),
+      fecha_vencimiento: String(cuota.fecha_vencimiento || ''),
+      cuota: Number(cuota.monto_cuota || 0),
+      interes: Number(cuota.interes || 0),
+      capital: Number(cuota.capital || 0),
+      saldo_restante: Number(cuota.saldo_final ?? 0),
+      estatus: String(cuota.estatus || 'pendiente') as any,
     }));
   }
 
@@ -151,13 +148,12 @@ export default async function PortalClientePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <h2 className="text-xl font-bold text-slate-100 mb-4">Estado de Cuenta</h2>
-            {amortizacionData.length > 0 ? (
-              <TablaAmortizacion amortizacion={amortizacionData} />
-            ) : (
-              <div className="text-slate-400 py-8 text-center bg-slate-800/50 rounded-lg">
+            {amortizacionData.length === 0 && (
+              <div className="text-slate-400 py-2 text-center bg-slate-800/50 rounded-lg mb-4">
                 No hay información de pagos disponible.
               </div>
             )}
+            <TablaAmortizacion amortizacion={amortizacionData} />
           </div>
         </div>
 

@@ -1,0 +1,7 @@
+export default {
+  root: true,
+  extends: ['next/core-web-vitals', 'plugin:prettier/recommended'],
+  rules: {
+    'prettier/prettier': 'error',
+  },
+};

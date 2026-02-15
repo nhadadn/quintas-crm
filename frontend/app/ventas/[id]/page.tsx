@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
+import { useSession } from 'next-auth/react';
 import { getVentaById } from '@/lib/ventas-api';
 import { fetchPagos } from '@/lib/pagos-api';
 import { Venta, Pago } from '@/types/erp';
@@ -17,6 +18,7 @@ interface PageProps {
 
 export default function DetalleVentaPage({ params }: PageProps) {
   const { id } = use(params);
+  const { data: session } = useSession();
   const [venta, setVenta] = useState<Venta | null>(null);
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
         setVenta(ventaData);
 
         // Cargar pagos asociados
-        const pagosData = await fetchPagos();
+        const pagosData = await fetchPagos({}, session?.accessToken || undefined);
         // Filtrar pagos de esta venta (idealmente el API debería soportar filtro por venta_id)
         const pagosVenta = pagosData.filter((p) => {
           if (!p.venta_id) return false;
@@ -47,7 +49,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
       }
     };
     cargarDatos();
-  }, [id]);
+  }, [id, session?.accessToken]);
 
   if (loading) {
     return <div className="p-6 text-center">Cargando detalles de venta...</div>;
@@ -66,8 +68,23 @@ export default function DetalleVentaPage({ params }: PageProps) {
     return format(new Date(dateString), 'dd/MM/yyyy');
   };
 
+  const isPostProcessOk = venta.post_process_status === 'ok';
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {!isPostProcessOk && (
+        <div className={`mb-4 p-4 rounded ${venta.post_process_status === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-yellow-50 border border-yellow-200 text-yellow-800'}`}>
+          <div className="font-semibold">
+            Estado de post-proceso: {venta.post_process_status?.toUpperCase() || 'PENDING'}
+          </div>
+          {venta.post_process_error && (
+            <div className="mt-1 text-sm">Detalle: {String(venta.post_process_error)}</div>
+          )}
+          <div className="mt-2 text-xs text-gray-500">
+            Mientras el post-proceso no esté OK, las acciones de pagos se encuentran bloqueadas.
+          </div>
+        </div>
+      )}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <Link href="/ventas" className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
@@ -113,6 +130,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            disabled={!isPostProcessOk}
           >
             Historial de Pagos
           </button>
@@ -164,7 +182,15 @@ export default function DetalleVentaPage({ params }: PageProps) {
               <div className="sm:col-span-1">
                 <dt className="text-sm font-medium text-gray-500">Lote</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {typeof venta.lote_id === 'object' ? venta.lote_id.identificador : 'N/A'}
+                  {typeof venta.lote_id === 'object'
+                    ? (venta.lote_id.identificador ||
+                       // Fallbacks para variantes de naming
+                       venta.lote_id.numero_lote ||
+                       venta.lote_id.lote ||
+                       venta.lote_id.clave ||
+                       venta.lote_id.nombre ||
+                       'N/D')
+                    : 'N/A'}
                 </dd>
               </div>
               <div className="sm:col-span-1">
@@ -216,7 +242,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
         </div>
       )}
 
-      {activeTab === 'pagos' && (
+      {activeTab === 'pagos' && isPostProcessOk && (
         <TablaPagos
           pagos={pagos}
           onVerDetalles={(pagoId) => console.log('Ver pago', pagoId)}

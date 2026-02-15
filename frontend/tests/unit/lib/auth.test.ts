@@ -1,4 +1,3 @@
-
 import { refreshAccessToken } from '@/lib/auth';
 import axios from 'axios';
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
@@ -75,12 +74,12 @@ describe('Auth Logic - refreshAccessToken', () => {
     const mockPost = vi.fn().mockResolvedValue(mockResponse);
     (axios.create as unknown as Mock).mockReturnValue({
       post: mockPost,
-      defaults: { headers: {} }
+      defaults: { headers: {} },
     });
 
     // Reset modules to ensure auth.ts picks up the new mock
     vi.resetModules();
-    
+
     // We need to re-import the module to trigger the top-level code (axios.create)
     const { refreshAccessToken } = await import('@/lib/auth');
 
@@ -106,7 +105,7 @@ describe('Auth Logic - refreshAccessToken', () => {
       expect.objectContaining({
         refresh_token: 'valid_refresh_token',
         mode: 'json',
-      })
+      }),
     );
 
     expect(result).toEqual({
@@ -121,7 +120,7 @@ describe('Auth Logic - refreshAccessToken', () => {
     const mockPost = vi.fn().mockRejectedValue(new Error('Network Error'));
     (axios.create as unknown as Mock).mockReturnValue({
       post: mockPost,
-      defaults: { headers: {} }
+      defaults: { headers: {} },
     });
 
     vi.resetModules();

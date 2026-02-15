@@ -66,7 +66,7 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="tabla-amortizacion">
       <div className="flex justify-end">
         <button
           onClick={handleDownloadPDF}
@@ -107,27 +107,20 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
           </thead>
           <tbody>
             {amortizacion.map((pago) => (
-              <tr key={pago.numero_pago} className="bg-slate-800/50 border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-200">
-                  {pago.numero_pago}
-                </td>
+              <tr
+                key={pago.numero_pago}
+                className="bg-slate-800/50 border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-slate-200">{pago.numero_pago}</td>
+                <td className="px-6 py-4">{formatDate(pago.fecha_vencimiento)}</td>
+                <td className="px-6 py-4 font-mono text-slate-200">{formatCurrency(pago.cuota)}</td>
+                <td className="px-6 py-4 font-mono">{formatCurrency(pago.interes)}</td>
+                <td className="px-6 py-4 font-mono">{formatCurrency(pago.capital)}</td>
+                <td className="px-6 py-4 font-mono">{formatCurrency(pago.saldo_restante)}</td>
                 <td className="px-6 py-4">
-                  {formatDate(pago.fecha_vencimiento)}
-                </td>
-                <td className="px-6 py-4 font-mono text-slate-200">
-                  {formatCurrency(pago.cuota)}
-                </td>
-                <td className="px-6 py-4 font-mono">
-                  {formatCurrency(pago.interes)}
-                </td>
-                <td className="px-6 py-4 font-mono">
-                  {formatCurrency(pago.capital)}
-                </td>
-                <td className="px-6 py-4 font-mono">
-                  {formatCurrency(pago.saldo_restante)}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(pago.estatus)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(pago.estatus)}`}
+                  >
                     {pago.estatus.toUpperCase()}
                   </span>
                 </td>
@@ -140,21 +133,24 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {amortizacion.map((pago) => (
-          <div key={pago.numero_pago} className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+          <div
+            key={pago.numero_pago}
+            className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm"
+          >
             <div className="flex justify-between items-start mb-3">
               <div>
                 <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">
                   {formatDate(pago.fecha_vencimiento)}
                 </p>
-                <p className="font-medium text-slate-200">
-                  Pago #{pago.numero_pago}
-                </p>
+                <p className="font-medium text-slate-200">Pago #{pago.numero_pago}</p>
               </div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(pago.estatus)}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(pago.estatus)}`}
+              >
                 {pago.estatus.toUpperCase()}
               </span>
             </div>
-            
+
             <div className="space-y-2 text-sm text-slate-400 mb-3 bg-slate-900/30 p-3 rounded-lg">
               <div className="flex justify-between">
                 <span>Capital:</span>
@@ -166,7 +162,9 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
               </div>
               <div className="flex justify-between border-t border-slate-700/50 pt-2 mt-2">
                 <span>Saldo Restante:</span>
-                <span className="text-slate-200 font-mono">{formatCurrency(pago.saldo_restante)}</span>
+                <span className="text-slate-200 font-mono">
+                  {formatCurrency(pago.saldo_restante)}
+                </span>
               </div>
             </div>
 

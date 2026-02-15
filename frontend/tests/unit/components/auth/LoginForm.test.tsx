@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LoginForm from '@/components/auth/LoginForm';
@@ -14,9 +13,9 @@ const refreshMock = vi.fn();
 
 // Mock useRouter
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ 
+  useRouter: () => ({
     push: pushMock,
-    refresh: refreshMock
+    refresh: refreshMock,
   }),
   useSearchParams: () => ({
     get: vi.fn(),
@@ -49,35 +48,35 @@ describe('LoginForm Component', () => {
   });
 
   it('displays error message on failure', async () => {
-      (authenticate as any).mockResolvedValue('Credenciales inválidas');
-      render(<LoginForm />);
-      
-      fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
-      fireEvent.change(screen.getByLabelText(/contraseña/i), { target: { value: 'wrongpass' } });
-      
-      const form = screen.getByRole('button').closest('form');
-      if (form) fireEvent.submit(form);
+    (authenticate as any).mockResolvedValue('Credenciales inválidas');
+    render(<LoginForm />);
 
-      await waitFor(() => {
-          expect(screen.getByText('Credenciales inválidas')).toBeDefined();
-          expect(pushMock).not.toHaveBeenCalled();
-      });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/contraseña/i), { target: { value: 'wrongpass' } });
+
+    const form = screen.getByRole('button').closest('form');
+    if (form) fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(screen.getByText('Credenciales inválidas')).toBeDefined();
+      expect(pushMock).not.toHaveBeenCalled();
+    });
   });
 
   it('redirects on success', async () => {
     (authenticate as any).mockResolvedValue(undefined); // Success
     render(<LoginForm />);
-    
+
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/contraseña/i), { target: { value: 'password123' } });
-    
+
     const form = screen.getByRole('button').closest('form');
     if (form) fireEvent.submit(form);
 
     await waitFor(() => {
-        expect(authenticate).toHaveBeenCalled();
-        expect(pushMock).toHaveBeenCalledWith('/dashboard');
-        expect(refreshMock).toHaveBeenCalled();
+      expect(authenticate).toHaveBeenCalled();
+      expect(pushMock).toHaveBeenCalledWith('/dashboard');
+      expect(refreshMock).toHaveBeenCalled();
     });
   });
 });

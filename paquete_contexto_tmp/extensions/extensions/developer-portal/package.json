@@ -1,0 +1,23 @@
+{
+  "name": "developer-portal",
+  "version": "1.0.0",
+  "description": "Backend para el Portal de Desarrolladores",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "developer-portal",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "scripts": {
+    "build": "directus-extension build"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "^11.0.0"
+  }
+}

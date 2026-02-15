@@ -1,4 +1,4 @@
-import axios from 'axios';
+import internalApi from './internal-api';
 import { directusClient, DirectusResponse, handleAxiosError } from './directus-api';
 import {
   KPIResponse,
@@ -18,13 +18,10 @@ const getParams = (filters?: DashboardFilters) => ({
 
 export async function fetchKPIs(filters?: DashboardFilters, token?: string): Promise<KPIResponse> {
   try {
-    const response = await axios.get<DirectusResponse<KPIResponse>>(
-      '/api/dashboard/kpis',
-      {
-        params: getParams(filters),
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      },
-    );
+    const response = await internalApi.get<DirectusResponse<KPIResponse>>('/api/dashboard/kpis', {
+      params: getParams(filters),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'fetchKPIs');
@@ -46,7 +43,7 @@ export async function fetchVentasPorMes(
   token?: string,
 ): Promise<VentasPorMes[]> {
   try {
-    const response = await axios.get<DirectusResponse<VentasPorMes[]>>(
+    const response = await internalApi.get<DirectusResponse<VentasPorMes[]>>(
       '/api/dashboard/ventas-por-mes',
       {
         params: getParams(filters),
@@ -65,7 +62,7 @@ export async function fetchVentasPorVendedor(
   token?: string,
 ): Promise<VentasPorVendedor[]> {
   try {
-    const response = await axios.get<DirectusResponse<VentasPorVendedor[]>>(
+    const response = await internalApi.get<DirectusResponse<VentasPorVendedor[]>>(
       '/api/dashboard/ventas-por-vendedor',
       {
         params: getParams(filters),
@@ -84,7 +81,7 @@ export async function fetchPagosPorEstatus(
   token?: string,
 ): Promise<PagosPorEstatus[]> {
   try {
-    const response = await axios.get<DirectusResponse<PagosPorEstatus[]>>(
+    const response = await internalApi.get<DirectusResponse<PagosPorEstatus[]>>(
       '/api/dashboard/pagos-por-estatus',
       {
         params: getParams(filters),
@@ -103,7 +100,7 @@ export async function fetchLotesPorEstatus(
   token?: string,
 ): Promise<LotesPorEstatus[]> {
   try {
-    const response = await axios.get<DirectusResponse<LotesPorEstatus[]>>(
+    const response = await internalApi.get<DirectusResponse<LotesPorEstatus[]>>(
       '/api/dashboard/lotes-por-estatus',
       {
         params: getParams(filters),
@@ -122,7 +119,7 @@ export async function fetchComisionesPorVendedor(
   token?: string,
 ): Promise<ComisionesPorVendedor[]> {
   try {
-    const response = await axios.get<DirectusResponse<ComisionesPorVendedor[]>>(
+    const response = await internalApi.get<DirectusResponse<ComisionesPorVendedor[]>>(
       '/api/dashboard/comisiones-por-vendedor',
       {
         params: getParams(filters),
@@ -138,13 +135,10 @@ export async function fetchComisionesPorVendedor(
 
 export async function fetchVentasRecientes(limit = 10, token?: string): Promise<any[]> {
   try {
-    const response = await axios.get<DirectusResponse<any[]>>(
-      '/api/dashboard/ventas-recientes',
-      {
-        params: { limit, _t: Date.now() },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      },
-    );
+    const response = await internalApi.get<DirectusResponse<any[]>>('/api/dashboard/ventas-recientes', {
+      params: { limit, _t: Date.now() },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'fetchVentasRecientes');

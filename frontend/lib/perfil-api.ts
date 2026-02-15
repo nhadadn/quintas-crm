@@ -26,6 +26,8 @@ export interface VentaPerfil {
   monto_total: number;
   estatus: string;
   pagos: PagoPerfil[];
+  amortizacion?: AmortizacionFilaPerfil[];
+  pagos_movimientos?: MovimientoPerfil[];
 }
 
 export interface PagoPerfil {
@@ -40,6 +42,29 @@ export interface PagoPerfil {
   saldo_restante?: number;
   venta_id?: number;
   numero_lote?: string;
+}
+
+export interface AmortizacionFilaPerfil {
+  id: string;
+  numero_pago: number;
+  fecha_vencimiento: string;
+  monto_cuota: number | string;
+  interes: number | string;
+  capital: number | string;
+  saldo_final?: number | string;
+  monto_pagado?: number | string;
+  estatus: 'pendiente' | 'parcial' | 'pagado' | 'vencido' | 'cancelado';
+}
+
+export interface MovimientoPerfil {
+  id: string;
+  venta_id: string;
+  numero_pago: number;
+  fecha_movimiento: string;
+  monto: number;
+  tipo: 'abono' | 'reembolso';
+  estatus: 'aplicado' | 'cancelado';
+  stripe_payment_intent_id?: string | null;
 }
 
 export interface EstadisticasCliente {
@@ -120,7 +145,9 @@ export async function getPerfilCliente(token: string): Promise<PerfilResponse> {
       }
       if (fallbackError.message === 'Cliente no encontrado para este usuario') {
         // Mejor mensaje de error para usuarios administrativos
-        throw new Error('Tu usuario no tiene un perfil de Cliente asociado (requerido para el portal).');
+        throw new Error(
+          'Tu usuario no tiene un perfil de Cliente asociado (requerido para el portal).',
+        );
       }
       throw fallbackError;
     }
@@ -133,9 +160,9 @@ async function getPerfilManual(token: string): Promise<PerfilResponse> {
   // 1. Obtener usuario actual y rol
   let user;
   try {
-    const userRes = await directusClient.get('/users/me', { 
-        headers,
-        params: { fields: 'id,role.name' }
+    const userRes = await directusClient.get('/users/me', {
+      headers,
+      params: { fields: 'id,role.name' },
     });
     user = userRes.data.data;
   } catch (err) {
@@ -144,7 +171,7 @@ async function getPerfilManual(token: string): Promise<PerfilResponse> {
 
   // Si no es Cliente, no intentar buscar perfil
   if (user.role?.name !== 'Cliente') {
-      throw new Error('Cliente no encontrado para este usuario'); // Mensaje estándar esperado por el catch
+    throw new Error('Cliente no encontrado para este usuario'); // Mensaje estándar esperado por el catch
   }
 
   // 2. Buscar cliente asociado
@@ -160,6 +187,7 @@ async function getPerfilManual(token: string): Promise<PerfilResponse> {
         'ventas.fecha_venta',
         'ventas.monto_total',
         'ventas.estatus',
+        // pagos (compatibilidad)
         'ventas.pagos.id',
         'ventas.pagos.fecha_pago',
         'ventas.pagos.monto',
@@ -169,6 +197,25 @@ async function getPerfilManual(token: string): Promise<PerfilResponse> {
         'ventas.pagos.interes',
         'ventas.pagos.capital',
         'ventas.pagos.saldo_restante',
+        // amortización (fuente de verdad para KPIs)
+        'ventas.amortizacion.id',
+        'ventas.amortizacion.numero_pago',
+        'ventas.amortizacion.fecha_vencimiento',
+        'ventas.amortizacion.monto_cuota',
+        'ventas.amortizacion.interes',
+        'ventas.amortizacion.capital',
+        'ventas.amortizacion.saldo_final',
+        'ventas.amortizacion.monto_pagado',
+        'ventas.amortizacion.estatus',
+        // movimientos (historial)
+        'ventas.pagos_movimientos.id',
+        'ventas.pagos_movimientos.venta_id',
+        'ventas.pagos_movimientos.numero_pago',
+        'ventas.pagos_movimientos.fecha_movimiento',
+        'ventas.pagos_movimientos.monto',
+        'ventas.pagos_movimientos.tipo',
+        'ventas.pagos_movimientos.estatus',
+        'ventas.pagos_movimientos.stripe_payment_intent_id',
       ],
     },
   });
@@ -202,30 +249,35 @@ function calcularEstadisticas(cliente: ClientePerfil): EstadisticasCliente {
 
   ventas.forEach((venta) => {
     total_compras += Number(venta.monto_total || 0);
+    const cuotas = (venta.amortizacion || []) as AmortizacionFilaPerfil[];
 
-    const pagos = venta.pagos || [];
-    pagos.forEach((pago) => {
-      if (pago.estatus === 'pagado') {
-        total_pagado += Number(pago.monto || 0);
+    for (const cuota of cuotas) {
+      const montoCuota = Number(cuota.monto_cuota || 0);
+      const pagado = Math.max(0, Math.min(Number(cuota.monto_pagado || 0), montoCuota));
+      total_pagado += pagado;
+      if (String(cuota.estatus).toLowerCase() === 'pagado') {
         pagos_realizados++;
-      } else if (pago.estatus === 'pendiente') {
-        // Buscar el pago pendiente más próximo
-        const fechaPago = new Date(pago.fecha_pago);
-        if (!proximo_pago || fechaPago < new Date(proximo_pago.fecha_pago)) {
+      }
+
+      if (
+        ['pendiente', 'parcial', 'vencido'].includes(String(cuota.estatus).toLowerCase())
+      ) {
+        const fechaVenc = new Date(cuota.fecha_vencimiento);
+        if (!proximo_pago || fechaVenc < new Date(proximo_pago.fecha_pago)) {
           proximo_pago = {
-            monto: Number(pago.monto),
-            estatus: pago.estatus,
-            fecha_pago: pago.fecha_pago,
+            monto: montoCuota - pagado,
+            estatus: cuota.estatus,
+            fecha_pago: cuota.fecha_vencimiento,
           };
         }
       }
-    });
+    }
   });
 
   return {
     total_compras,
     total_pagado,
-    saldo_pendiente: total_compras - total_pagado,
+    saldo_pendiente: Math.max(total_compras - total_pagado, 0),
     numero_ventas: ventas.length,
     pagos_realizados,
     proximo_pago,

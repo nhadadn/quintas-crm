@@ -34,7 +34,11 @@ export interface RevenueForecast {
   predicted_revenue: number;
 }
 
-export async function fetchDashboardMetrics(startDate: string, endDate: string, token?: string): Promise<DashboardMetrics> {
+export async function fetchDashboardMetrics(
+  startDate: string,
+  endDate: string,
+  token?: string,
+): Promise<DashboardMetrics> {
   try {
     const response = await directusClient.get('/pagos/reportes/dashboard', {
       params: { fecha_inicio: startDate, fecha_fin: endDate },

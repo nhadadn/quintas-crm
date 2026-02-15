@@ -8,90 +8,97 @@ const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8
 export async function GET(request: Request) {
   const authHeader = request.headers.get('Authorization');
   const headers = authHeader ? { Authorization: authHeader } : {};
+  const tenantId = request.headers.get('X-Tenant-ID') || undefined;
 
   try {
     const today = new Date();
-    const firstDayCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-    const firstDayPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0];
-    const lastDayPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0).toISOString().split('T')[0];
+    const firstDayCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      .toISOString()
+      .split('T')[0];
+    const firstDayPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+      .toISOString()
+      .split('T')[0];
+    const lastDayPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0)
+      .toISOString()
+      .split('T')[0];
 
     const [
-      totalVentasRes,
-      totalPagadoRes,
-      totalPendienteRes,
-      ventasMesActualRes,
-      ventasMesAnteriorRes,
-      lotesVendidosMesRes,
-      comisionesPendientesRes
+      totalContratadoRes,
+      totalPagadoResFromView,
+      ventasMesActualResFromView,
+      ventasMesAnteriorResFromView,
+      lotesVendidosMesResFromView,
+      comisionesPendientesRes,
     ] = await Promise.all([
-      // 1. Total Ventas (All time, non-cancelled)
-      axios.get(`${DIRECTUS_URL}/items/ventas`, {
+      // 1. Total Contratado (all time, non-cancelled) desde vista
+      axios.get(`${DIRECTUS_URL}/items/v_dashboard_kpis`, {
         headers,
         params: {
-          'aggregate[sum]': 'monto_total',
-          'filter[estatus][_neq]': 'cancelada'
-        }
+          'aggregate[sum]': 'total_contratado',
+          'filter[estatus][_neq]': 'cancelada',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
       }),
-      // 2. Total Pagado
-      axios.get(`${DIRECTUS_URL}/items/pagos`, {
+      // 2. Total Pagado desde vista (suma de movimientos aplicados)
+      axios.get(`${DIRECTUS_URL}/items/v_dashboard_kpis`, {
         headers,
         params: {
-          'aggregate[sum]': 'monto_pagado',
-          'filter[estatus][_eq]': 'pagado'
-        }
+          'aggregate[sum]': 'total_pagado',
+          'filter[estatus][_neq]': 'cancelada',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
       }),
-      // 3. Total Pendiente (Pagos pendientes)
-      axios.get(`${DIRECTUS_URL}/items/pagos`, {
+      // 3. Ventas Mes Actual (Sum total_contratado) desde vista
+      axios.get(`${DIRECTUS_URL}/items/v_dashboard_kpis`, {
         headers,
         params: {
-          'aggregate[sum]': 'monto',
-          'filter[estatus][_neq]': 'pagado'
-        }
-      }),
-      // 4. Ventas Mes Actual (Sum)
-      axios.get(`${DIRECTUS_URL}/items/ventas`, {
-        headers,
-        params: {
-          'aggregate[sum]': 'monto_total',
+          'aggregate[sum]': 'total_contratado',
           'filter[fecha_venta][_gte]': firstDayCurrentMonth,
-          'filter[estatus][_neq]': 'cancelada'
-        }
+          'filter[estatus][_neq]': 'cancelada',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
       }),
-      // 5. Ventas Mes Anterior (Sum) for growth
-      axios.get(`${DIRECTUS_URL}/items/ventas`, {
+      // 4. Ventas Mes Anterior (Sum total_contratado) desde vista
+      axios.get(`${DIRECTUS_URL}/items/v_dashboard_kpis`, {
         headers,
         params: {
-          'aggregate[sum]': 'monto_total',
+          'aggregate[sum]': 'total_contratado',
           'filter[fecha_venta][_between]': [firstDayPrevMonth, lastDayPrevMonth],
-          'filter[estatus][_neq]': 'cancelada'
-        }
+          'filter[estatus][_neq]': 'cancelada',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
       }),
-      // 6. Lotes Vendidos Mes (Count)
-      axios.get(`${DIRECTUS_URL}/items/ventas`, {
+      // 5. Lotes Vendidos Mes (Count) desde vista (una fila por venta)
+      axios.get(`${DIRECTUS_URL}/items/v_dashboard_kpis`, {
         headers,
         params: {
           'aggregate[count]': '*',
           'filter[fecha_venta][_gte]': firstDayCurrentMonth,
-          'filter[estatus][_neq]': 'cancelada'
-        }
+          'filter[estatus][_neq]': 'cancelada',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
       }),
-      // 7. Comisiones Pendientes
+      // 6. Comisiones Pendientes (sin cambio)
       axios.get(`${DIRECTUS_URL}/items/comisiones`, {
         headers,
         params: {
           'aggregate[sum]': 'monto_comision',
-          'filter[estatus][_eq]': 'pendiente'
-        }
-      })
+          'filter[estatus][_eq]': 'pendiente',
+          ...(tenantId ? { 'filter[tenant_id][_eq]': tenantId } : {}),
+        },
+      }),
     ]);
 
-    const totalVentas = Number(totalVentasRes.data.data[0]?.sum?.monto_total) || 0;
-    const totalPagado = Number(totalPagadoRes.data.data[0]?.sum?.monto_pagado) || 0;
-    const totalPendiente = Number(totalPendienteRes.data.data[0]?.sum?.monto) || 0;
-    const ventasMesActual = Number(ventasMesActualRes.data.data[0]?.sum?.monto_total) || 0;
-    const ventasMesAnterior = Number(ventasMesAnteriorRes.data.data[0]?.sum?.monto_total) || 0;
-    const lotesVendidosMes = Number(lotesVendidosMesRes.data.data[0]?.count) || 0;
-    const comisionesPendientes = Number(comisionesPendientesRes.data.data[0]?.sum?.monto_comision) || 0;
+    const totalContratado = Number(totalContratadoRes.data.data[0]?.sum?.total_contratado) || 0;
+    const totalPagado = Number(totalPagadoResFromView.data.data[0]?.sum?.total_pagado) || 0;
+    const totalPendiente = Math.max(0, totalContratado - totalPagado);
+    const ventasMesActual =
+      Number(ventasMesActualResFromView.data.data[0]?.sum?.total_contratado) || 0;
+    const ventasMesAnterior =
+      Number(ventasMesAnteriorResFromView.data.data[0]?.sum?.total_contratado) || 0;
+    const lotesVendidosMes = Number(lotesVendidosMesResFromView.data.data[0]?.count) || 0;
+    const comisionesPendientes =
+      Number(comisionesPendientesRes.data.data[0]?.sum?.monto_comision) || 0;
 
     // Calculate growth
     let crecimiento = 0;
@@ -116,6 +123,9 @@ export async function GET(request: Request) {
     console.error('Error fetching KPIs:', error.response?.data || error.message);
     // Return mock data as fallback if connection fails, but log error
     // Or return error to show in UI. Let's return error to make it obvious.
-    return NextResponse.json({ error: 'Error fetching KPIs', details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error fetching KPIs', details: error.message },
+      { status: 500 },
+    );
   }
 }

@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { SelectorFormatoReporte } from '@/components/exportacion/SelectorFormatoReporte';
 import { useSession } from 'next-auth/react';
+import { LoadingDashboard } from '@/components/dashboard/LoadingDashboard';
 
 // Lazy load chart components
 const GraficoVentasPorMes = React.lazy(() =>
@@ -65,6 +66,7 @@ export default function DashboardPrincipal() {
   const debouncedFilters = useDebounce(filters, 500);
   const [periodo, setPeriodo] = useState('mes_actual'); // 'hoy', 'semana', 'mes_actual', 'anio'
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [sessionWarning, setSessionWarning] = useState<string | null>(null);
 
   // Data States
   const [kpis, setKpis] = useState<KPIResponse | null>(null);
@@ -75,65 +77,69 @@ export default function DashboardPrincipal() {
   const [pagosRecientes, setPagosRecientes] = useState<Pago[]>([]);
   const [hasError, setHasError] = useState(false);
 
-  const loadDashboardData = useCallback(async (silent = false) => {
-    if (status === 'loading') return;
-    if (!session?.accessToken) {
-      console.warn('No hay sesión activa o token de acceso');
-      setLoading(false);
-      return;
-    }
+  const loadDashboardData = useCallback(
+    async (silent = false) => {
+      if (status === 'loading') return;
+      if (!session?.accessToken) {
+        console.warn('No hay sesión activa o token de acceso');
+        setLoading(false);
+        return;
+      }
 
-    if (!silent) setLoading(true);
-    setHasError(false);
-    try {
-      // Use debouncedFilters for the API call to ensure we're using the stable value
-      const currentFilters = debouncedFilters;
-      const token = session.accessToken;
+      if (!silent) setLoading(true);
+      setHasError(false);
+      try {
+        // Use debouncedFilters for the API call to ensure we're using the stable value
+        const currentFilters = debouncedFilters;
+        const token = session.accessToken;
 
-      const [        kpiData,
-        ventasMesData,
-        ventasVendedorData,
-        pagosEstatusData,
-        lotesEstatusData,
-        pagosRecientesData,
-      ] = await Promise.all([
-        fetchKPIs(currentFilters, token),
-        fetchVentasPorMes(currentFilters, token),
-        fetchVentasPorVendedor(currentFilters, token),
-        fetchPagosPorEstatus(currentFilters, token),
-        fetchLotesPorEstatus(currentFilters, token),
-        fetchPagos({ limit: 20 }, token).catch((err) => {
-          console.error('Error fetching recent payments:', err);
-          setHasError(true);
-          return [];
-        }),
-      ]);
+        const [
+          kpiData,
+          ventasMesData,
+          ventasVendedorData,
+          pagosEstatusData,
+          lotesEstatusData,
+          pagosRecientesData,
+        ] = await Promise.all([
+          fetchKPIs(currentFilters, token),
+          fetchVentasPorMes(currentFilters, token),
+          fetchVentasPorVendedor(currentFilters, token),
+          fetchPagosPorEstatus(currentFilters, token),
+          fetchLotesPorEstatus(currentFilters, token),
+          fetchPagos({ limit: 20 }, token).catch((err) => {
+            console.error('Error fetching recent payments:', err);
+            setHasError(true);
+            return [];
+          }),
+        ]);
 
-      setKpis(kpiData);
-      setVentasMes(ventasMesData);
-      setVentasVendedor(ventasVendedorData);
-      setPagosEstatus(pagosEstatusData);
-      setLotesEstatus(lotesEstatusData);
-      setPagosRecientes(pagosRecientesData);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      setHasError(true);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [debouncedFilters, session, status]);
+        setKpis(kpiData);
+        setVentasMes(ventasMesData);
+        setVentasVendedor(ventasVendedorData);
+        setPagosEstatus(pagosEstatusData);
+        setLotesEstatus(lotesEstatusData);
+        setPagosRecientes(pagosRecientesData);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        setHasError(true);
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [debouncedFilters, session, status],
+  );
 
   useEffect(() => {
     loadDashboardData();
-    
+
     // Auto-refresh interval (5 minutes)
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         console.log('🔄 Dashboard: Auto-refresh periódico (5m)');
         loadDashboardData(true); // Silent refresh
       }
-    }, 300000); 
+    }, 300000);
 
     // Listen for real-time updates from other tabs
     let channel: BroadcastChannel | null = null;
@@ -154,6 +160,28 @@ export default function DashboardPrincipal() {
       if (channel) channel.close();
     };
   }, [loadDashboardData]);
+
+  useEffect(() => {
+    function onExpiring(e: any) {
+      const m = e?.detail?.minutesLeft;
+      if (typeof m === 'number') {
+        setSessionWarning(`Tu sesión expira en ${Math.max(0, Math.ceil(m))} minutos`);
+      }
+    }
+    function onRefreshFailed() {
+      setSessionWarning('No fue posible renovar la sesión automáticamente');
+    }
+    try {
+      window.addEventListener('auth:token-expiring', onExpiring as any);
+      window.addEventListener('auth:refresh-failed', onRefreshFailed as any);
+    } catch {}
+    return () => {
+      try {
+        window.removeEventListener('auth:token-expiring', onExpiring as any);
+        window.removeEventListener('auth:refresh-failed', onRefreshFailed as any);
+      } catch {}
+    };
+  }, []);
 
   const handlePeriodoChange = (p: string) => {
     setPeriodo(p);
@@ -192,12 +220,12 @@ export default function DashboardPrincipal() {
     }
   };
 
+  if (status !== 'authenticated') {
+    return <LoadingDashboard text="Validando sesión..." fullScreen />;
+  }
+
   if (loading && !kpis) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <LoadingDashboard text="Preparando datos del dashboard..." fullScreen />;
   }
 
   if (!kpis) {
@@ -220,10 +248,21 @@ export default function DashboardPrincipal() {
     <div className="p-6 space-y-6 bg-slate-50 dark:bg-slate-900 min-h-screen">
       {/* Header & Filters */}
       <div className="flex flex-col gap-4">
+        {sessionWarning && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded">
+            {sessionWarning}
+          </div>
+        )}
         {hasError && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded relative" role="alert">
+          <div
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded relative"
+            role="alert"
+          >
             <strong className="font-bold">Atención: </strong>
-            <span className="block sm:inline">Algunos datos no pudieron cargarse correctamente. Es posible que tu sesión haya expirado. Intenta recargar la página o iniciar sesión nuevamente.</span>
+            <span className="block sm:inline">
+              Algunos datos no pudieron cargarse correctamente. Es posible que tu sesión haya
+              expirado. Intenta recargar la página o iniciar sesión nuevamente.
+            </span>
           </div>
         )}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

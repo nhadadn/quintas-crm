@@ -12,7 +12,7 @@ test.describe('Perfil de Usuario', () => {
     await profilePage.goto();
     await profilePage.updateProfile('Cliente Prueba Actualizado', '5559876543');
     await expect(profilePage.successMessage).toBeVisible();
-    
+
     // Validar persistencia
     await profilePage.page.reload();
     await expect(profilePage.nameInput).toHaveValue('Cliente Prueba Actualizado');

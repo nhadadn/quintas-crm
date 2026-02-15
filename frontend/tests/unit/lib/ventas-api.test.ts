@@ -24,9 +24,12 @@ describe('Ventas API', () => {
 
       await fetchVentas(mockToken);
 
-      expect(directusClient.get).toHaveBeenCalledWith('/items/ventas', expect.objectContaining({
-        headers: { Authorization: `Bearer ${mockToken}` }
-      }));
+      expect(directusClient.get).toHaveBeenCalledWith(
+        '/items/ventas',
+        expect.objectContaining({
+          headers: { Authorization: `Bearer ${mockToken}` },
+        }),
+      );
     });
 
     it('should not include Authorization header when token is missing', async () => {
@@ -35,9 +38,12 @@ describe('Ventas API', () => {
 
       await fetchVentas();
 
-      expect(directusClient.get).toHaveBeenCalledWith('/items/ventas', expect.objectContaining({
-        headers: {}
-      }));
+      expect(directusClient.get).toHaveBeenCalledWith(
+        '/items/ventas',
+        expect.objectContaining({
+          headers: {},
+        }),
+      );
     });
 
     it('should return empty array and handle error on failure', async () => {
@@ -79,11 +85,14 @@ describe('Ventas API', () => {
       const result = await fetchVentasByClienteId('c1', 'token');
 
       expect(result).toEqual(mockVentas);
-      expect(directusClient.get).toHaveBeenCalledWith('/items/ventas', expect.objectContaining({
-        params: expect.objectContaining({
-          filter: { cliente_id: { _eq: 'c1' } }
-        })
-      }));
+      expect(directusClient.get).toHaveBeenCalledWith(
+        '/items/ventas',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            filter: { cliente_id: { _eq: 'c1' } },
+          }),
+        }),
+      );
     });
 
     it('should return empty array on failure', async () => {
@@ -106,12 +115,16 @@ describe('Ventas API', () => {
       const result = await createVenta(mockVentaInput, 'token');
 
       expect(result).toEqual(mockCreatedVenta);
-      expect(directusClient.post).toHaveBeenCalledWith('/items/ventas', expect.objectContaining({
-        id: expect.any(String),
-        monto: 100
-      }), expect.objectContaining({
-        headers: { Authorization: 'Bearer token' }
-      }));
+      expect(directusClient.post).toHaveBeenCalledWith(
+        '/items/ventas',
+        expect.objectContaining({
+          id: expect.any(String),
+          monto: 100,
+        }),
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer token' },
+        }),
+      );
     });
 
     it('should use provided ID if present', async () => {
@@ -120,9 +133,13 @@ describe('Ventas API', () => {
 
       await createVenta(mockVentaInput);
 
-      expect(directusClient.post).toHaveBeenCalledWith('/items/ventas', expect.objectContaining({
-        id: 'existing-id'
-      }), expect.any(Object));
+      expect(directusClient.post).toHaveBeenCalledWith(
+        '/items/ventas',
+        expect.objectContaining({
+          id: 'existing-id',
+        }),
+        expect.any(Object),
+      );
     });
 
     it('should throw error on failure', async () => {

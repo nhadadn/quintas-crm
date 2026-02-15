@@ -1,6 +1,10 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { authenticate, resetPassword, requestPasswordReset, signOutAction } from '@/lib/auth-actions';
+import {
+  authenticate,
+  resetPassword,
+  requestPasswordReset,
+  signOutAction,
+} from '@/lib/auth-actions';
 import { signIn, signOut } from '@/lib/auth';
 import { AuthError } from 'next-auth';
 import { directusClient } from '@/lib/directus-api';
@@ -108,7 +112,6 @@ describe('authenticate action', () => {
     expect(result).toBeUndefined();
   });
 
-
   it('should handle signIn returning error object (redirect: false)', async () => {
     const formData = new FormData();
     formData.append('email', 'test@example.com');
@@ -159,7 +162,9 @@ describe('authenticate action', () => {
     vi.mocked(signIn).mockRejectedValueOnce(error);
 
     const result = await authenticate(undefined, formData);
-    expect(result).toBe('No se pudo conectar con el servidor de autenticación. Por favor intente más tarde.');
+    expect(result).toBe(
+      'No se pudo conectar con el servidor de autenticación. Por favor intente más tarde.',
+    );
   });
 
   it('should handle generic errors', async () => {
@@ -184,30 +189,39 @@ describe('requestPasswordReset action', () => {
     const formData = new FormData();
     formData.append('email', 'invalid-email');
     const result = await requestPasswordReset(undefined, formData);
-    expect(result).toEqual({ success: false, message: 'Por favor ingresa un correo electrónico válido.' });
+    expect(result).toEqual({
+      success: false,
+      message: 'Por favor ingresa un correo electrónico válido.',
+    });
   });
 
   it('should call directus API on success', async () => {
     const formData = new FormData();
     formData.append('email', 'test@example.com');
-    
+
     (directusClient.post as any).mockResolvedValue({});
-    
+
     const result = await requestPasswordReset(undefined, formData);
-    
+
     expect(directusClient.post).toHaveBeenCalledWith('/auth/password/request', expect.any(Object));
-    expect(result).toEqual({ success: true, message: 'Si el email existe, recibirás un enlace de recuperación' });
+    expect(result).toEqual({
+      success: true,
+      message: 'Si el email existe, recibirás un enlace de recuperación',
+    });
   });
-  
+
   it('should handle API errors', async () => {
     const formData = new FormData();
     formData.append('email', 'test@example.com');
-    
+
     (directusClient.post as any).mockRejectedValue(new Error('API Error'));
-    
+
     const result = await requestPasswordReset(undefined, formData);
-    
-    expect(result).toEqual({ success: false, message: 'Error al solicitar recuperación. Inténtalo nuevamente.' });
+
+    expect(result).toEqual({
+      success: false,
+      message: 'Error al solicitar recuperación. Inténtalo nuevamente.',
+    });
   });
 });
 

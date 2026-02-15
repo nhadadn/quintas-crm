@@ -14,7 +14,7 @@ export class PasswordRecoveryPage {
     this.emailInput = page.getByLabel(/Email registrado/i);
     this.sendButton = page.getByRole('button', { name: /Enviar enlace/i });
     this.successMessage = page.locator('.bg-green-50'); // Selector basado en clase de éxito
-    
+
     // Para la segunda parte del flujo (reset)
     this.newPasswordInput = page.getByLabel(/Nueva contraseña/i);
     this.confirmPasswordInput = page.getByLabel(/Confirmar contraseña/i);

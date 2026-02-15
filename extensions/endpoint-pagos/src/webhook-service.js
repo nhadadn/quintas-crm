@@ -149,6 +149,8 @@ export class WebhookService {
 
   async handlePaymentIntentSucceeded(paymentIntent, schema) {
     const pagosService = new this.itemsService('pagos', { schema });
+    const ventasService = new this.itemsService('ventas', { schema });
+    const lotesService = new this.itemsService('lotes', { schema });
 
     // 1. Buscar el pago asociado
     console.log('Searching payment for intent:', paymentIntent.id);
@@ -169,6 +171,16 @@ export class WebhookService {
       return;
     }
 
+    // 1.1 Idempotencia específica de ledger: evitar duplicar movimientos por reintentos de Stripe
+    const existingMov = await this.database('pagos_movimientos')
+      .where({ stripe_payment_intent_id: paymentIntent.id })
+      .first();
+    if (existingMov) {
+      console.log(
+        `ℹ️ Movimientos para intent ${paymentIntent.id} ya existen en ledger. Saltando inserción de movimientos.`
+      );
+    }
+
     // 2. Actualizar estatus
     const last4 = paymentIntent.charges?.data?.[0]?.payment_method_details?.card?.last4 || null;
 
@@ -182,6 +194,55 @@ export class WebhookService {
     });
 
     console.log(`✅ Pago ${pago.id} actualizado a PAGADO via Webhook.`);
+
+    // 3. Propagación de pago a amortización y venta
+    try {
+      if (pago.venta_id) {
+        // Aplicar el pago FIFO registrando movimientos en el ledger (triggers recalculan amortización)
+        if (!existingMov) {
+          await this._aplicarPagoAmortizacion(
+            pago.venta_id,
+            parseFloat(pago.monto || 0),
+            pago.id,
+            { stripe_payment_intent_id: paymentIntent.id }
+          );
+        }
+
+        // Recalcular estado de la venta y del lote
+        const pendiente = await this.database('amortizacion')
+          .where({ venta_id: pago.venta_id })
+          .whereIn('estatus', ['pendiente', 'parcial'])
+          .count('id as count')
+          .first();
+
+        const restantes = parseInt(pendiente?.count || 0);
+
+        if (restantes === 0) {
+          const sumaSaldo = await this.database('amortizacion')
+            .where({ venta_id: pago.venta_id })
+            .sum('saldo_final as total')
+            .first();
+
+          const deuda = parseFloat(sumaSaldo?.total || 0);
+          if (deuda < 1) {
+            const venta = await ventasService.readOne(pago.venta_id);
+            if (venta?.estatus !== 'pagada') {
+              await ventasService.updateOne(pago.venta_id, {
+                estatus: 'pagada',
+                fecha_liquidacion: new Date(),
+              });
+              if (venta?.lote_id) {
+                await lotesService.updateOne(venta.lote_id, { estatus: 'vendido' });
+              }
+              console.log(`🎉 Venta ${pago.venta_id} liquidada automáticamente por webhook.`);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('⚠️ Error propagando pago a amortización/venta:', e);
+      // No fallar el webhook; ya marcamos el pago como pagado. El cron o hooks pueden corregir después.
+    }
   }
 
   async handlePaymentIntentFailed(paymentIntent, schema) {
@@ -442,3 +503,49 @@ export class WebhookService {
     }
   }
 }
+
+// Utilidades internas
+WebhookService.prototype._aplicarPagoAmortizacion = async function (ventaId, montoPago, pagoId, opts = {}) {
+  if (!ventaId || !montoPago || montoPago <= 0) return;
+
+  let remanente = parseFloat(montoPago);
+  const cuotas = await this.database('amortizacion')
+    .where({ venta_id: ventaId })
+    .whereIn('estatus', ['pendiente', 'parcial'])
+    .orderBy('numero_pago', 'asc');
+
+  await this.database.transaction(async (trx) => {
+    for (const cuota of cuotas) {
+      if (remanente <= 0.01) break;
+
+      const montoCuota = parseFloat(cuota.monto_cuota);
+      const pagadoPreviamente = parseFloat(cuota.monto_pagado || 0);
+      const saldo = Math.max(montoCuota - pagadoPreviamente, 0);
+
+      if (saldo <= 0.01) continue;
+
+      let aPagar = 0;
+      if (remanente >= saldo) {
+        aPagar = saldo;
+        remanente -= saldo;
+      } else {
+        aPagar = remanente;
+        remanente = 0;
+      }
+
+      if (aPagar > 0) {
+        await trx('pagos_movimientos').insert({
+          id: trx.raw('UUID()'),
+          pago_id: pagoId || null,
+          venta_id: ventaId,
+          numero_pago: cuota.numero_pago,
+          fecha_movimiento: new Date(),
+          monto: aPagar,
+          tipo: 'abono',
+          estatus: 'aplicado',
+          stripe_payment_intent_id: opts.stripe_payment_intent_id || null,
+        });
+      }
+    }
+  });
+};

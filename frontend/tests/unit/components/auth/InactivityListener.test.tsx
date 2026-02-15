@@ -27,9 +27,9 @@ describe('InactivityListener', () => {
 
   it('should not do anything if session is not authenticated', () => {
     (useSession as any).mockReturnValue({ status: 'unauthenticated' });
-    
+
     render(<InactivityListener />);
-    
+
     // Advance time by 20 minutes
     act(() => {
       vi.advanceTimersByTime(20 * 60 * 1000);
@@ -39,10 +39,13 @@ describe('InactivityListener', () => {
   });
 
   it('should sign out after 15 minutes of inactivity when authenticated', () => {
-    (useSession as any).mockReturnValue({ status: 'authenticated', data: { user: { name: 'Test' } } });
-    
+    (useSession as any).mockReturnValue({
+      status: 'authenticated',
+      data: { user: { name: 'Test' } },
+    });
+
     render(<InactivityListener />);
-    
+
     // Advance time by 15 minutes + 1 second
     act(() => {
       vi.advanceTimersByTime(15 * 60 * 1000 + 1000);
@@ -52,10 +55,13 @@ describe('InactivityListener', () => {
   });
 
   it('should reset timer on activity', () => {
-    (useSession as any).mockReturnValue({ status: 'authenticated', data: { user: { name: 'Test' } } });
-    
+    (useSession as any).mockReturnValue({
+      status: 'authenticated',
+      data: { user: { name: 'Test' } },
+    });
+
     render(<InactivityListener />);
-    
+
     // Advance time by 10 minutes
     act(() => {
       vi.advanceTimersByTime(10 * 60 * 1000);
@@ -80,16 +86,16 @@ describe('InactivityListener', () => {
   });
 
   it('should sign out immediately if session has RefreshAccessTokenError', () => {
-    (useSession as any).mockReturnValue({ 
-      status: 'authenticated', 
-      data: { 
+    (useSession as any).mockReturnValue({
+      status: 'authenticated',
+      data: {
         user: { name: 'Test' },
-        error: 'RefreshAccessTokenError'
-      } 
+        error: 'RefreshAccessTokenError',
+      },
     });
-    
+
     render(<InactivityListener />);
-    
+
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/login?reason=session_expired' });
   });
 });

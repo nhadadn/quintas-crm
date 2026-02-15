@@ -27,6 +27,16 @@ const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_STATIC_TOKEN;
 // CONFIGURACIÓN DE SISTEMAS DE COORDENADAS
 // ========================================
 
+async function waitForAccessToken(timeoutMs = 1500, intervalMs = 150): Promise<string | undefined> {
+  let session = await getSession();
+  const start = Date.now();
+  while ((!session || !session.accessToken) && Date.now() - start < timeoutMs) {
+    await new Promise((r) => setTimeout(r, intervalMs));
+    session = await getSession();
+  }
+  return session?.accessToken as string | undefined;
+}
+
 // UTM Zone 13N (para Durango, México)
 const UTM_ZONE_13N = '+proj=utm +zone=13 +datum=WGS84 +units=m +no_defs';
 const WGS84 = '+proj=longlat +datum=WGS84 +no_defs';
@@ -186,18 +196,69 @@ const directusClient = axios.create({
 
 // Interceptor para logs de auditoría, depuración y reintentos
 directusClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     // Metadata for timing
     (config as any).metadata = { startTime: new Date().getTime() };
 
+    // Inject Session Token if missing (Client Side only)
+    if (typeof window !== 'undefined' && !config.headers.Authorization) {
+      const token = await waitForAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
     // Log Request Start
     console.log(`🚀 [Directus Request] ${config.method?.toUpperCase()} ${config.url}`);
-    
-    // Auth Validation Logging (Masked)
+
+    // Auth Validation Logging (Masked & Decoded)
     if (config.headers.Authorization) {
       const authHeader = config.headers.Authorization as string;
+      const token = authHeader.replace('Bearer ', '');
       const maskedToken = authHeader.replace(/^Bearer\s+(.{4}).+(.{4})$/, 'Bearer $1...$2');
-      console.log(`   🔑 Auth: ${maskedToken}`);
+
+      let expirationLog = '';
+      try {
+        // Simple JWT decode to check expiration (Cross-platform)
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let payload;
+
+        if (typeof window === 'undefined' && typeof Buffer !== 'undefined') {
+          // Server-side (Node.js)
+          payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+        } else {
+          // Client-side (Browser)
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join(''),
+          );
+          payload = JSON.parse(jsonPayload);
+        }
+
+        if (payload && payload.exp) {
+          const expDate = new Date(payload.exp * 1000);
+          const now = new Date();
+          const timeLeft = (expDate.getTime() - now.getTime()) / 1000 / 60; // minutes
+          expirationLog = ` (Exp: ${expDate.toLocaleTimeString()} - ${timeLeft > 0 ? `${timeLeft.toFixed(1)}m left` : 'EXPIRED'})`;
+          if (typeof window !== 'undefined' && timeLeft > 0 && timeLeft <= 5) {
+            try {
+              const event = new CustomEvent('auth:token-expiring', {
+                detail: { minutesLeft: timeLeft },
+              });
+              window.dispatchEvent(event);
+            } catch {}
+          }
+        }
+      } catch (e) {
+        // Ignore decode errors
+      }
+
+      console.log(`   🔑 Auth: ${maskedToken}${expirationLog}`);
     } else {
       console.warn('   ⚠️ No Authorization header present');
     }
@@ -210,14 +271,14 @@ directusClient.interceptors.request.use(
   (error) => {
     console.error('❌ [Directus Request Error]', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 directusClient.interceptors.response.use(
   (response) => {
     const startTime = (response.config as any).metadata?.startTime;
     const duration = startTime ? new Date().getTime() - startTime : '?';
-    
+
     console.log(`✅ [Directus Response] ${response.status} ${response.config.url} (${duration}ms)`);
     return response;
   },
@@ -229,45 +290,58 @@ directusClient.interceptors.response.use(
     if (error.response) {
       console.error(
         `❌ [Directus Error ${error.response.status}] ${config?.method?.toUpperCase()} ${config?.url} (${duration}ms):`,
-        JSON.stringify(error.response.data, null, 2)
+        JSON.stringify(error.response.data, null, 2),
       );
 
       // Manejo específico para 401 (Unauthorized)
       if (error.response.status === 401) {
         console.warn('⚠️ Credenciales inválidas o expiradas. Verifique su sesión.');
-        console.warn('   Posibles causas: Token expirado, usuario deshabilitado, o credenciales incorrectas.');
-        
+        console.warn(
+          '   Posibles causas: Token expirado, usuario deshabilitado, o credenciales incorrectas.',
+        );
+
         // Lógica de renovación de token (solo en cliente)
         if (!config._retry && typeof window !== 'undefined') {
           config._retry = true;
           try {
-            console.log('🔄 Intentando renovar token automáticamente...');
-            // getSession forzará una llamada al backend que actualizará el token si es posible
-            const session = await getSession();
-            
-            if (session?.accessToken) {
-              const newToken = session.accessToken;
+            const newToken = await waitForAccessToken();
+            if (newToken) {
               // Verificar si el token realmente cambió
               const oldAuth = config.headers['Authorization'] as string;
               const isSameToken = oldAuth && oldAuth.includes(newToken);
-              
+
               if (!isSameToken) {
-                console.log('✅ Token renovado exitosamente. Reintentando petición...');
                 config.headers['Authorization'] = `Bearer ${newToken}`;
                 return directusClient(config);
               } else {
-                console.warn('⚠️ El token renovado es igual al anterior. Posible error de permisos o bucle.');
+                console.warn(
+                  '⚠️ El token renovado es igual al anterior. Posible error de permisos o bucle.',
+                );
               }
             } else {
               console.warn('❌ No se pudo recuperar una sesión válida.');
             }
           } catch (refreshError) {
             console.error('❌ Error al intentar renovar la sesión:', refreshError);
+            try {
+              const evt = new CustomEvent('auth:refresh-failed');
+              window.dispatchEvent(evt);
+            } catch {}
           }
+        } else if (typeof window === 'undefined') {
+          console.error(
+            '❌ Server-side 401 Unauthorized. Token expired or invalid during server rendering/API route.',
+          );
+          console.error(
+            '   Action: Ensure the calling server component/route handles session refresh via auth() or redirects to login.',
+          );
         }
       }
     } else if (error.request) {
-      console.error(`❌ [Directus Network Error] ${config?.method?.toUpperCase()} ${config?.url} (${duration}ms) - No response received:`, error.message);
+      console.error(
+        `❌ [Directus Network Error] ${config?.method?.toUpperCase()} ${config?.url} (${duration}ms) - No response received:`,
+        error.message,
+      );
     } else {
       console.error('❌ [Directus Config Error]', error.message);
     }
@@ -299,7 +373,7 @@ directusClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export { directusClient };
@@ -363,7 +437,7 @@ export function handleAxiosError(error: unknown, context: string): never {
   if (status === 401) {
     const errorData = axiosError.response?.data as any;
     const message = errorData?.errors?.[0]?.message || 'No autorizado. Verifique sus credenciales.';
-    
+
     console.warn(`🔒 401 Unauthorized - ${message}`);
 
     throw new UnauthorizedError(message, {
@@ -591,7 +665,9 @@ export async function fetchAllLotes(token?: string): Promise<Lote[]> {
     console.log('📍 Obteniendo todos los lotes desde Directus');
 
     if (!token) {
-      console.warn('⚠️ fetchAllLotes llamado sin token. Esto puede fallar si el endpoint requiere autenticación.');
+      console.warn(
+        '⚠️ fetchAllLotes llamado sin token. Esto puede fallar si el endpoint requiere autenticación.',
+      );
     }
 
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -706,10 +782,12 @@ export async function fetchLotesAsGeoJSON(
     // Manejo inteligente de errores para /mapa-lotes
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
-      
+
       // Si falla por autenticación con token, intentar sin token (endpoint público)
       if ((status === 401 || status === 403) && token) {
-        console.warn('⚠️ Error de autenticación en /mapa-lotes con token, reintentando acceso público...');
+        console.warn(
+          '⚠️ Error de autenticación en /mapa-lotes con token, reintentando acceso público...',
+        );
         try {
           // IMPORTANTE: Aseguramos no enviar el header Authorization en el reintento
           // Creamos una instancia limpia de axios para evitar interceptores que inyecten el token
@@ -721,7 +799,9 @@ export async function fetchLotesAsGeoJSON(
           console.error('❌ Falló reintento público a /mapa-lotes', retryError);
           // Si falla el público, intentar fallback a items/lotes
           console.warn('⚠️ Intentando fallback a /items/lotes tras fallo público');
-          const lotes = filters ? await fetchLotesFiltered(filters, token) : await fetchAllLotes(token);
+          const lotes = filters
+            ? await fetchLotesFiltered(filters, token)
+            : await fetchAllLotes(token);
           return convertToGeoJSON(lotes);
         }
       }
@@ -729,7 +809,9 @@ export async function fetchLotesAsGeoJSON(
       // Si el endpoint no existe (404), usar fallback
       if (status === 404) {
         console.warn('⚠️ Endpoint /mapa-lotes no encontrado (404), usando fallback a /items/lotes');
-        const lotes = filters ? await fetchLotesFiltered(filters, token) : await fetchAllLotes(token);
+        const lotes = filters
+          ? await fetchLotesFiltered(filters, token)
+          : await fetchAllLotes(token);
         return convertToGeoJSON(lotes);
       }
     }

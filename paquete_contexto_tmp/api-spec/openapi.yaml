@@ -1,0 +1,33 @@
+openapi: 3.0.0
+info:
+  title: Quintas de Otinapa ERP API
+  version: 1.0.0
+  description: API RESTful para el ERP inmobiliario de Quintas de Otinapa. Gestiona lotes, ventas, clientes y pagos.
+  contact:
+    name: Soporte Técnico
+    email: soporte@quintasdeotinapa.com
+servers:
+  - url: http://localhost:8055/quintas-crm/api/v1
+    description: Servidor de Desarrollo Local
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Flujo de autorización OAuth 2.0
+      flows:
+        authorizationCode:
+          authorizationUrl: http://localhost:8055/auth/oauth/authorize
+          tokenUrl: http://localhost:8055/auth/oauth/token
+          scopes:
+            read:lotes: Leer información de lotes
+            write:ventas: Crear ventas
+            read:ventas: Leer información de ventas
+            read:ventas:own: Leer ventas propias
+            offline_access: Acceso offline (refresh token)
+security:
+  - OAuth2: []
+tags:
+  - name: Lotes
+    description: Gestión de inventario de lotes
+  - name: Ventas
+    description: Procesamiento de ventas y contratos

@@ -1,4 +1,3 @@
-
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import DetallePagoPage from '@/app/pagos/[id]/page';
@@ -77,7 +76,7 @@ describe('DetallePagoPage', () => {
     (pagosApi.getPagoById as any).mockResolvedValue(mockPago);
 
     const params = Promise.resolve({ id: '123' });
-    
+
     render(<DetallePagoPage params={params} />);
 
     await waitFor(() => {
@@ -136,7 +135,7 @@ describe('DetallePagoPage', () => {
     (pagosApi.getPagoById as any).mockResolvedValue(mockPagoPrimitive);
 
     const params = Promise.resolve({ id: '123' });
-    
+
     render(<DetallePagoPage params={params} />);
 
     await waitFor(() => {

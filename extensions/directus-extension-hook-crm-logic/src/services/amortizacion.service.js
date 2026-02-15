@@ -191,43 +191,41 @@ export class AmortizacionService {
 
     let remanente = montoDisponible;
 
-    for (const cuota of cuotas) {
-      if (remanente <= 0.01) break;
+    await this.database.transaction(async (trx) => {
+      for (const cuota of cuotas) {
+        if (remanente <= 0.01) break;
 
-      const montoCuota = parseFloat(cuota.monto_cuota);
-      const pagadoPreviamente = parseFloat(cuota.monto_pagado || 0);
-      const saldoCuota = montoCuota - pagadoPreviamente;
+        const montoCuota = parseFloat(cuota.monto_cuota);
+        const pagadoPreviamente = parseFloat(cuota.monto_pagado || 0);
+        const saldoCuota = montoCuota - pagadoPreviamente;
 
-      let aPagar = 0;
-      let nuevoEstatus = cuota.estatus;
+        let aPagar = 0;
+        if (remanente >= saldoCuota) {
+          aPagar = saldoCuota;
+          remanente -= saldoCuota;
+        } else {
+          aPagar = remanente;
+          remanente = 0;
+        }
 
-      if (remanente >= saldoCuota) {
-        // Cubre toda la cuota
-        aPagar = saldoCuota;
-        nuevoEstatus = 'pagado';
-        remanente -= saldoCuota;
-      } else {
-        // Pago parcial
-        aPagar = remanente;
-        nuevoEstatus = 'parcial';
-        remanente = 0;
+        if (aPagar > 0.0) {
+          await trx('pagos_movimientos').insert({
+            id: randomUUID(),
+            pago_id: pagoId || null,
+            venta_id: ventaId,
+            numero_pago: cuota.numero_pago,
+            fecha_movimiento: new Date(),
+            monto: aPagar,
+            tipo: 'abono',
+            estatus: 'aplicado',
+          });
+        }
+
+        console.log(
+          `   -> Cuota #${cuota.numero_pago}: Abonado ${aPagar.toFixed(2)}`
+        );
       }
-
-      const nuevoPagado = pagadoPreviamente + aPagar;
-
-      await this.database('amortizacion')
-        .where({ id: cuota.id })
-        .update({
-          monto_pagado: nuevoPagado,
-          estatus: nuevoEstatus,
-          fecha_pago: nuevoEstatus === 'pagado' ? new Date() : null,
-          updated_at: new Date(),
-        });
-
-      console.log(
-        `   -> Cuota #${cuota.numero_pago}: Abonado ${aPagar.toFixed(2)}, Estatus: ${nuevoEstatus}`
-      );
-    }
+    });
 
     if (remanente > 0.01) {
       console.log(
@@ -250,28 +248,33 @@ export class AmortizacionService {
 
     let remanente = montoDisponible;
 
-    for (const cuota of cuotas) {
-      const montoCuota = parseFloat(cuota.monto_cuota);
+    await this.database.transaction(async (trx) => {
+      for (const cuota of cuotas) {
+        const montoCuota = parseFloat(cuota.monto_cuota);
 
-      if (remanente >= montoCuota) {
-        // Pagar completa como anticipada
-        await this.database('amortizacion')
-          .where({ id: cuota.id })
-          .update({
-            monto_pagado: montoCuota,
-            estatus: 'pagado', // O 'anticipado' si queremos distinguirlo
-            fecha_pago: new Date(),
-            notas: (cuota.notas || '') + '\n[ADELANTO] Pagada por adelantado.',
-            updated_at: new Date(),
+        if (remanente >= montoCuota) {
+          // Insertar movimiento por cuota completa (adelantada)
+          await trx('pagos_movimientos').insert({
+            id: randomUUID(),
+            pago_id: pagoId || null,
+            venta_id: ventaId,
+            numero_pago: cuota.numero_pago,
+            fecha_movimiento: new Date(),
+            monto: montoCuota,
+            tipo: 'abono',
+            estatus: 'aplicado',
+            metodo_pago_detalle: null,
+            notas: '[ADELANTO] Pagada por adelantado.',
           });
 
-        remanente -= montoCuota;
-        console.log(`   -> Cuota #${cuota.numero_pago} ADELANTADA.`);
-      } else {
-        // No alcanza para otra completa
-        break;
+          remanente -= montoCuota;
+          console.log(`   -> Cuota #${cuota.numero_pago} ADELANTADA.`);
+        } else {
+          // No alcanza para otra completa
+          break;
+        }
       }
-    }
+    });
 
     if (remanente > 0) {
       console.log(`   -> Sobrante de ${remanente} aplicado como abono a capital (default)`);

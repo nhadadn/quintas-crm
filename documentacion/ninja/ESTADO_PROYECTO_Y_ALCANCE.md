@@ -15,6 +15,28 @@ Se ha iniciado la transición hacia la **Fase 3**, con la migración de la visua
 ---
 
 ## 🔄 Cambios de las Tareas Anteriores
+## 🔔 Cambios Recientes (15 Feb 2026)
+
+- Pagos Manuales: ahora se exige `venta_id` y se valida existencia de cuotas en `amortizacion`. Se inserta movimiento en `items/pagos_movimientos` determinando la próxima cuota pendiente.
+- Ventas API (extensión): se aceptan variantes de nombres en el payload y se realiza coerción numérica para robustecer entradas de usuario.
+- Dashboard Frontend: nuevos endpoints y páginas actualizados para KPIs y tablas (ventas, pagos, comisiones, lotes).
+- QA: Suite de pruebas unitarias de frontend actualizada. Resultado actual: 282/282 pruebas aprobadas (Vitest).
+- Base de Datos: nuevas migraciones para pagos parciales, vistas de dashboard, correcciones de RBAC y optimizaciones de performance.
+
+Rutas y archivos clave:
+- Extensiones:
+  - `extensions/ventas-api/src/index.js`
+  - `extensions/endpoint-pagos/src/index.js`, `src/webhook-service.js`, `package.json`
+  - `extensions/directus-extension-hook-crm-logic/src/amortizacion.service.js`
+- Frontend:
+  - API: `frontend/app/api/dashboard/*`, `frontend/app/api/pagos/*`
+  - Lógica de pagos: `frontend/lib/pagos-api.ts` y tests `frontend/tests/unit/lib/pagos-api.test.ts`
+  - Componentes: `frontend/components/dashboard/*`, `frontend/components/gestion/TablaAmortizacion.tsx`
+- BD/Migraciones: `database/migrations/020` a `029`, índices de performance y vistas de dashboard
+
+
+### 1. Validación Integral y Calidad (v0.2.8)
+Se implementó una suite de pruebas automatizada (`npm test`) que garantiza la estabilidad del sistema:
 
 ### 1. Validación Integral y Calidad (v0.2.8)
 Se implementó una suite de pruebas automatizada (`npm test`) que garantiza la estabilidad del sistema:

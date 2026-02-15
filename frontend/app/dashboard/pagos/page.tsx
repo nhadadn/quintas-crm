@@ -8,6 +8,7 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { GraficoPagosPorEstatus } from '@/components/dashboard/GraficoPagosPorEstatus';
 import { TablaPagosRecientes } from '@/components/dashboard/TablaPagosRecientes';
 import { CreditCard, AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { LoadingDashboard } from '@/components/dashboard/LoadingDashboard';
 
 export default function DashboardPagosPage() {
   const { data: session, status } = useSession();
@@ -59,15 +60,8 @@ export default function DashboardPagosPage() {
     return () => clearInterval(interval);
   }, [status, session]);
 
-  if (loading && !kpis) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-400 animate-pulse flex items-center gap-2">
-          <RefreshCw className="w-5 h-5 animate-spin" />
-          Cargando dashboard de pagos...
-        </div>
-      </div>
-    );
+  if (status !== 'authenticated' || (loading && !kpis)) {
+    return <LoadingDashboard text="Cargando dashboard de pagos..." />;
   }
 
   return (

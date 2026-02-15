@@ -3,13 +3,13 @@ import { test, expect } from './fixtures';
 test.describe('Responsive Design', () => {
   test.beforeEach(({ page }) => {
     // Capture browser console logs
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       // Log everything for debugging
       console.log(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
     });
-    
+
     // Capture page errors (uncaught exceptions)
-    page.on('pageerror', err => {
+    page.on('pageerror', (err) => {
       console.log(`[BROWSER UNCAUGHT ERROR] ${err.message}`);
     });
   });
@@ -21,7 +21,7 @@ test.describe('Responsive Design', () => {
     // 2. Navegar a /portal (requiere login)
     await loginPage.goto();
     await loginPage.login('cliente.prueba@quintas.com', 'Prueba123!');
-    
+
     // Esperar redirección explícita fuera de login
     await expect(page).not.toHaveURL(/login/, { timeout: 10000 });
     await expect(page).toHaveURL(/\/portal/, { timeout: 10000 });
@@ -39,62 +39,62 @@ test.describe('Responsive Design', () => {
     // Buscar el botón del menú móvil
     // En PortalPage.ts se usa: getByRole('button', { name: 'Abrir menú' })
     // Si no tiene aria-label, buscamos por el SVG o clase
-    const mobileMenuButton = page.locator('button:has(svg)'); 
+    const mobileMenuButton = page.locator('button:has(svg)');
     // Un selector más específico si es posible, pero 'button' en el nav bar debería ser el del menú
     // Asumimos que es visible en móvil
     // await expect(mobileMenuButton.first()).toBeVisible();
-    
+
     // 30. Nota: El prompt dice "Validar que menú es responsive".
     // Verificamos que existe el botón de menú
     // Usamos un selector por atributo aria-controls que es estable según el código
     const menuButton = page.locator('button[aria-controls="mobile-menu"]');
-    
+
     // Debug: Imprimir URL y si el botón es visible
     console.log(`Current URL: ${page.url()}`);
-    if (!await menuButton.isVisible()) {
-        console.log('Mobile menu button not visible.');
+    if (!(await menuButton.isVisible())) {
+      console.log('Mobile menu button not visible.');
     }
 
     await expect(menuButton).toBeVisible();
 
     // 5. Validar que tabla de pagos (Dashboard) se muestra como tarjetas en móvil
     // En mobile, TablaAmortizacion usa una vista de tarjetas (hidden md:block para tabla, md:hidden para tarjetas)
-    
+
     // Navegamos al dashboard si no estamos ahí
     if (!page.url().endsWith('/portal')) {
-        await page.goto('/portal');
+      await page.goto('/portal');
     }
-    
+
     // Buscar el contenedor de las tarjetas
     const mobileCardsContainer = page.locator('.md\\:hidden.space-y-4').first();
-    
+
     // Debug logic for failure analysis
-    if (!await mobileCardsContainer.isVisible()) {
-        console.log('Mobile cards container not visible.');
-        
-        // Check for error message
-        const errorMsg = page.locator('text=Error al cargar perfil');
-        if (await errorMsg.isVisible()) {
-            console.log('ERROR DETECTED: "Error al cargar perfil" is visible.');
-            const errorDetails = await page.locator('.text-red-600, .text-red-500').allInnerTexts();
-            console.log('Error details:', errorDetails);
-        }
+    if (!(await mobileCardsContainer.isVisible())) {
+      console.log('Mobile cards container not visible.');
 
-        // Check for "No data" message
-        const noDataMsg = page.locator('text=No hay información de pagos disponible');
-        if (await noDataMsg.isVisible()) {
-            console.log('WARNING: "No hay información de pagos disponible" is visible.');
-        }
+      // Check for error message
+      const errorMsg = page.locator('text=Error al cargar perfil');
+      if (await errorMsg.isVisible()) {
+        console.log('ERROR DETECTED: "Error al cargar perfil" is visible.');
+        const errorDetails = await page.locator('.text-red-600, .text-red-500').allInnerTexts();
+        console.log('Error details:', errorDetails);
+      }
 
-        // Check if desktop table is visible instead
-        const desktopTable = page.locator('.hidden.md\\:block').first();
-        if (await desktopTable.isVisible()) {
-             console.log('Desktop table IS visible on mobile (Unexpected!)');
-        }
+      // Check for "No data" message
+      const noDataMsg = page.locator('text=No hay información de pagos disponible');
+      if (await noDataMsg.isVisible()) {
+        console.log('WARNING: "No hay información de pagos disponible" is visible.');
+      }
+
+      // Check if desktop table is visible instead
+      const desktopTable = page.locator('.hidden.md\\:block').first();
+      if (await desktopTable.isVisible()) {
+        console.log('Desktop table IS visible on mobile (Unexpected!)');
+      }
     }
 
     await expect(mobileCardsContainer).toBeVisible();
-    
+
     // Verificar que hay tarjetas de pago
     const paymentCards = mobileCardsContainer.locator('.bg-slate-800');
     // Esperamos al menos una tarjeta (asumiendo que hay datos)
@@ -116,8 +116,8 @@ test.describe('Responsive Design', () => {
     // En tablet, el menú lateral podría estar visible o colapsado dependiendo del diseño
     // Asumimos que en md:block (768px) el sidebar es visible
     const sidebar = page.locator('aside');
-    if (await sidebar.count() > 0) {
-        await expect(sidebar).toBeVisible();
+    if ((await sidebar.count()) > 0) {
+      await expect(sidebar).toBeVisible();
     }
   });
 
@@ -133,8 +133,8 @@ test.describe('Responsive Design', () => {
     // 3. Validar que layout se ajusta a desktop
     // El sidebar debe ser visible
     const sidebar = page.locator('aside');
-    if (await sidebar.count() > 0) {
-        await expect(sidebar).toBeVisible();
+    if ((await sidebar.count()) > 0) {
+      await expect(sidebar).toBeVisible();
     }
 
     // 4. Validar que todo es visible sin scroll horizontal (en el body)

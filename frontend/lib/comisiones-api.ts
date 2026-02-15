@@ -28,10 +28,15 @@ export interface CalculoComisionResponse {
  * @param ventaId - ID de la venta
  * @returns Estructura con desglose de comisiones y metadatos del cálculo
  */
-export async function calcularComisiones(ventaId: string): Promise<CalculoComisionResponse> {
+export async function calcularComisiones(
+  ventaId: string,
+  token?: string,
+): Promise<CalculoComisionResponse> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await directusClient.get<CalculoComisionResponse>('/comisiones/calcular', {
       params: { venta_id: ventaId },
+      headers,
     });
     return response.data;
   } catch (error) {
@@ -44,8 +49,12 @@ export async function calcularComisiones(ventaId: string): Promise<CalculoComisi
  * Obtiene el listado de comisiones existentes
  * @returns Lista de comisiones
  */
-export async function fetchComisionesByVendedor(vendedorId: string): Promise<Comision[]> {
+export async function fetchComisionesByVendedor(
+  vendedorId: string,
+  token?: string,
+): Promise<Comision[]> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
       params: {
         filter: {
@@ -57,6 +66,7 @@ export async function fetchComisionesByVendedor(vendedorId: string): Promise<Com
         sort: '-fecha_pago_programada',
         limit: -1,
       },
+      headers,
     });
     return response.data.data;
   } catch (error) {
@@ -65,14 +75,16 @@ export async function fetchComisionesByVendedor(vendedorId: string): Promise<Com
   }
 }
 
-export async function fetchComisiones(): Promise<Comision[]> {
+export async function fetchComisiones(token?: string): Promise<Comision[]> {
   try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await directusClient.get<DirectusResponse<Comision[]>>('/items/comisiones', {
       params: {
         fields: '*.*', // Obtener relaciones (venta, vendedor)
         sort: '-fecha_pago_programada',
         limit: -1,
       },
+      headers,
     });
     return response.data.data;
   } catch (error) {

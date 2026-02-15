@@ -1,4 +1,3 @@
-
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePagosCliente } from '@/hooks/usePagosCliente';
@@ -21,11 +20,11 @@ describe('usePagosCliente Hook', () => {
             id: 101,
             pagos: [
               { id: 1, monto: 1000, estatus: 'pagado' },
-              { id: 2, monto: 1000, estatus: 'pendiente' }
-            ]
-          }
-        ]
-      }
+              { id: 2, monto: 1000, estatus: 'pendiente' },
+            ],
+          },
+        ],
+      },
     };
     (getPerfilCliente as any).mockResolvedValue(mockData);
 
@@ -37,18 +36,18 @@ describe('usePagosCliente Hook', () => {
   });
 
   it('filtra pagos por estado', async () => {
-     const mockData = {
+    const mockData = {
       perfil: {
         ventas: [
           {
             id: 101,
             pagos: [
               { id: 1, monto: 1000, estatus: 'pagado' },
-              { id: 2, monto: 1000, estatus: 'pendiente' }
-            ]
-          }
-        ]
-      }
+              { id: 2, monto: 1000, estatus: 'pendiente' },
+            ],
+          },
+        ],
+      },
     };
     (getPerfilCliente as any).mockResolvedValue(mockData);
 

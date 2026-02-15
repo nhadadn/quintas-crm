@@ -127,7 +127,7 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
     };
   } catch (error) {
     console.error('❌ Error refreshing access token:', error);
-    
+
     // Si falla el refresh, no retornamos un token parcial con error
     // Forzamos el cierre de sesión retornando null (NextAuth manejará esto invalidando la sesión)
     return {
@@ -137,7 +137,7 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
-export async function authorizeUser(credentials: Partial<Record<"email" | "password", unknown>>) {
+export async function authorizeUser(credentials: Partial<Record<'email' | 'password', unknown>>) {
   // 1. Validar credentials no sean null/undefined
   if (!credentials?.email || !credentials?.password) {
     return null;
@@ -153,14 +153,11 @@ export async function authorizeUser(credentials: Partial<Record<"email" | "passw
 
   try {
     // 2. Llamar a POST /auth/login de Directus
-    const authResponse = await authClient.post(
-      `${directusUrl}/auth/login`,
-      {
-        email: credentials.email,
-        password: credentials.password,
-        mode: 'json',
-      }
-    );
+    const authResponse = await authClient.post(`${directusUrl}/auth/login`, {
+      email: credentials.email,
+      password: credentials.password,
+      mode: 'json',
+    });
 
     const { access_token, refresh_token, expires } = authResponse.data.data;
 
@@ -186,9 +183,7 @@ export async function authorizeUser(credentials: Partial<Record<"email" | "passw
     const allowedRoles = ['Cliente', 'Administrator', 'Vendedor'];
 
     if (!roleName || !allowedRoles.includes(roleName)) {
-      console.warn(
-        `Intento de acceso denegado para usuario ${user.email} con rol ${roleName}`,
-      );
+      console.warn(`Intento de acceso denegado para usuario ${user.email} con rol ${roleName}`);
       throw new AccessDeniedError();
     }
 
@@ -371,7 +366,7 @@ export async function sessionCallback({ session, token }: any) {
     session.user.clienteId = token.clienteId as string;
     session.user.vendedorId = token.vendedorId as string;
     session.accessToken = token.accessToken as string;
-    
+
     // Pass error to client if exists
     if (token.error) {
       session.error = token.error;

@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Assuming the path exists, if not I might need to check
@@ -31,11 +30,11 @@ describe('Portal Pagos Page', () => {
   it('redirects if not authenticated', async () => {
     (auth as any).mockResolvedValue(null);
     const { redirect } = await import('next/navigation');
-    
+
     try {
       await PagosPage();
     } catch (e) {}
-    
+
     expect(redirect).toHaveBeenCalledWith('/portal/auth/login');
   });
 
@@ -47,7 +46,7 @@ describe('Portal Pagos Page', () => {
 
     const jsx = await PagosPage();
     render(jsx);
-    
+
     expect(screen.getByText('Vista de Pagos (Administrator)')).toBeDefined();
     expect(screen.getByText('Ir al Dashboard de Pagos')).toBeDefined();
   });
@@ -57,12 +56,12 @@ describe('Portal Pagos Page', () => {
       user: { name: 'User', role: 'Cliente' },
       accessToken: 'token',
     });
-    
+
     (getPerfilCliente as any).mockRejectedValue(new Error('Fail'));
-    
+
     const jsx = await PagosPage();
     render(jsx);
-    
+
     expect(screen.getByText('Error al cargar pagos')).toBeDefined();
   });
 

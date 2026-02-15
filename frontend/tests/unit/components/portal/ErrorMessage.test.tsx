@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ErrorMessage } from '@/components/portal/ErrorMessage';
@@ -19,10 +18,10 @@ describe('ErrorMessage', () => {
   it('renders retry button when onRetry is provided', () => {
     const onRetry = vi.fn();
     render(<ErrorMessage onRetry={onRetry} />);
-    
+
     const button = screen.getByRole('button', { name: /intentar de nuevo/i });
     expect(button).toBeDefined();
-    
+
     fireEvent.click(button);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

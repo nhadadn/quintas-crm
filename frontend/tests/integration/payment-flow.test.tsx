@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PaymentForm } from '@/components/stripe/PaymentForm';
@@ -37,19 +36,19 @@ vi.mock('@stripe/react-stripe-js', () => ({
   CardElement: () => <div data-testid="card-element">Card Element Input</div>,
 }));
 
-// Note: We do NOT mock useStripePayment or createPaymentIntent. 
+// Note: We do NOT mock useStripePayment or createPaymentIntent.
 // We want to test the integration of Component -> Hook -> API -> Network
 
 describe('Integration: Payment Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default happy path for Stripe confirmation
     mockStripe.confirmCardPayment.mockResolvedValue({
       paymentIntent: { status: 'succeeded', id: 'pi_success_123' },
       error: null,
     });
-    
+
     // Default happy path for createPaymentMethod
     mockStripe.createPaymentMethod.mockResolvedValue({
       paymentMethod: { id: 'pm_123' },
@@ -62,19 +61,19 @@ describe('Integration: Payment Flow', () => {
     (directusClient.post as any).mockResolvedValue({
       data: {
         clientSecret: 'secret_test_123',
-        paymentIntentId: 'pi_test_123'
-      }
+        paymentIntentId: 'pi_test_123',
+      },
     });
 
     // 2. Render Component
     render(
-      <PaymentForm 
-        ventaId="venta_123" 
-        numeroPago={1} 
-        monto={5000} 
-        pagoId={101} 
-        clienteId="cus_test_123" 
-      />
+      <PaymentForm
+        ventaId="venta_123"
+        numeroPago={1}
+        monto={5000}
+        pagoId={101}
+        clienteId="cus_test_123"
+      />,
     );
 
     // 3. Verify Initial State
@@ -99,17 +98,24 @@ describe('Integration: Payment Flow', () => {
     // 7. Verify Network Call (Integration Check)
     // This confirms Component -> Hook -> API -> DirectusClient chain works
     await waitFor(() => {
-      expect(directusClient.post).toHaveBeenCalledWith('/stripe/create-payment-intent', {
-        amount: 5000,
-        pago_id: 101,
-        cliente_id: 'cus_test_123'
-      });
+      expect(directusClient.post).toHaveBeenCalledWith(
+        '/pagos/create-payment-intent',
+        {
+          amount: 5000,
+          pago_id: 101,
+          cliente_id: 'cus_test_123',
+        },
+        expect.any(Object),
+      );
     });
 
     // 8. Verify Stripe Interaction
-    expect(mockStripe.confirmCardPayment).toHaveBeenCalledWith('secret_test_123', expect.objectContaining({
-      payment_method: { card: expect.any(Object) }
-    }));
+    expect(mockStripe.confirmCardPayment).toHaveBeenCalledWith(
+      'secret_test_123',
+      expect.objectContaining({
+        payment_method: { card: expect.any(Object) },
+      }),
+    );
 
     // 9. Verify Success UI first
     await waitFor(() => {
@@ -118,9 +124,14 @@ describe('Integration: Payment Flow', () => {
     });
 
     // 10. Verify Navigation (Wait for 2s delay)
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/portal/pagos/confirmacion'));
-    }, { timeout: 4000 });
+    await waitFor(
+      () => {
+        expect(mockPush).toHaveBeenCalledWith(
+          expect.stringContaining('/portal/pagos/confirmacion'),
+        );
+      },
+      { timeout: 4000 },
+    );
   });
 
   it('handles backend errors gracefully', async () => {
@@ -130,13 +141,13 @@ describe('Integration: Payment Flow', () => {
       .mockRejectedValueOnce(new Error('Backend Offline')); // Process
 
     render(
-      <PaymentForm 
-        ventaId="venta_123" 
-        numeroPago={1} 
-        monto={5000} 
-        pagoId={101} 
-        clienteId="cus_test_123" 
-      />
+      <PaymentForm
+        ventaId="venta_123"
+        numeroPago={1}
+        monto={5000}
+        pagoId={101}
+        clienteId="cus_test_123"
+      />,
     );
 
     // Wait for init
@@ -144,7 +155,7 @@ describe('Integration: Payment Flow', () => {
 
     // 2. Submit
     fireEvent.click(screen.getByRole('button', { name: /Pagar/i }));
-    
+
     // 3. Confirm
     await waitFor(() => expect(screen.getByText(/Confirmar Pago/i)).toBeDefined());
     fireEvent.click(screen.getByText('Confirmar'));
@@ -161,23 +172,23 @@ describe('Integration: Payment Flow', () => {
   it('handles stripe processing errors', async () => {
     // 1. Setup Backend Success
     (directusClient.post as any).mockResolvedValue({
-      data: { clientSecret: 'secret_123' }
+      data: { clientSecret: 'secret_123' },
     });
 
     // 2. Setup Stripe Failure
     mockStripe.confirmCardPayment.mockResolvedValue({
       error: { message: 'Tarjeta rechazada' },
-      paymentIntent: null
+      paymentIntent: null,
     });
 
     render(
-      <PaymentForm 
-        ventaId="venta_123" 
-        numeroPago={1} 
-        monto={5000} 
-        pagoId={101} 
-        clienteId="cus_test_123" 
-      />
+      <PaymentForm
+        ventaId="venta_123"
+        numeroPago={1}
+        monto={5000}
+        pagoId={101}
+        clienteId="cus_test_123"
+      />,
     );
 
     // Wait for init

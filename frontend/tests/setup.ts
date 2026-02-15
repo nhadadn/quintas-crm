@@ -20,7 +20,7 @@ vi.mock('next-auth/react', () => ({
   useSession: () => ({
     data: {
       user: { name: 'Test User', email: 'test@example.com' },
-      accessToken: 'fake-token'
+      accessToken: 'fake-token',
     },
     status: 'authenticated',
   }),

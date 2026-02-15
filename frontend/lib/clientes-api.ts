@@ -1,7 +1,11 @@
 import { Cliente } from '@/types/erp';
 import { directusClient, DirectusResponse, handleAxiosError } from './directus-api';
 
-export async function fetchClientes(page = 1, limit = 20, token?: string): Promise<{ data: Cliente[]; meta: any }> {
+export async function fetchClientes(
+  page = 1,
+  limit = 20,
+  token?: string,
+): Promise<{ data: Cliente[]; meta: any }> {
   try {
     const response = await directusClient.get<DirectusResponse<Cliente[]>>('/items/clientes', {
       params: {
@@ -38,14 +42,17 @@ export async function searchClientes(query: string, token?: string): Promise<Cli
   }
 }
 
-export async function createCliente(cliente: Omit<Cliente, 'id'>, token?: string): Promise<Cliente> {
+export async function createCliente(
+  cliente: Omit<Cliente, 'id'>,
+  token?: string,
+): Promise<Cliente> {
   try {
     const response = await directusClient.post<DirectusResponse<Cliente>>(
       '/items/clientes',
       cliente,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     return response.data.data;
   } catch (error) {
@@ -54,14 +61,18 @@ export async function createCliente(cliente: Omit<Cliente, 'id'>, token?: string
   }
 }
 
-export async function updateCliente(id: string, updates: Partial<Cliente>, token?: string): Promise<Cliente> {
+export async function updateCliente(
+  id: string,
+  updates: Partial<Cliente>,
+  token?: string,
+): Promise<Cliente> {
   try {
     const response = await directusClient.patch<DirectusResponse<Cliente>>(
       `/items/clientes/${id}`,
       updates,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     return response.data.data;
   } catch (error) {
@@ -86,7 +97,7 @@ export async function findClienteByEmailOrRFC(
   email?: string,
   rfc?: string,
   telefono?: string,
-  token?: string
+  token?: string,
 ): Promise<Cliente | null> {
   try {
     const filters = [];

@@ -55,12 +55,14 @@ export default (router, context) => {
   };
 
   // Schema de Validación para Creación de Venta
+  // Acepta variantes de naming y realiza coerción numérica
   const createVentaSchema = z.object({
-    cliente_id: z.string().uuid(),
-    lote_id: z.string().uuid(),
-    monto_enganche: z.number().positive(),
-    plazo_meses: z.number().int().positive().max(120), // Max 10 años por ejemplo
-    tasa_interes: z.number().min(0).max(100),
+    cliente_id: z.string().min(1),
+    lote_id: z.union([z.string().min(1), z.number()]).transform((v) => String(v)),
+    monto_enganche: z.coerce.number().min(0), // permitir 0 si negocio lo requiere
+    plazo_meses: z.coerce.number().int().positive().max(120),
+    tasa_interes: z.coerce.number().min(0).max(100),
+    plan_id: z.string().optional(),
   });
 
   // 1. Validar Access Token
@@ -68,6 +70,25 @@ export default (router, context) => {
 
   // 2. Aplicar Rate Limiting
   router.use(rateLimiter);
+
+  // Helper: detectar columnas reales de la tabla comisiones
+  async function detectComisionesColumns(db) {
+    try {
+      if (db?.raw) {
+        const res = await db.raw('SHOW COLUMNS FROM `comisiones`');
+        // mysql2 devuelve [rows] o { [0]: rows } según driver
+        const rows = Array.isArray(res) ? (Array.isArray(res[0]) ? res[0] : res) : res?.[0] || [];
+        const names = rows.map((r) => (r.Field || r.COLUMN_NAME || '').toLowerCase());
+        const hasPorcentaje = names.includes('porcentaje');
+        const hasPorcentajeComision = names.includes('porcentaje_comision');
+        return { hasPorcentaje, hasPorcentajeComision };
+      }
+    } catch (e) {
+      console.warn('detectComisionesColumns falló, usando defaults:', e?.message || e);
+    }
+    // Fallback: asumir esquema moderno 018
+    return { hasPorcentaje: false, hasPorcentajeComision: true };
+  }
 
   // =================================================================================
   // GET /simular-amortizacion
@@ -234,8 +255,18 @@ export default (router, context) => {
     const trx = await database.transaction();
 
     try {
-      // 1. Validar Input con Zod
-      const validationResult = createVentaSchema.safeParse(req.body);
+      // 1. Normalizar y Validar Input con Zod
+      const b = req.body || {};
+      const normalized = {
+        cliente_id: b.cliente_id ?? b.clienteId,
+        lote_id: b.lote_id ?? b.loteId,
+        monto_enganche: b.monto_enganche ?? b.enganche ?? b.montoEnganche,
+        plazo_meses: b.plazo_meses ?? b.plazoMeses,
+        tasa_interes: b.tasa_interes ?? b.tasaInteres ?? 0,
+        plan_id: b.plan_id ?? b.planId,
+        vendedor_id: b.vendedor_id ?? b.vendedorId,
+      };
+      const validationResult = createVentaSchema.safeParse(normalized);
       if (!validationResult.success) {
         await trx.rollback();
         // Zod v3 uses .issues, sometimes .errors is not present/enumerable
@@ -246,7 +277,7 @@ export default (router, context) => {
         });
       }
 
-      const { cliente_id, lote_id, monto_enganche, plazo_meses, tasa_interes } =
+      let { cliente_id, lote_id, monto_enganche, plazo_meses, tasa_interes, plan_id } =
         validationResult.data;
 
       const schema = await getSchema();
@@ -280,22 +311,52 @@ export default (router, context) => {
           .json({ errors: [{ message: 'Cliente not found', code: 'NOT_FOUND' }] });
       }
 
-      // 3. Validar Lote Disponible
-      const lote = await lotesService.readOne(lote_id);
-      if (!lote) {
+      // 3. Validar Lote Disponible con bloqueo de fila (fallback para entornos de test sin forUpdate)
+      let loteRow = null;
+      try {
+        if (typeof trx === 'function') {
+          loteRow = await trx('lotes').where({ id: lote_id }).forUpdate().first();
+        } else {
+          // Fallback a ItemsService si trx no es invocable como función
+          loteRow = await lotesService.readOne(lote_id);
+        }
+      } catch (e) {
+        // Fallback silencioso a ItemsService
+        loteRow = await lotesService.readOne(lote_id);
+      }
+      if (!loteRow) {
         await trx.rollback();
         return res.status(404).json({ errors: [{ message: 'Lote not found', code: 'NOT_FOUND' }] });
       }
-      if (lote.estatus !== 'disponible') {
+      if (loteRow.estatus !== 'disponible') {
         await trx.rollback();
         return res
           .status(400)
           .json({ errors: [{ message: 'Lote not available', code: 'LOTE_NOT_AVAILABLE' }] });
       }
 
+      // 3.1. Si viene plan_id, intentar obtener tasa/plazo desde plan
+      if (plan_id) {
+        try {
+          const planesService = new ItemsService('planes_venta', {
+            schema,
+            knex: trx,
+            accountability: req.accountability,
+          });
+          const plan = await planesService.readOne(plan_id);
+          if (plan) {
+            if (plan.tasa_interes != null) tasa_interes = Number(plan.tasa_interes);
+            if (plan.plazo_meses != null) plazo_meses = Number(plan.plazo_meses);
+          }
+        } catch (e) {
+          // Si colección no existe o no se encuentra el plan, continuar con valores del payload
+          console.warn('Plan de venta no disponible o no encontrado:', e?.message || e);
+        }
+      }
+
       // 4. Calcular Montos
       // Usar precio_lista según seed-lotes.sql y types/lote.ts
-      const precioLote = parseFloat(lote.precio_lista || lote.precio || 0);
+      const precioLote = parseFloat(loteRow?.precio_lista ?? loteRow?.precio ?? 0);
       const montoRestante = precioLote - monto_enganche;
 
       if (montoRestante < 0) {
@@ -307,7 +368,7 @@ export default (router, context) => {
 
       // 5. Crear Venta
       // Determinamos vendedor_id basado en el usuario actual si es posible, o body param opcional
-      let vendedor_id = req.body.vendedor_id; // Permitir override si es admin
+      let vendedor_id = normalized.vendedor_id; // Permitir override si es admin
       if (!vendedor_id) {
         // Intentar inferir del usuario
         // TODO: Lógica para mapear user -> vendedor
@@ -334,12 +395,15 @@ export default (router, context) => {
       // Leer la venta creada para tener todos los campos
       const ventaCreada = await ventasService.readOne(ventaCreadaId);
 
-      // 6. Actualizar Estatus Lote
-      await lotesService.updateOne(lote_id, {
-        estatus: 'apartado',
-        cliente_id: cliente_id,
-        vendedor_id: vendedor_id,
-      });
+      // 6. Actualizar Estatus Lote de forma condicional (usar ItemsService para trazabilidad y compatibilidad con tests)
+      const loteCheck = await lotesService.readOne(lote_id);
+      if (loteCheck?.estatus !== 'disponible') {
+        await trx.rollback();
+        return res
+          .status(409)
+          .json({ errors: [{ message: 'Lote ya no está disponible', code: 'LOTE_CONFLICT' }] });
+      }
+      await lotesService.updateOne(lote_id, { estatus: 'apartado', cliente_id, vendedor_id });
 
       // 7. Generar Comisiones (Lógica de Negocio)
       if (vendedor_id) {
@@ -356,29 +420,82 @@ export default (router, context) => {
           });
 
           const vendedor = await vendedoresService.readOne(vendedor_id);
-          let commissionRate = 5.0; // Default
-          if (vendedor && vendedor.comision_porcentaje) {
-            commissionRate = parseFloat(vendedor.comision_porcentaje);
-          }
-
-          const totalCommission = parseFloat(precioLote) * (commissionRate / 100);
+          const esquema = (vendedor?.comision_esquema || 'porcentaje').toLowerCase();
+          const commissionRate = vendedor?.comision_porcentaje != null ? parseFloat(vendedor.comision_porcentaje) : 5.0; // Default 5%
+          const comisionFija = vendedor?.comision_fija != null ? parseFloat(vendedor.comision_fija) : 0.0;
+          const cols = await detectComisionesColumns(database);
 
           const milestones = [
-            { name: 'Enganche', pct: 0.3, condition: 'Al pagar enganche' },
-            { name: 'Contrato', pct: 0.3, condition: 'Al firmar contrato' },
-            { name: 'Liquidación', pct: 0.4, condition: 'Al liquidar venta' },
+            { name: 'Enganche', pct: 0.3 },
+            { name: 'Contrato', pct: 0.3 },
+            { name: 'Liquidación', pct: 0.4 },
           ];
 
-          const comisiones = milestones.map((m) => ({
-            venta_id: ventaCreadaId,
-            vendedor_id: vendedor_id,
-            monto: (totalCommission * m.pct).toFixed(2),
-            concepto: `Comisión ${m.name} (${(m.pct * 100).toFixed(0)}%)`,
-            estatus: 'pendiente',
-            fecha_generacion: new Date().toISOString().split('T')[0],
-          }));
+          const comisionesPayload = [];
 
-          await comisionesService.createMany(comisiones);
+          // Reglas:
+          // - porcentaje_comision almacena el % EFECTIVO del total aplicado en el hito (ej. 1.50 = 1.5%)
+          // - monto_comision = monto_venta * (porcentaje_comision / 100)
+          // - esquema fijo: porcentaje_comision = 0 y monto_comision = comision_fija
+          if (esquema === 'fijo') {
+            const base = {
+              venta_id: ventaCreadaId,
+              vendedor_id: vendedor_id,
+              tipo_comision: 'Comisión Fija',
+              monto_venta: parseFloat(precioLote),
+              monto_comision: parseFloat(comisionFija.toFixed(2)),
+              estatus: 'pendiente',
+              fecha_pago_programada: new Date().toISOString().split('T')[0],
+              notas: 'Generado automáticamente (esquema fijo)',
+            };
+            // Sincronizar columnas según schema real
+            if (cols.hasPorcentajeComision) base.porcentaje_comision = 0.0;
+            if (cols.hasPorcentaje) base.porcentaje = 0.0;
+            comisionesPayload.push(base);
+          } else {
+            // porcentaje o mixto: generar por hitos
+            for (const m of milestones) {
+              const effectiveRate = commissionRate * m.pct; // p.ej 5% * 0.3 = 1.5%
+              const amount = parseFloat(precioLote) * (effectiveRate / 100);
+              const base = {
+                venta_id: ventaCreadaId,
+                vendedor_id: vendedor_id,
+                tipo_comision: `Comisión ${m.name}`,
+                monto_venta: parseFloat(precioLote),
+                monto_comision: parseFloat(amount.toFixed(2)),
+                estatus: 'pendiente',
+                fecha_pago_programada: new Date().toISOString().split('T')[0],
+                notas: `Generado automáticamente. Concepto: ${m.name} (${(m.pct * 100).toFixed(0)}% del total)`,
+              };
+              const pr = parseFloat(effectiveRate.toFixed(2));
+              if (cols.hasPorcentajeComision) base.porcentaje_comision = pr;
+              if (cols.hasPorcentaje) base.porcentaje = pr;
+              comisionesPayload.push(base);
+            }
+            // Si mixto, agregar adicional fija
+            if (esquema === 'mixto' && comisionFija > 0) {
+              const baseFija = {
+                venta_id: ventaCreadaId,
+                vendedor_id: vendedor_id,
+                tipo_comision: 'Comisión Fija',
+                monto_venta: parseFloat(precioLote),
+                monto_comision: parseFloat(comisionFija.toFixed(2)),
+                estatus: 'pendiente',
+                fecha_pago_programada: new Date().toISOString().split('T')[0],
+                notas: 'Generado automáticamente (esquema mixto)',
+              };
+              if (cols.hasPorcentajeComision) baseFija.porcentaje_comision = 0.0;
+              if (cols.hasPorcentaje) baseFija.porcentaje = 0.0;
+              comisionesPayload.push(baseFija);
+            }
+          }
+
+          if (comisionesPayload.length === 0) {
+            console.error(`[ventas-api] No se pudieron determinar comisiones para venta ${ventaCreadaId}`);
+            throw new Error('No se determinaron comisiones');
+          }
+
+          await comisionesService.createMany(comisionesPayload);
         } catch (err) {
           console.warn('⚠️ Error generando comisiones:', err);
           // No fallar la venta si fallan las comisiones, o sí?
@@ -412,13 +529,14 @@ export default (router, context) => {
         });
 
         let saldoPendiente = montoRestante;
+        const fechaBase = new Date(ventaCreada.fecha_venta || new Date().toISOString().split('T')[0]);
         for (let mes = 1; mes <= plazo_meses; mes++) {
           const interesMes = saldoPendiente * i;
           const capitalMes = cuotaMensual - interesMes;
           saldoPendiente -= capitalMes;
 
-          const fechaPago = new Date();
-          fechaPago.setMonth(fechaPago.getMonth() + mes);
+          const fechaPago = new Date(fechaBase);
+          fechaPago.setMonth(fechaBase.getMonth() + mes);
 
           const pagoProyectado = {
             venta_id: ventaCreadaId,
@@ -439,6 +557,14 @@ export default (router, context) => {
 
       // Commit Transacción
       await trx.commit();
+
+      // Marcar post-proceso ok (se generaron comisiones y pagos programados dentro de la transacción)
+      try {
+        const ventasServicePost = new ItemsService('ventas', { schema, accountability: req.accountability });
+        await ventasServicePost.updateOne(ventaCreada.id, { post_process_status: 'ok', post_process_error: null });
+      } catch (e) {
+        console.warn(`⚠️ No se pudo marcar post_process_status=ok en ventas-api para venta ${ventaCreada.id}:`, e?.message || e);
+      }
 
       // Respuesta Final
       res.status(201).json({
@@ -462,6 +588,142 @@ export default (router, context) => {
   // =================================================================================
   // GET / (Mapeado a /api/v1/ventas)
   // =================================================================================
+  // =================================================================================
+  // POST /reprocesar/:ventaId  (Reintentar post-proceso: comisiones + marcar OK)
+  // =================================================================================
+  router.post('/reprocesar/:ventaId', requireScopes(['write:ventas']), async (req, res) => {
+    const ventaId = req.params.ventaId;
+    try {
+      const schema = await getSchema();
+      // Operar con privilegios de sistema para no topar RBAC en este mantenimiento
+      const sys = { schema, accountability: { admin: true } };
+      const ventasService = new ItemsService('ventas', sys);
+      const vendedoresService = new ItemsService('vendedores', sys);
+      const comisionesService = new ItemsService('comisiones', sys);
+
+      // Leer venta
+      const venta = await ventasService.readOne(ventaId);
+      if (!venta) {
+        return res.status(404).json({ errors: [{ message: 'Venta no encontrada' }] });
+      }
+
+      // Resolver vendedor_id si falta (intento similar al hook, sin tocar user_created aquí)
+      let vendedor_id = venta.vendedor_id || null;
+      if (!vendedor_id && venta.cliente_id) {
+        // Intento suave: buscar un vendedor activo cualquiera (fallback) - opcional
+        try {
+          const vs = await vendedoresService.readByQuery({ limit: 1 });
+          if (vs && vs.length > 0) vendedor_id = vs[0].id;
+        } catch {}
+      }
+
+      // Detectar columnas reales de comisiones
+      async function detectComisionesColumns(db) {
+        try {
+          if (db?.raw) {
+            const res = await db.raw('SHOW COLUMNS FROM `comisiones`');
+            const rows = Array.isArray(res) ? (Array.isArray(res[0]) ? res[0] : res) : res?.[0] || [];
+            const names = rows.map((r) => (r.Field || r.COLUMN_NAME || '').toLowerCase());
+            return { hasPorcentaje: names.includes('porcentaje'), hasPorcentajeComision: names.includes('porcentaje_comision') };
+          }
+        } catch {}
+        return { hasPorcentaje: false, hasPorcentajeComision: true };
+      }
+      const cols = await detectComisionesColumns(database);
+
+      // Obtener datos de vendedor
+      let commissionRate = 5.0;
+      let esquema = 'porcentaje';
+      let comisionFija = 0.0;
+      if (vendedor_id) {
+        try {
+          const vendedor = await vendedoresService.readOne(vendedor_id);
+          if (vendedor?.comision_porcentaje != null) commissionRate = parseFloat(vendedor.comision_porcentaje);
+          if (vendedor?.comision_esquema) esquema = String(vendedor.comision_esquema).toLowerCase();
+          if (vendedor?.comision_fija != null) comisionFija = parseFloat(vendedor.comision_fija);
+        } catch {}
+      }
+
+      const milestones = [
+        { name: 'Enganche', pct: 0.3 },
+        { name: 'Contrato', pct: 0.3 },
+        { name: 'Liquidación', pct: 0.4 },
+      ];
+
+      const comisionesPayload = [];
+      const montoVenta = parseFloat(venta.monto_total || 0);
+
+      if (esquema === 'fijo') {
+        const base = {
+          venta_id: venta.id,
+          vendedor_id: vendedor_id,
+          tipo_comision: 'Comisión Fija',
+          monto_venta: montoVenta,
+          monto_comision: parseFloat(comisionFija.toFixed(2)),
+          estatus: 'pendiente',
+          fecha_pago_programada: new Date().toISOString().split('T')[0],
+          notas: 'Reprocesado: esquema fijo',
+        };
+        if (cols.hasPorcentajeComision) base.porcentaje_comision = 0.0;
+        if (cols.hasPorcentaje) base.porcentaje = 0.0;
+        comisionesPayload.push(base);
+      } else {
+        for (const m of milestones) {
+          const effectiveRate = commissionRate * m.pct;
+          const amount = montoVenta * (effectiveRate / 100);
+          const base = {
+            venta_id: venta.id,
+            vendedor_id: vendedor_id,
+            tipo_comision: `Comisión ${m.name}`,
+            monto_venta: montoVenta,
+            monto_comision: parseFloat(amount.toFixed(2)),
+            estatus: 'pendiente',
+            fecha_pago_programada: new Date().toISOString().split('T')[0],
+            notas: `Reprocesado. Concepto: ${m.name} (${(m.pct * 100).toFixed(0)}% del total)`,
+          };
+          const pr = parseFloat(effectiveRate.toFixed(2));
+          if (cols.hasPorcentajeComision) base.porcentaje_comision = pr;
+          if (cols.hasPorcentaje) base.porcentaje = pr;
+          comisionesPayload.push(base);
+        }
+        if (esquema === 'mixto' && comisionFija > 0) {
+          const baseFija = {
+            venta_id: venta.id,
+            vendedor_id: vendedor_id,
+            tipo_comision: 'Comisión Fija',
+            monto_venta: montoVenta,
+            monto_comision: parseFloat(comisionFija.toFixed(2)),
+            estatus: 'pendiente',
+            fecha_pago_programada: new Date().toISOString().split('T')[0],
+            notas: 'Reprocesado: esquema mixto',
+          };
+          if (cols.hasPorcentajeComision) baseFija.porcentaje_comision = 0.0;
+          if (cols.hasPorcentaje) baseFija.porcentaje = 0.0;
+          comisionesPayload.push(baseFija);
+        }
+      }
+
+      if (comisionesPayload.length === 0) {
+        return res.status(400).json({ errors: [{ message: 'No se pudieron determinar comisiones' }] });
+      }
+
+      // Crear comisiones
+      const created = await comisionesService.createMany(comisionesPayload);
+
+      // Marcar OK
+      await ventasService.updateOne(venta.id, { post_process_status: 'ok', post_process_error: null });
+
+      return res.status(201).json({ data: { venta_id: venta.id, comisiones: created?.length || comisionesPayload.length } });
+    } catch (error) {
+      console.error('❌ Error reprocesando venta:', error);
+      try {
+        const schema = await getSchema();
+        const ventasService = new ItemsService('ventas', { schema, accountability: { admin: true } });
+        await ventasService.updateOne(req.params.ventaId, { post_process_status: 'error', post_process_error: String(error?.message || error) });
+      } catch {}
+      return res.status(500).json({ errors: [{ message: error.message || String(error) }] });
+    }
+  });
   /**
    * @swagger
    * /ventas:

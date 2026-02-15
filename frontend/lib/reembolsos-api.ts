@@ -36,7 +36,7 @@ export async function approveRefund(id: string, token?: string): Promise<any> {
       {},
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -52,7 +52,7 @@ export async function rejectRefund(id: string, motivo: string, token?: string): 
       { motivo },
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -61,15 +61,14 @@ export async function rejectRefund(id: string, motivo: string, token?: string): 
   }
 }
 
-export async function requestRefund(data: { pago_id: string; monto: number; razon: string }, token?: string): Promise<any> {
+export async function requestRefund(
+  data: { pago_id: string; monto: number; razon: string },
+  token?: string,
+): Promise<any> {
   try {
-    const response = await directusClient.post(
-      '/pagos/reembolsos/solicitar',
-      data,
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
-    );
+    const response = await directusClient.post('/pagos/reembolsos/solicitar', data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     return response.data;
   } catch (error) {
     handleAxiosError(error, 'requestRefund');

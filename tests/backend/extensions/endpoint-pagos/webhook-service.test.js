@@ -70,7 +70,13 @@ describe('WebhookService', () => {
       MailService: jest.fn(() => mockMailService),
     };
 
-    mockDatabase = jest.fn();
+    const dbChain = {
+      where: jest.fn().mockReturnThis(),
+      first: jest.fn().mockResolvedValue(null),
+      transaction: jest.fn(async (fn) => fn(dbChain)),
+      raw: jest.fn((s) => s),
+    };
+    mockDatabase = jest.fn(() => dbChain);
     mockGetSchema = jest.fn().mockResolvedValue({});
 
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';

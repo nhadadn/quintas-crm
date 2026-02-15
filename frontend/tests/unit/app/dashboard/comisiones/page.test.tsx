@@ -9,7 +9,11 @@ import * as dashboardApi from '@/lib/dashboard-api';
 vi.mock('next-auth/react');
 vi.mock('@/lib/dashboard-api');
 vi.mock('@/components/dashboard/KPICard', () => ({
-  KPICard: ({ title, value }: any) => <div data-testid="kpi-card">{title}: {value}</div>,
+  KPICard: ({ title, value }: any) => (
+    <div data-testid="kpi-card">
+      {title}: {value}
+    </div>
+  ),
 }));
 
 // Mock Lazy component
