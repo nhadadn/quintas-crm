@@ -30,6 +30,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env.backup
+.env.docker
 
 # Directus
 uploads/
