@@ -1,0 +1,7 @@
+FROM directus/directus:10
+
+COPY directus-entrypoint.sh /usr/local/bin/directus-entrypoint.sh
+RUN chmod +x /usr/local/bin/directus-entrypoint.sh
+
+ENTRYPOINT ["sh", "/usr/local/bin/directus-entrypoint.sh"]
+CMD ["directus", "start"]
