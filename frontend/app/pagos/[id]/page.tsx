@@ -47,6 +47,16 @@ const getLoteIdentificador = (ventaId: Pago['venta_id'] | null | undefined): str
   return 'N/A'; // If lote_id is just an ID, we can't show identifier
 };
 
+const getStatusClasses = (estatus: Pago['estatus'] | null | undefined): string => {
+  const value = (estatus || '').toLowerCase();
+
+  if (value === 'pagado') return 'bg-success/10 text-success border-success/40';
+  if (value === 'atrasado' || value === 'vencido')
+    return 'bg-danger/10 text-danger border-danger/40';
+
+  return 'bg-warning/10 text-warning border-warning/40';
+};
+
 export default function DetallePagoPage({ params }: PageProps) {
   const { id } = use(params);
   const { data: session, status } = useSession();
@@ -87,11 +97,19 @@ export default function DetallePagoPage({ params }: PageProps) {
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Cargando detalle del pago...</div>;
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+        <div className="text-sm text-muted-foreground">Cargando detalle del pago...</div>
+      </div>
+    );
   }
 
   if (!pago) {
-    return <div className="p-6 text-center text-red-600">Pago no encontrado</div>;
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+        <div className="text-sm text-danger">Pago no encontrado</div>
+      </div>
+    );
   }
 
   const formatCurrency = (amount: number) => {
@@ -104,115 +122,136 @@ export default function DetallePagoPage({ params }: PageProps) {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <Link href="/pagos" className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
-          &larr; Volver a Pagos
-        </Link>
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pago #{pago.numero_pago}</h1>
-            <p className="text-gray-500">Vencimiento: {formatDate(pago.fecha_vencimiento)}</p>
+    <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <Link
+            href="/pagos"
+            className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <span aria-hidden="true">&larr;</span>
+            <span>Volver a Pagos</span>
+          </Link>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
+                Pago #{pago.numero_pago}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Vencimiento: {formatDate(pago.fecha_vencimiento)}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-start gap-3 sm:items-end">
+              {pago.estatus === 'pendiente' && (
+                <div className="flex flex-wrap items-center gap-2 justify-end">
+                  <button
+                    onClick={handleEditarPago}
+                    className="inline-flex items-center px-4 py-2 rounded-xl bg-background border border-border text-sm font-medium text-muted-foreground hover:bg-background-subtle transition-colors"
+                  >
+                    Editar pago
+                  </button>
+                  <button
+                    onClick={handleMarcarPagado}
+                    className="inline-flex items-center px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-warm hover:bg-primary-dark hover:shadow-warm-hover transition-colors"
+                  >
+                    Marcar como pagado
+                  </button>
+                </div>
+              )}
+
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusClasses(pago.estatus)}`}
+              >
+                {pago.estatus?.toUpperCase() || 'DESCONOCIDO'}
+              </span>
+            </div>
           </div>
-          <div className="flex space-x-3">
-            {pago.estatus === 'pendiente' && (
-              <>
-                <button
-                  onClick={handleEditarPago}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                >
-                  Editar Pago
-                </button>
-                <button
-                  onClick={handleMarcarPagado}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Marcar como Pagado
-                </button>
-              </>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-card shadow-card border border-border rounded-2xl p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Detalles del Pago</h3>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Monto
+                </dt>
+                <dd className="mt-1 text-2xl font-semibold text-text-primary">
+                  {formatCurrency(pago.monto)}
+                </dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Mora / Recargos
+                </dt>
+                <dd className="mt-1 text-sm text-foreground">{formatCurrency(pago.mora || 0)}</dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Monto Pagado
+                </dt>
+                <dd className="mt-1 text-sm text-foreground">
+                  {formatCurrency(pago.monto_pagado || 0)}
+                </dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Referencia
+                </dt>
+                <dd className="mt-1 text-sm text-foreground">{pago.referencia || 'N/A'}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="bg-card shadow-card border border-border rounded-2xl p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Comprobante de Pago</h3>
+            {pago.estatus === 'pagado' ? (
+              <GeneradorRecibos pago={pago} />
+            ) : (
+              <div className="text-center py-6 text-sm text-muted-foreground bg-background-subtle rounded-xl border border-dashed border-border">
+                <p>El recibo estará disponible una vez que el pago sea liquidado.</p>
+              </div>
             )}
-            {pago.estatus === 'pagado' && <GeneradorRecibos pago={pago} />}
-            <span
-              className={`px-4 py-2 rounded-full font-bold text-white capitalize
-              ${
-                pago.estatus === 'pagado'
-                  ? 'bg-green-500'
-                  : pago.estatus === 'atrasado'
-                    ? 'bg-red-500'
-                    : 'bg-yellow-500'
-              }`}
-            >
-              {pago.estatus}
-            </span>
           </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Detalles del Pago */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Detalles del Pago</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Monto</dt>
-              <dd className="mt-1 text-2xl font-bold text-gray-900">
-                {formatCurrency(pago.monto)}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Mora / Recargos</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatCurrency(pago.mora || 0)}</dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Monto Pagado</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {formatCurrency(pago.monto_pagado || 0)}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Referencia</dt>
-              <dd className="mt-1 text-sm text-gray-900">{pago.referencia || 'N/A'}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Generador de Recibos */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Comprobante de Pago</h3>
-          {pago.estatus === 'pagado' ? (
-            <GeneradorRecibos pago={pago} />
-          ) : (
-            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded border border-dashed border-gray-300">
-              <p>El recibo estará disponible una vez que el pago sea liquidado.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Información Relacionada */}
-        <div className="bg-white shadow rounded-lg p-6 md:col-span-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Información de Venta</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Venta ID</dt>
-              <dd className="mt-1 text-sm text-indigo-600 hover:text-indigo-800">
-                {pago.venta_id ? (
-                  <Link href={`/ventas/${getVentaId(pago.venta_id)}`}>
-                    {getVentaDisplay(pago.venta_id)}
-                  </Link>
-                ) : (
-                  <span className="text-gray-400">No asignada</span>
-                )}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Cliente</dt>
-              <dd className="mt-1 text-sm text-gray-900">{getClienteNombre(pago.venta_id)}</dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Lote</dt>
-              <dd className="mt-1 text-sm text-gray-900">{getLoteIdentificador(pago.venta_id)}</dd>
-            </div>
-          </dl>
+          <div className="bg-card shadow-card border border-border rounded-2xl p-6 md:col-span-2">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Información de Venta</h3>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Venta ID
+                </dt>
+                <dd className="mt-1 text-sm">
+                  {pago.venta_id ? (
+                    <Link
+                      href={`/ventas/${getVentaId(pago.venta_id)}`}
+                      className="text-primary-light hover:text-primary"
+                    >
+                      {getVentaDisplay(pago.venta_id)}
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground">No asignada</span>
+                  )}
+                </dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Cliente
+                </dt>
+                <dd className="mt-1 text-sm text-foreground">{getClienteNombre(pago.venta_id)}</dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Lote
+                </dt>
+                <dd className="mt-1 text-sm text-foreground">
+                  {getLoteIdentificador(pago.venta_id)}
+                </dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
     </div>
