@@ -29,6 +29,26 @@ export default ({ filter, action, schedule }, { services, database, getSchema })
         );
         console.log('🛠️ Agregado ventas.post_process_error');
       }
+
+      if (!names.includes('comision_porcentaje_snapshot')) {
+        await database.raw(
+          'ALTER TABLE `ventas` ADD COLUMN `comision_porcentaje_snapshot` DECIMAL(5,2) NULL AFTER `tasa_interes`'
+        );
+        console.log('🛠️ Agregado ventas.comision_porcentaje_snapshot');
+      }
+      if (!names.includes('comision_esquema_snapshot')) {
+        await database.raw(
+          'ALTER TABLE `ventas` ADD COLUMN `comision_esquema_snapshot` VARCHAR(20) NULL AFTER `comision_porcentaje_snapshot`'
+        );
+        console.log('🛠️ Agregado ventas.comision_esquema_snapshot');
+      }
+      if (!names.includes('comision_fija_snapshot')) {
+        await database.raw(
+          'ALTER TABLE `ventas` ADD COLUMN `comision_fija_snapshot` DECIMAL(12,2) NULL AFTER `comision_esquema_snapshot`'
+        );
+        console.log('🛠️ Agregado ventas.comision_fija_snapshot');
+      }
+
       // índice
       const idx = await database
         .select('INDEX_NAME as name')
@@ -45,7 +65,32 @@ export default ({ filter, action, schedule }, { services, database, getSchema })
     }
     try {
       // 028: permisos Vendedor Policy
-      const POLICY = '140c8369-074c-4712-984e-72089301294d';
+      async function resolveVendedorPolicyId(db) {
+        try {
+          // Try policies by name
+          const byName = await db('directus_policies').whereILike ? await db('directus_policies').whereILike('name', '%Vendedor%').first()
+            : await db('directus_policies').whereRaw("LOWER(name) like LOWER('%Vendedor%')").first();
+          if (byName?.id) return byName.id;
+        } catch {}
+        try {
+          // Fallback: find role named 'Vendedor' and map through directus_access to a policy
+          const role = await database('directus_roles')
+            .where(function () {
+              this.where('name', 'Vendedor').orWhereRaw("LOWER(name) = LOWER('Vendedor')");
+            })
+            .first();
+          if (role?.id) {
+            const access = await database('directus_access').where({ role: role.id }).first();
+            if (access?.policy) return access.policy;
+          }
+        } catch {}
+        return null;
+      }
+      const POLICY = await resolveVendedorPolicyId(database);
+      if (!POLICY) {
+        console.warn('⚠️ 028: No se encontró Policy para "Vendedor"; se omite configuración automática');
+        return;
+      }
       // Ventas READ (vendedor_id.user_id = CURRENT_USER)
       const ventasRead = await database('directus_permissions')
         .where({ policy: POLICY, collection: 'ventas', action: 'read' })
@@ -202,6 +247,87 @@ export default ({ filter, action, schedule }, { services, database, getSchema })
       }
     } catch (e) {
       console.warn('⚠️ Error aplicando 028 a nivel código:', e?.message || e);
+    }
+    // 028b: Permisos para Administrator en amortizacion (idempotente)
+    try {
+      // Asegurar Super Admin y limpiar policies
+      async function ensureSuperAdmin(db) {
+        // Buscar rol Administrator
+        const role = await db('directus_roles')
+          .where(function () {
+            this.where('name', 'Administrator').orWhereRaw("LOWER(name) = LOWER('Administrator')");
+          })
+          .first();
+        if (role) {
+          if (role.admin !== 1 && role.admin !== true) {
+            await db('directus_roles').where({ id: role.id }).update({ admin: 1 });
+            console.log('🛠️ Administrator marcado como admin=true');
+          }
+          // Limpiar mappings de policies para este rol
+          const removed = await db('directus_access').where({ role: role.id }).del();
+          if (removed > 0) console.log(`🧹 Eliminadas ${removed} relaciones directus_access para Administrator`);
+          return role.id;
+        }
+        return null;
+      }
+      const ADMIN_ROLE_ID = await ensureSuperAdmin(database);
+      async function resolveAdministratorPolicyId(db) {
+        try {
+          const role = await db('directus_roles')
+            .where(function () {
+              this.where('name', 'Administrator').orWhereRaw("LOWER(name) = LOWER('Administrator')");
+            })
+            .first();
+          if (role?.id) {
+            const access = await db('directus_access').where({ role: role.id }).first();
+            if (access?.policy) return access.policy;
+          }
+        } catch {}
+        try {
+          const byName = await db('directus_policies').whereILike
+            ? await db('directus_policies').whereILike('name', '%Administrator%').first()
+            : await db('directus_policies').whereRaw("LOWER(name) like LOWER('%Administrator%')").first();
+          if (byName?.id) return byName.id;
+        } catch {}
+        return null;
+      }
+      const ADMIN_POLICY = await resolveAdministratorPolicyId(database);
+      if (ADMIN_POLICY) {
+        const need = [
+          { action: 'read' },
+          { action: 'create' },
+          { action: 'update' },
+        ];
+        for (const p of need) {
+          const exists = await database('directus_permissions')
+            .where({ policy: ADMIN_POLICY, collection: 'amortizacion', action: p.action })
+            .first();
+          if (!exists) {
+            await database('directus_permissions').insert({
+              policy: ADMIN_POLICY,
+              collection: 'amortizacion',
+              action: p.action,
+              permissions: null,
+              fields: '*',
+            });
+            console.log(`🛠️ Insertada regla amortizacion.${p.action} para Administrator Policy`);
+          } else {
+            const upd = {};
+            if (exists.permissions !== null) upd.permissions = null;
+            if (exists.fields !== '*') upd.fields = '*';
+            if (Object.keys(upd).length) {
+              await database('directus_permissions')
+                .where({ policy: ADMIN_POLICY, collection: 'amortizacion', action: p.action })
+                .update(upd);
+              console.log(`🛠️ Actualizada regla amortizacion.${p.action} para Administrator Policy`);
+            }
+          }
+        }
+      } else {
+        console.warn('⚠️ 028b: No se encontró Policy para "Administrator"; omitiendo reglas de amortizacion');
+      }
+    } catch (e) {
+      console.warn('⚠️ Error aplicando 028b (Administrator/amortizacion):', e?.message || e);
     }
   })();
 
@@ -402,6 +528,82 @@ export default ({ filter, action, schedule }, { services, database, getSchema })
   });
 
   // =================================================================================
+  // 4a. HOOK: pagos_movimientos.items.create (FILTER) → Validaciones financieras
+  // =================================================================================
+  filter('pagos_movimientos.items.create', async (payload) => {
+    const monto = Number(payload?.monto || 0);
+    const ventaId = payload?.venta_id;
+    const numeroPago = payload?.numero_pago;
+    if (!ventaId || !numeroPago) return payload; // Dejar que otras validaciones manejen ausencia
+    if (monto <= 0) {
+      throw new InvalidPayloadException('El monto del pago debe ser mayor a 0.');
+    }
+    const cuota = await database('amortizacion')
+      .where({ venta_id: ventaId, numero_pago: numeroPago })
+      .first();
+    if (!cuota) return payload; // Si no hay cuota encontrada, dejar continuar para que falle por FK u otra lógica
+    if (String(cuota.estatus).toLowerCase() === 'pagado') {
+      throw new InvalidPayloadException(
+        `La cuota #${numeroPago} ya está pagada. No se puede registrar otro movimiento.`
+      );
+    }
+    const montoCuota = parseFloat(cuota.monto_cuota || 0);
+    const pagadoPrevio = parseFloat(cuota.monto_pagado || 0);
+    const pendiente = Math.max(0, montoCuota - pagadoPrevio);
+    // Guardrail de excedente: por ahora rechazamos si excede pendiente
+    if (monto > pendiente + 0.01) {
+      throw new InvalidPayloadException(
+        `El monto ingresado excede el pendiente de la cuota actual ($${pendiente.toFixed(
+          2
+        )}). Ajuste el monto.`
+      );
+    }
+    return payload;
+  });
+
+  // =================================================================================
+  // 4b. HOOK: pagos_movimientos.items.create (ACTION) → Sincronizar amortización
+  // =================================================================================
+  action('pagos_movimientos.items.create', async (meta) => {
+    // Idempotency guard for this process
+    if (!globalThis.__movsProcessed) globalThis.__movsProcessed = new Set();
+    try {
+      const movId = meta.key;
+      if (globalThis.__movsProcessed.has(movId)) {
+        console.log(`[pagos_movimientos.create] Skip duplicate processing for ${movId}`);
+        return;
+      }
+      const movimiento = await database('pagos_movimientos').where({ id: movId }).first();
+      if (!movimiento) return;
+      const ventaId = movimiento.venta_id;
+      const numeroPago = movimiento.numero_pago;
+      const monto = parseFloat(movimiento.monto || 0);
+      const notas = movimiento.notas || '';
+      if (!ventaId || !numeroPago || monto <= 0) return;
+      // Evitar doble aplicación si proviene del endpoint
+      if (typeof notas === 'string' && notas.includes('[APLICACION_AUTOMATICA]')) return;
+      console.log(`[pagos_movimientos.create] Applying movimiento ${movId} monto=${monto} venta=${ventaId} cuota=${numeroPago}`);
+      const cuota = await database('amortizacion').where({ venta_id: ventaId, numero_pago: numeroPago }).first();
+      if (!cuota) return;
+      const montoCuota = parseFloat(cuota.monto_cuota || 0);
+      const pagadoPrev = parseFloat(cuota.monto_pagado || 0);
+      const nuevoPagado = pagadoPrev + monto;
+      const nuevoEstatus = nuevoPagado >= (montoCuota - 0.01) ? 'pagado' : 'parcial';
+      await database('amortizacion').where({ id: cuota.id }).update({
+        monto_pagado: nuevoPagado,
+        estatus: nuevoEstatus,
+        updated_at: new Date(),
+      });
+      if (nuevoEstatus === 'pagado') {
+        console.log(`CUOTA LIQUIDADA: Preparando cálculo de comisión — Venta ${ventaId} Cuota #${numeroPago}`);
+      }
+      globalThis.__movsProcessed.add(movId);
+    } catch (e) {
+      console.error('❌ Error en hook pagos_movimientos.items.create:', e);
+    }
+  });
+
+  // =================================================================================
   // 5. CRON JOB: Calcular Penalizaciones Diarias
   // =================================================================================
   schedule('0 0 * * *', async () => {
@@ -447,6 +649,21 @@ async function generarComisiones(venta, services, schema, database) {
     }
   } catch (e) {
     console.warn('⚠️ No se pudo obtener comisión del vendedor, usando default 5%');
+  }
+
+  try {
+    await database('ventas')
+      .where({ id: venta.id })
+      .update({
+        comision_porcentaje_snapshot: commissionRate,
+        comision_esquema_snapshot: esquema,
+        comision_fija_snapshot: comisionFija,
+      });
+  } catch (e) {
+    console.warn(
+      `⚠️ No se pudo actualizar snapshot de comisión para venta ${venta.id}:`,
+      e?.message || e
+    );
   }
 
   const milestones = [

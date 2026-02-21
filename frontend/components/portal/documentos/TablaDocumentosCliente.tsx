@@ -291,7 +291,7 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
       )}
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-card">
+      <div className="hidden md:block bg-card border border-border rounded-xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-400">
             <thead className="bg-slate-900/50 text-slate-200 uppercase font-medium">
@@ -399,7 +399,7 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
         {paginatedDocs.map((doc) => (
           <div
             key={doc.id}
-            className={`bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm ${selectedIds.has(doc.id) ? 'ring-1 ring-primary-light' : ''}`}
+            className={`bg-card border border-border rounded-xl p-4 shadow-sm ${selectedIds.has(doc.id) ? 'ring-1 ring-primary-light' : ''}`}
           >
             <div className="flex items-start gap-3 mb-3">
               <button onClick={() => toggleSelection(doc.id)} className="mt-1">

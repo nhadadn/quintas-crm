@@ -83,11 +83,9 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
       {/* Filtros */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">Buscar Cliente</label>
-        <input
-          type="text"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
           placeholder="Nombre, Email o RFC..."
-          value={filtroTexto}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
           onChange={(e) => setFiltroTexto(e.target.value)}
         />
       </div>
@@ -95,13 +93,13 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
       {/* Tabla */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
-            <tr>
-              <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('nombre')}
-              >
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 Nombre
                 {ordenColumna === 'nombre' && (
                   <span className="ml-1">{ordenDireccion === 'asc' ? '↑' : '↓'}</span>
@@ -111,83 +109,74 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('email')}
-              >
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 Email
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('telefono')}
-              >
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 Teléfono
               </th>
               <th
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('rfc')}
-              >
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 RFC
               </th>
               <th scope="col" className="relative px-6 py-3">
                 <span className="sr-only">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+              <th scope="col" className="relative px-6 py-3">
             {isLoading ? (
               <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                   Cargando clientes...
-                </td>
+          <tbody className="bg-white divide-y divide-gray-200">
               </tr>
             ) : clientesPaginados.length === 0 ? (
-              <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                  No se encontraron clientes
-                </td>
               </tr>
             ) : (
               clientesPaginados.map((cliente) => (
                 <tr key={cliente.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}
-                    </div>
-                    <div className="text-sm text-gray-500">
+                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                       Registrado: {formatDate(cliente.created_at)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {cliente.email}
+                <tr key={cliente.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="text-sm font-medium text-gray-900">
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {cliente.telefono}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {cliente.rfc || '-'}
+                    <div className="text-sm text-gray-500">
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => onVerDetalles(cliente.id)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
-                      Ver
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     </button>
                     {onEditar && (
-                      <button
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         onClick={() => onEditar(cliente.id)}
                         className="text-indigo-600 hover:text-indigo-900"
                       >
                         Editar
                       </button>
-                    )}
+                      className="text-indigo-600 hover:text-indigo-900 mr-4"
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-      </div>
+                        className="text-indigo-600 hover:text-indigo-900"
 
       {/* Paginación */}
       <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
@@ -201,10 +190,10 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
               </span>{' '}
               de <span className="font-medium">{clientesFiltrados.length}</span> resultados
             </p>
-          </div>
+      <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
           <div>
             <nav
-              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            <p className="text-sm text-gray-700">
               aria-label="Pagination"
             >
               <button
@@ -215,13 +204,13 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                 Anterior
               </button>
               {Array.from({ length: totalPaginas }).map((_, i) => (
-                <button
+              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                   key={i}
                   onClick={() => setPaginaActual(i + 1)}
                   className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                     paginaActual === i + 1
                       ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   }`}
                 >
                   {i + 1}
@@ -231,8 +220,8 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                 onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
                 disabled={paginaActual === totalPaginas}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-              >
-                Siguiente
+                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
               </button>
             </nav>
           </div>
@@ -241,5 +230,5 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
     </div>
   );
 };
-
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
 export default TablaClientes;

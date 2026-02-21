@@ -54,12 +54,9 @@ export default function GestionVendedoresPage() {
           </Link>
         </div>
       </div>
-
+        isLoading={loading}
       <TablaVendedores
         vendedores={vendedores}
         isLoading={loading}
         onVerDetalles={handleVerDetalles}
       />
-    </div>
-  );
-}

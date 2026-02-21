@@ -47,15 +47,6 @@ const getLoteIdentificador = (ventaId: Pago['venta_id'] | null | undefined): str
   return 'N/A'; // If lote_id is just an ID, we can't show identifier
 };
 
-export default function DetallePagoPage({ params }: PageProps) {
-  const { id } = use(params);
-  const { data: session, status } = useSession();
-  const [pago, setPago] = useState<Pago | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (status === 'loading') return;
-
     if (status === 'unauthenticated') {
       // Opcional: Redirigir o mostrar error
       setLoading(false);
@@ -96,14 +87,23 @@ export default function DetallePagoPage({ params }: PageProps) {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
-    return format(new Date(dateString), 'dd/MM/yyyy');
+    return <div className="p-6 text-center">Cargando detalle del pago...</div>;
   };
 
   return (
+    return <div className="p-6 text-center text-red-600">Pago no encontrado</div>;
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Pago #{pago.numero_pago}</h1>
+            <p className="text-gray-500">Vencimiento: {formatDate(pago.fecha_vencimiento)}</p>
+          </div>
+          <div className="flex space-x-3">
+            {pago.estatus === 'pendiente' && (
+              <>
+                <button
+                  onClick={handleEditarPago}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                >
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <Link href="/pagos" className="text-indigo-600 hover:text-indigo-900 mb-2 inline-block">
@@ -147,7 +147,7 @@ export default function DetallePagoPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-
+            </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Detalles del Pago */}
         <div className="bg-white shadow rounded-lg p-6">
@@ -175,7 +175,7 @@ export default function DetallePagoPage({ params }: PageProps) {
             </div>
           </dl>
         </div>
-
+            </div>
         {/* Generador de Recibos */}
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Comprobante de Pago</h3>
@@ -186,33 +186,6 @@ export default function DetallePagoPage({ params }: PageProps) {
               <p>El recibo estará disponible una vez que el pago sea liquidado.</p>
             </div>
           )}
-        </div>
-
-        {/* Información Relacionada */}
-        <div className="bg-white shadow rounded-lg p-6 md:col-span-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Información de Venta</h3>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Venta ID</dt>
-              <dd className="mt-1 text-sm text-indigo-600 hover:text-indigo-800">
-                {pago.venta_id ? (
-                  <Link href={`/ventas/${getVentaId(pago.venta_id)}`}>
-                    {getVentaDisplay(pago.venta_id)}
-                  </Link>
-                ) : (
-                  <span className="text-gray-400">No asignada</span>
-                )}
-              </dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Cliente</dt>
-              <dd className="mt-1 text-sm text-gray-900">{getClienteNombre(pago.venta_id)}</dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Lote</dt>
-              <dd className="mt-1 text-sm text-gray-900">{getLoteIdentificador(pago.venta_id)}</dd>
-            </div>
-          </dl>
         </div>
       </div>
     </div>

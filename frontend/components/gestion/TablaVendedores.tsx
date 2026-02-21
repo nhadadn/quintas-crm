@@ -70,13 +70,11 @@ const TablaVendedores: React.FC<TablaVendedoresProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span className="font-mono text-xs">{vendedor.id}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onVerDetalles(vendedor.id)}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
-                      Ver Detalles
+                      className="text-indigo-600 hover:text-indigo-900"
                     </button>
                   </td>
                 </tr>

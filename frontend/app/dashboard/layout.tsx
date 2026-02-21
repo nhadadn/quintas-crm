@@ -25,7 +25,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:block">
         <div className="p-4">
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
-            Analytics
+        <div className="p-4">
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+          <nav className="space-y-1">
           </h2>
           <nav className="space-y-1">
             {sidebarItems.map((item) => {
@@ -33,14 +35,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const isActive = pathname === item.href;
               return (
                 <Link
-                  key={item.name}
-                  href={item.href}
                   className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive
+                  href={item.href}
                       ? 'bg-emerald-500/10 text-emerald-400'
                       : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-                  }`}
-                >
+                      ? 'bg-emerald-500/10 text-emerald-400'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
                   <Icon className="w-5 h-5" />
                   {item.name}
                 </Link>

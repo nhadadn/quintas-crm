@@ -1,0 +1,12 @@
+{
+  "name": "test-endpoint",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "test-endpoint",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  }
+}

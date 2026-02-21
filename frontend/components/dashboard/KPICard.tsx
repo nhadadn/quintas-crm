@@ -49,8 +49,6 @@ export function KPICard({
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2">
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</p>
-          {tooltip && (
-            <div className="relative group/tooltip">
               <HelpCircle className="w-4 h-4 text-slate-400 cursor-help" />
               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/tooltip:block w-48 bg-slate-900 text-white text-xs rounded p-2 z-10 shadow-lg text-center">
                 {tooltip}
@@ -62,13 +60,13 @@ export function KPICard({
         {icon && (
           <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
             {icon}
-          </div>
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
         )}
       </div>
 
       <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 transition-all duration-500">
         {prefix}
-        {typeof value === 'number' ? value.toLocaleString() : value}
+      <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 transition-all duration-500">
         {suffix}
       </h3>
 

@@ -66,5 +66,4 @@ Toda la documentación técnica esencial, guías de contribución y arquitectura
 *   **Auth:** NextAuth.js v5 + Directus Auth
 *   **DB:** MySQL 8.0
 
----
 *Documentación generada automáticamente por Agente de Documentación - Febrero 2026*

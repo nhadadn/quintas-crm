@@ -32,58 +32,38 @@ export function Navbar({ user }: NavbarProps) {
               <Link
                 href="/"
                 className={`transition-colors ${isActive('/') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
-              >
-                Dashboard
               </Link>
               {user?.role === 'Administrator' && (
                 <Link
                   href="/dashboard"
                   className={`transition-colors ${isActive('/dashboard') ? 'text-emerald-400' : 'hover:text-slate-100'} font-bold text-amber-400`}
                 >
-                  Admin Panel
-                </Link>
-              )}
-              <Link
-                href="/mapa"
+                  className={`transition-colors ${isActive('/dashboard') ? 'text-emerald-400' : 'hover:text-slate-100'} font-bold text-amber-400`}
                 className={`transition-colors ${isActive('/mapa') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Mapa
               </Link>
               <Link
                 href="/ventas"
-                className={`transition-colors ${isActive('/ventas') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
-              >
-                Ventas
+                className={`transition-colors ${isActive('/mapa') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               </Link>
               <Link
                 href="/pagos"
                 className={`transition-colors ${isActive('/pagos') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
-                Pagos
-              </Link>
-              <Link
-                href="/clientes"
-                className={`transition-colors ${isActive('/clientes') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
+                className={`transition-colors ${isActive('/ventas') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Clientes
               </Link>
               <Link
                 href="/vendedores"
-                className={`transition-colors ${isActive('/vendedores') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
-              >
-                Vendedores
-              </Link>
-              <Link
+                className={`transition-colors ${isActive('/pagos') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
                 href="/portal"
                 className={`transition-colors ${isActive('/portal') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
               >
                 Portal Cliente
               </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
-              AD
+                className={`transition-colors ${isActive('/clientes') ? 'text-emerald-400' : 'hover:text-slate-100'}`}
             </div>
           </div>
         </div>

@@ -221,9 +221,6 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
                 <td className="px-6 py-4 font-medium text-white">#{fila.numero_pago}</td>
                 <td className="px-6 py-4 text-slate-300">{formatDate(fila.fecha_vencimiento)}</td>
                 <td className="px-6 py-4 text-right font-medium text-white">
-                  {formatCurrency(fila.cuota)}
-                </td>
-                <td className="px-6 py-4 text-right text-slate-300">
                   {formatCurrency(fila.interes)}
                 </td>
                 <td className="px-6 py-4 text-right text-slate-300">
@@ -232,7 +229,7 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
                 <td className="px-6 py-4 text-right text-slate-300">
                   {formatCurrency(fila.saldo_restante)}
                 </td>
-                <td className="px-6 py-4 flex justify-center">
+                <td className="px-6 py-4 text-right text-slate-300">
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_STYLES[fila.estatus]}`}
                   >
@@ -245,18 +242,18 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
           <tfoot className="bg-slate-900/50 text-slate-300 font-semibold border-t border-slate-700">
             <tr>
               <td colSpan={2} className="px-6 py-4 text-right">
-                Totales:
+          <tfoot className="bg-slate-900/50 text-slate-300 font-semibold border-t border-slate-700">
               </td>
               <td className="px-6 py-4 text-right text-emerald-400">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.cuota, 0))}
               </td>
-              <td className="px-6 py-4 text-right text-slate-300">
+              <td className="px-6 py-4 text-right text-emerald-400">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.interes, 0))}
               </td>
               <td className="px-6 py-4 text-right text-slate-300">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.capital, 0))}
               </td>
-              <td colSpan={2}></td>
+              <td className="px-6 py-4 text-right text-slate-300">
             </tr>
           </tfoot>
         </table>

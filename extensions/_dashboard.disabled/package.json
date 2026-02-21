@@ -1,0 +1,22 @@
+{
+  "name": "crm-analytics",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "crm-analytics",
+    "source": "src/index.js",
+    "host": "^11.0.0"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.17.2"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}

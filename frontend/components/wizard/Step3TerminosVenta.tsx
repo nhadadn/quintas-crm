@@ -7,6 +7,7 @@ import { Cliente, FilaAmortizacion, Vendedor } from '@/types/erp';
 import { calcularAmortizacion } from '@/lib/pagos-api';
 import { fetchVendedores } from '@/lib/vendedores-api';
 import { TablaAmortizacion } from '@/components/pagos/TablaAmortizacion';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 interface Step3Props {
   onNext: (terminos: TerminosVenta) => void;
@@ -148,7 +149,10 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Enganche */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Enganche</label>
+            <label className="flex items-center text-sm font-medium text-slate-300 mb-1">
+              Enganche
+              <InfoTooltip content="Monto inicial para apartar el lote. Mínimo 20% del valor." />
+            </label>
             <input
               type="number"
               {...register('enganche', {
@@ -170,7 +174,10 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
 
           {/* Plazo */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Plazo (meses)</label>
+            <label className="flex items-center text-sm font-medium text-slate-300 mb-1">
+              Plazo (meses)
+              <InfoTooltip content="Tiempo total para liquidar el financiamiento." />
+            </label>
             <input
               type="number"
               {...register('plazo_meses', {
@@ -189,8 +196,9 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Tasa Interés */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
+            <label className="flex items-center text-sm font-medium text-slate-300 mb-1">
               Tasa de Interés Anual (%)
+              <InfoTooltip content="Porcentaje de interés anual sobre saldos insolutos." />
             </label>
             <input
               type="number"
@@ -238,17 +246,25 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
         )}
 
         <div className="bg-emerald-900/30 p-4 rounded-lg border border-emerald-800/50">
-          <h4 className="text-emerald-400 font-semibold mb-2">Proyección</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <p className="text-slate-400">Monto a Financiar</p>
-              <p className="text-white text-lg font-bold">
+          <h4 className="text-emerald-400 font-semibold mb-2">Proyección Financiera</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+            <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
+              <p className="text-slate-400 text-xs">Enganche Total</p>
+              <p className="text-emerald-400 text-lg font-semibold">
+                ${Number(watchEnganche || 0).toLocaleString('es-MX')}
+              </p>
+            </div>
+            <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
+              <p className="text-slate-400 text-xs">Monto a Financiar</p>
+              <p className="text-emerald-400 text-lg font-semibold">
                 ${montoFinanciado.toLocaleString('es-MX')}
               </p>
             </div>
-            <div>
-              <p className="text-slate-400">Mensualidad Estimada</p>
-              <p className="text-white text-lg font-bold">${mensualidad.toLocaleString('es-MX')}</p>
+            <div className="bg-slate-900/50 p-3 rounded border border-slate-700">
+              <p className="text-slate-400 text-xs">Mensualidad Estimada</p>
+              <p className="text-emerald-400 text-lg font-semibold">
+                ${mensualidad.toLocaleString('es-MX')}
+              </p>
             </div>
           </div>
 

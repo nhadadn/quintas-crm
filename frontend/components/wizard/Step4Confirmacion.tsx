@@ -114,22 +114,20 @@ export function Step4Confirmacion({ onConfirm, onBack, state }: Step4Props) {
             <div>
               <p className="text-slate-400">Enganche</p>
               <p className="text-white font-bold">${terminos.enganche.toLocaleString('es-MX')}</p>
-            </div>
-            <div>
               <p className="text-slate-400">Monto Financiado</p>
               <p className="text-white font-bold">
-                ${terminos.monto_financiado.toLocaleString('es-MX')}
-              </p>
+              <p className="text-slate-400">Monto Financiado</p>
+              <p className="text-white font-bold">
             </div>
             <div>
               <p className="text-slate-400">Plazo</p>
               <p className="text-white font-bold">{terminos.plazo_meses} meses</p>
-            </div>
-            <div>
+              <p className="text-slate-400">Plazo</p>
+              <p className="text-white font-bold">{terminos.plazo_meses} meses</p>
               <p className="text-slate-400">Mensualidad</p>
               <p className="text-white font-bold text-lg">
-                ${terminos.mensualidad?.toLocaleString('es-MX')}
-              </p>
+              <p className="text-slate-400">Mensualidad</p>
+              <p className="text-white font-bold text-lg">
             </div>
           </div>
         </div>
@@ -138,16 +136,16 @@ export function Step4Confirmacion({ onConfirm, onBack, state }: Step4Props) {
       {/* Tabla de Amortización Expandible */}
       <div className="mb-8 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
         <button
-          onClick={() => setShowTabla(!showTabla)}
+      <div className="mb-8 bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
           className="w-full flex justify-between items-center p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
         >
-          <span className="font-semibold text-emerald-400">
+          className="w-full flex justify-between items-center p-4 bg-slate-800 hover:bg-slate-700 transition-colors"
             Tabla de Amortización Completa ({tablaAmortizacion.length} pagos)
-          </span>
+          <span className="font-semibold text-emerald-400">
           <svg
             className={`w-5 h-5 text-slate-400 transform transition-transform ${showTabla ? 'rotate-180' : ''}`}
             fill="none"
-            viewBox="0 0 24 24"
+            className={`w-5 h-5 text-slate-400 transform transition-transform ${showTabla ? 'rotate-180' : ''}`}
             stroke="currentColor"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -157,21 +155,21 @@ export function Step4Confirmacion({ onConfirm, onBack, state }: Step4Props) {
         {showTabla && (
           <div className="p-4 border-t border-slate-700 max-h-96 overflow-y-auto">
             <TablaAmortizacion data={tablaAmortizacion} />
-          </div>
+          <div className="p-4 border-t border-slate-700 max-h-96 overflow-y-auto">
         )}
       </div>
 
       <div className="bg-slate-900/50 p-6 rounded-lg border border-slate-700 mb-8">
         <label className="flex items-center space-x-3 mb-4 cursor-pointer">
-          <input
+      <div className="bg-slate-900/50 p-6 rounded-lg border border-slate-700 mb-8">
             type="checkbox"
             checked={confirmedData}
             onChange={(e) => setConfirmedData(e.target.checked)}
             className="w-5 h-5 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-slate-800"
           />
-          <span className="text-slate-300">Confirmo que los datos capturados son correctos.</span>
+            className="w-5 h-5 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-slate-800"
         </label>
-
+          <span className="text-slate-300">Confirmo que los datos capturados son correctos.</span>
         <label className="flex items-center space-x-3 cursor-pointer">
           <input
             type="checkbox"
@@ -179,18 +177,18 @@ export function Step4Confirmacion({ onConfirm, onBack, state }: Step4Props) {
             onChange={(e) => setAcceptedTerms(e.target.checked)}
             className="w-5 h-5 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-slate-800"
           />
-          <span className="text-slate-300">Acepto los términos y condiciones de la venta.</span>
+            className="w-5 h-5 rounded border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-slate-800"
         </label>
-      </div>
+          <span className="text-slate-300">Acepto los términos y condiciones de la venta.</span>
 
       <div className="flex justify-between pt-6 border-t border-slate-700">
         <button
-          type="button"
+      <div className="flex justify-between pt-6 border-t border-slate-700">
           onClick={onBack}
           disabled={isSubmitting}
           className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50"
         >
-          Atrás
+          className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50"
         </button>
         <button
           type="button"
@@ -198,10 +196,10 @@ export function Step4Confirmacion({ onConfirm, onBack, state }: Step4Props) {
           disabled={!confirmedData || !acceptedTerms || isSubmitting}
           className={`px-6 py-2 font-semibold rounded-lg transition-colors flex items-center space-x-2 ${
             !confirmedData || !acceptedTerms || isSubmitting
+          className={`px-6 py-2 font-semibold rounded-lg transition-colors flex items-center space-x-2 ${
+              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
               ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
               : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-          }`}
-        >
           {isSubmitting ? (
             <>
               <svg

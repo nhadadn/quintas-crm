@@ -103,7 +103,7 @@ export function ModalPagoStripe({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-slate-700 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-border max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
           <h3 className="text-lg font-semibold text-slate-100">Realizar Pago Seguro</h3>
           <button

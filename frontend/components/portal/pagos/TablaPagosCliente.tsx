@@ -189,7 +189,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Total Pagado</p>
             <p className="text-2xl font-bold text-emerald-400 mt-1">
@@ -201,7 +201,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
           </div>
         </div>
 
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Saldo Pendiente</p>
             <p className="text-2xl font-bold text-amber-400 mt-1">
@@ -213,7 +213,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
           </div>
         </div>
 
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center justify-between">
           <div>
             <p className="text-slate-400 text-sm font-medium">Próximo Vencimiento</p>
             <p className="text-xl font-bold text-slate-200 mt-1">
@@ -232,7 +232,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-background-paper p-4 rounded-xl border border-border">
         <div className="relative w-full lg:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -240,7 +240,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             placeholder="Buscar por monto, concepto, lote o venta..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary-light transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-input border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-light transition-colors"
           />
         </div>
 
@@ -254,7 +254,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2 bg-input border border-input rounded-lg text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
                 placeholder="Desde"
               />
             </div>
@@ -267,7 +267,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2 bg-input border border-input rounded-lg text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
                 placeholder="Hasta"
               />
             </div>
@@ -278,7 +278,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto bg-slate-900 border border-slate-700 rounded-lg text-slate-200 py-2 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
+              className="w-full md:w-auto bg-input border border-input rounded-lg text-foreground py-2 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
             >
               <option value="all">Todos los estatus</option>
               <option value="pagado">Pagado</option>
@@ -290,7 +290,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-card">
+      <div className="hidden md:block bg-card border border-border rounded-xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-400">
             <thead className="bg-slate-900/50 text-slate-200 uppercase font-medium">
@@ -394,6 +394,9 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
         {paginatedPagos.length > 0 ? (
           paginatedPagos.map((pago) => (
             <div
+              key={pago.id}
+              className="bg-card border border-border rounded-xl p-4 shadow-sm"
+            >
               key={pago.id}
               className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm"
             >

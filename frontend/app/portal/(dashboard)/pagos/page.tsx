@@ -73,15 +73,11 @@ export default async function PagosPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <CreditCard className="w-8 h-8 text-primary-light" />
             Historial de Pagos
           </h1>
-          <p className="text-slate-400 mt-1">Consulta y descarga tus comprobantes de pago.</p>
-        </div>
-      </div>
-
-      <TablaPagosCliente pagos={allPagos} estadisticas={estadisticas} clienteId={perfil.id} />
+          <p className="text-muted-foreground mt-1">Consulta y descarga tus comprobantes de pago.</p>
     </div>
   );
 }

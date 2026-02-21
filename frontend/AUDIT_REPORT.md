@@ -46,12 +46,9 @@ Se configuró Vitest con `happy-dom` para evitar conflictos ESM/CJS con `next-au
 
 ### 3.2 Tests End-to-End (Playwright)
 
-- **Suite:** `tests/portal-auth.spec.ts`
-- **Resultados:**
+- `tests/unit/api-kpis-route.spec.ts`: valida el contrato de la ruta `/api/dashboard/kpis` contra el endpoint analítico `/crm-analytics/kpis` de Directus, incluyendo propagación correcta de códigos 401/403 y manejo estructurado de errores 5xx.
+- `tests/integration/dashboard-kpis.integration.spec.tsx`: verifica el gating de gráficos en el Dashboard de Ventas (render de skeleton cuando `/api/dashboard/kpis` devuelve 403 y render del gráfico cuando el contenedor tiene dimensiones válidas).
   - ✅ Navegación a Login
-  - ✅ Validación de campos vacíos
-  - ✅ Validación de formato de email
-  - ✅ Redirección de usuario no autenticado (Middleware)
   - ✅ Acceso a rutas públicas
   - ⚠️ **Manejo de credenciales inválidas / Error de conexión:** FALLÓ (Timeout esperando mensaje de error).
     - _Causa Raíz:_ El entorno local no tiene el backend Directus corriendo en `localhost:8055`. La aplicación intenta conectar y falla por timeout/conexión rechazada, pero el test E2E espera una respuesta visual específica que no se renderizó a tiempo o el flujo se interrumpió de manera diferente a la esperada en la integración real.

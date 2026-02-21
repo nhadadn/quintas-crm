@@ -26,6 +26,8 @@ export default function WizardVenta() {
   const router = useRouter();
   const [state, setState] = useState<WizardState>(INITIAL_STATE);
   const [loaded, setLoaded] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [createdSaleId, setCreatedSaleId] = useState<string | number | null>(null);
 
   // Cargar estado guardado
   useEffect(() => {
@@ -147,10 +149,9 @@ export default function WizardVenta() {
           console.error('Error enviando notificación de actualización:', e);
         }
 
-        alert('Venta creada exitosamente!');
         localStorage.removeItem(STORAGE_KEY);
-        setState(INITIAL_STATE);
-        router.push(`/ventas/${ventaCreada.id}`);
+        setCreatedSaleId(ventaCreada.id);
+        setSuccess(true);
       } else {
         throw new Error('No se recibió la venta creada');
       }
@@ -170,6 +171,39 @@ export default function WizardVenta() {
   };
 
   if (!loaded) return null;
+
+  if (success && createdSaleId) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-slate-800 p-8 rounded-xl shadow-2xl max-w-md w-full text-center border border-slate-700">
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-emerald-500/20">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-emerald-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">¡Venta Exitosa!</h2>
+          <p className="text-slate-400 mb-8">
+            La venta se ha registrado correctamente en el sistema.
+          </p>
+          <button
+            onClick={() => {
+              setState(INITIAL_STATE);
+              router.push(`/ventas/${createdSaleId}`);
+            }}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg hover:shadow-emerald-500/25"
+          >
+            Ver Detalle de Venta
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
