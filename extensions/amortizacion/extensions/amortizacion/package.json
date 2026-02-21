@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "directus-endpoint-amortizacion": "file:../.."
+  }
+}

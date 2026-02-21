@@ -1,0 +1,222 @@
+[33mcommit 91bbb3063ef0988613c64d509e64c3aa51953bc7[m[33m ([m[1;32mmain[m[33m)[m
+Author: CANAAM-0001\nadir <nadir.nacaam@protonmail.me>
+Date:   Wed Feb 18 00:12:53 2026 -0600
+
+    Docker: Directus apunta a DB del host; bootstrap en entrypoint; agregar Dockerfile y ejemplo de env. Ignora .env.docker (no secrets).
+
+[1mdiff --git a/.env.docker.example b/.env.docker.example[m
+[1mnew file mode 100644[m
+[1mindex 0000000..7270fe3[m
+[1m--- /dev/null[m
+[1m+++ b/.env.docker.example[m
+[36m@@ -0,0 +1,25 @@[m
+[32m+[m[32mMYSQL_ROOT_PASSWORD=quintas123[m
+[32m+[m[32mMYSQL_DATABASE=quintas_crm[m
+[32m+[m[32mMYSQL_USER=directus[m
+[32m+[m[32mMYSQL_PASSWORD=quintas123[m
+[32m+[m
+[32m+[m[32mDB_CLIENT=mysql[m
+[32m+[m[32m# Para usar la DB del host desde Docker en Windows:[m
+[32m+[m[32m# host.docker.internal apunta al MySQL del host[m
+[32m+[m[32mDB_HOST=host.docker.internal[m
+[32m+[m[32mDB_PORT=3306[m
+[32m+[m[32mDB_USER=TU_USUARIO_DB[m
+[32m+[m[32mDB_PASSWORD=TU_PASSWORD_DB[m
+[32m+[m[32mDB_DATABASE=quintas_otinapaV2[m
+[32m+[m
+[32m+[m[32mDIRECTUS_KEY=quintas_key_2026_abC123!_random[m
+[32m+[m[32mDIRECTUS_SECRET=quintas_secret_2026_XyZ987!_random[m
+[32m+[m[32mADMIN_EMAIL=admin@quintas.local[m
+[32m+[m[32mADMIN_PASSWORD=Admin_Quintas_2026![m
+[32m+[m[32mPUBLIC_URL=http://localhost:8055[m
+[32m+[m
+[32m+[m[32mNEXTAUTH_SECRET=replace-with-random[m
+[32m+[m[32mAUTH_SECRET=replace-with-random[m
+[32m+[m[32mDIRECTUS_STATIC_TOKEN=[m
+[32m+[m
+[32m+[m[32mMIGRATIONS_FORCE=0[m
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 7098815..e283dff 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -30,6 +30,7 @@[m [myarn-error.log*[m
+ .env.test.local[m
+ .env.production.local[m
+ .env.backup[m
+[32m+[m[32m.env.docker[m
+ [m
+ # Directus[m
+ uploads/[m
+[1mdiff --git a/Dockerfile.directus b/Dockerfile.directus[m
+[1mnew file mode 100644[m
+[1mindex 0000000..cbd35ae[m
+[1m--- /dev/null[m
+[1m+++ b/Dockerfile.directus[m
+[36m@@ -0,0 +1,6 @@[m
+[32m+[m[32mFROM directus/directus:10[m
+[32m+[m
+[32m+[m[32mCOPY directus-entrypoint.sh /usr/local/bin/directus-entrypoint.sh[m
+[32m+[m
+[32m+[m[32mENTRYPOINT ["sh", "/usr/local/bin/directus-entrypoint.sh"][m
+[32m+[m[32mCMD ["directus", "start"][m
+[1mdiff --git a/directus-entrypoint.sh b/directus-entrypoint.sh[m
+[1mnew file mode 100644[m
+[1mindex 0000000..5ab826a[m
+[1m--- /dev/null[m
+[1m+++ b/directus-entrypoint.sh[m
+[36m@@ -0,0 +1,18 @@[m
+[32m+[m[32m#!/bin/sh[m
+[32m+[m[32mset -e[m
+[32m+[m
+[32m+[m[32mif [ -d /directus/extensions ]; then[m
+[32m+[m[32m  for d in /directus/extensions/*; do[m
+[32m+[m[32m    if [ -f "$d/package.json" ]; then[m
+[32m+[m[32m      (cd "$d" && npm install || true)[m
+[32m+[m[32m    fi[m
+[32m+[m[32m  done[m
+[32m+[m[32mfi[m
+[32m+[m
+[32m+[m[32mif command -v directus >/dev/null 2>&1; then[m
+[32m+[m[32m  directus bootstrap || true[m
+[32m+[m[32m  exec directus start[m
+[32m+[m[32melse[m
+[32m+[m[32m  npx directus bootstrap || true[m
+[32m+[m[32m  exec npx directus start[m
+[32m+[m[32mfi[m
+[1mdiff --git a/docker-compose.yml b/docker-compose.yml[m
+[1mindex d7320e8..8b2f77b 100644[m
+[1m--- a/docker-compose.yml[m
+[1m+++ b/docker-compose.yml[m
+[36m@@ -1,22 +1,27 @@[m
+ services:[m
+[31m-  # Base de Datos (PostgreSQL - Deshabilitado)[m
+[31m-  # postgres:[m
+[31m-  #   image: postgis/postgis:15-3.4-alpine[m
+[31m-  #   container_name: quintas_postgres[m
+[31m-  #   restart: always[m
+[31m-  #   environment:[m
+[31m-  #     POSTGRES_USER: ${DB_USER}[m
+[31m-  #     POSTGRES_PASSWORD: ${DB_PASSWORD}[m
+[31m-  #     POSTGRES_DB: ${DB_DATABASE}[m
+[31m-  #   volumes:[m
+[31m-  #     - postgres_data:/var/lib/postgresql/data[m
+[31m-  #   networks:[m
+[31m-  #     - internal[m
+[31m-  #   healthcheck:[m
+[31m-  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"][m
+[31m-  #     interval: 10s[m
+[31m-  #     timeout: 5s[m
+[31m-  #     retries: 5[m
+[32m+[m[32m  mysql:[m
+[32m+[m[32m    image: mysql:8.0[m
+[32m+[m[32m    container_name: quintas_mysql[m
+[32m+[m[32m    restart: always[m
+[32m+[m[32m    command: ["mysqld","--default-authentication-plugin=mysql_native_password"][m
+[32m+[m[32m    env_file:[m
+[32m+[m[32m      - .env.docker[m
+[32m+[m[32m    environment:[m
+[32m+[m[32m      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}[m
+[32m+[m[32m      MYSQL_DATABASE: ${MYSQL_DATABASE}[m
+[32m+[m[32m      MYSQL_USER: ${MYSQL_USER}[m
+[32m+[m[32m      MYSQL_PASSWORD: ${MYSQL_PASSWORD}[m
+[32m+[m[32m    volumes:[m
+[32m+[m[32m      - mysql_data:/var/lib/mysql[m
+[32m+[m[32m    ports:[m
+[32m+[m[32m      - '3307:3306'[m
+[32m+[m[32m    healthcheck:[m
+[32m+[m[32m      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER} -p${MYSQL_PASSWORD} || exit 1"][m
+[32m+[m[32m      interval: 10s[m
+[32m+[m[32m      timeout: 5s[m
+[32m+[m[32m      retries: 10[m
+[32m+[m[32m    networks:[m
+[32m+[m[32m      - internal[m
+ [m
+   # Caché y Colas[m
+   redis:[m
+[36m@@ -35,45 +40,47 @@[m [mservices:[m
+ [m
+   # Backend / CMS[m
+   directus:[m
+[31m-    image: directus/directus:11.0.0[m
+[32m+[m[32m    build:[m
+[32m+[m[32m      context: .[m
+[32m+[m[32m      dockerfile: Dockerfile.directus[m
+     container_name: quintas_directus[m
+     restart: always[m
+     ports:[m
+       - '8055:8055'[m
+     volumes:[m
+       - ./extensions:/directus/extensions[m
+[31m-      - ./uploads:/directus/uploads[m
+[32m+[m[32m      - directus_uploads:/directus/uploads[m
+     environment:[m
+[31m-      KEY: ${KEY}[m
+[31m-      SECRET: ${SECRET}[m
+[32m+[m[32m      KEY: ${DIRECTUS_KEY}[m
+[32m+[m[32m      SECRET: ${DIRECTUS_SECRET}[m
+       ADMIN_EMAIL: ${ADMIN_EMAIL}[m
+       ADMIN_PASSWORD: ${ADMIN_PASSWORD}[m
+[31m-[m
+[31m-      # Database Connection (MySQL Host)[m
+[31m-      DB_CLIENT: 'mysql'[m
+[31m-      DB_HOST: 'host.docker.internal'[m
+[31m-      DB_PORT: '3306'[m
+[32m+[m[32m      PUBLIC_URL: ${PUBLIC_URL}[m
+[32m+[m[32m      DB_CLIENT: ${DB_CLIENT}[m
+[32m+[m[32m      DB_HOST: ${DB_HOST}[m
+[32m+[m[32m      DB_PORT: ${DB_PORT}[m
+       DB_DATABASE: ${DB_DATABASE}[m
+       DB_USER: ${DB_USER}[m
+       DB_PASSWORD: ${DB_PASSWORD}[m
+[31m-[m
+[31m-      # Cache[m
+       CACHE_ENABLED: 'true'[m
+       CACHE_STORE: 'redis'[m
+       CACHE_REDIS: 'redis://redis:6379'[m
+       REDIS: 'redis://redis:6379'[m
+[31m-[m
+[31m-      # Auth Token TTL[m
+       ACCESS_TOKEN_TTL: '60m'[m
+       REFRESH_TOKEN_TTL: '30d'[m
+[31m-[m
+[31m-      # CORS & Security[m
+       CORS_ENABLED: 'true'[m
+       CORS_ORIGIN: 'true'[m
+       WEBSOCKETS_ENABLED: 'true'[m
+[32m+[m[32m    healthcheck:[m
+[32m+[m[32m      test: ["CMD", "wget", "-qO", "-", "http://localhost:8055/server/health" ][m
+[32m+[m[32m      interval: 10s[m
+[32m+[m[32m      timeout: 5s[m
+[32m+[m[32m      retries: 10[m
+[32m+[m[32m    env_file:[m
+[32m+[m[32m      - .env.docker[m
+     depends_on:[m
+[31m-      # postgres:[m
+[31m-      #   condition: service_healthy[m
+[32m+[m[32m      mysql:[m
+[32m+[m[32m        condition: service_healthy[m
+       redis:[m
+         condition: service_healthy[m
+     networks:[m
+[36m@@ -92,26 +99,43 @@[m [mservices:[m
+     ports:[m
+       - '3000:3000'[m
+     environment:[m
+[31m-      # Public URL (Browser -> Next.js)[m
+       NEXT_PUBLIC_API_URL: http://localhost:8055[m
+       NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8055[m
+[31m-[m
+[31m-      # Internal URL (Next.js SSR -> Directus Container)[m
+       DIRECTUS_INTERNAL_URL: http://directus:8055[m
+       DIRECTUS_URL: http://directus:8055[m
+[31m-[m
+[31m-      # Auth[m
+       NEXTAUTH_URL: http://localhost:3000[m
+       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}[m
+       AUTH_SECRET: ${AUTH_SECRET}[m
+       AUTH_TRUST_HOST: 'true'[m
+[31m-[m
+[31m-      # Static Token[m
+       DIRECTUS_STATIC_TOKEN: ${DIRECTUS_STATIC_TOKEN}[m
+[32m+[m[32m    env_file:[m
+[32m+[m[32m     
