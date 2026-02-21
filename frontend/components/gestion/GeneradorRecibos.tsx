@@ -14,7 +14,7 @@ export default function GeneradorRecibos({ pago, venta, onGenerarPDF }: Generado
     const pageWidth = doc.internal.pageSize.width;
 
     // Header
-    doc.setFillColor(16, 185, 129); // Emerald-600
+    doc.setFillColor(192, 86, 33);
     doc.rect(0, 0, pageWidth, 40, 'F');
 
     doc.setTextColor(255, 255, 255);
@@ -95,7 +95,7 @@ export default function GeneradorRecibos({ pago, venta, onGenerarPDF }: Generado
   return (
     <button
       onClick={generarRecibo}
-      className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors text-sm font-medium"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-warm hover:bg-primary-dark transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

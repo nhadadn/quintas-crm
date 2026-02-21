@@ -63,7 +63,7 @@ const CheckoutForm = ({
       {message && <div className="text-red-500 text-sm">{message}</div>}
       <button
         disabled={isLoading || !stripe || !elements}
-        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md transition-colors disabled:opacity-50 flex justify-center items-center gap-2 mt-4"
+        className="w-full bg-primary hover:bg-primary-dark text-primary-foreground py-2 px-4 rounded-xl shadow-warm transition-colors disabled:opacity-50 flex justify-center items-center gap-2 mt-4"
       >
         {isLoading ? <Loader2 className="animate-spin w-4 h-4" /> : 'Pagar Ahora'}
       </button>
@@ -103,27 +103,27 @@ export function ModalPagoStripe({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 rounded-lg shadow-xl w-full max-w-md overflow-hidden border border-slate-700 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
-          <h3 className="text-lg font-semibold text-slate-100">Realizar Pago Seguro</h3>
+      <div className="bg-card rounded-2xl shadow-warm w-full max-w-md overflow-hidden border border-border max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-4 border-b border-border bg-background-subtle">
+          <h3 className="text-lg font-semibold text-foreground">Realizar Pago Seguro</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6">
-          <div className="mb-6 bg-slate-700/30 p-4 rounded-lg border border-slate-700">
-            <p className="text-slate-400 text-sm mb-1">Monto a pagar:</p>
-            <p className="text-2xl font-bold text-emerald-400">
+          <div className="mb-6 bg-background-subtle p-4 rounded-lg border border-border">
+            <p className="text-muted-foreground text-sm mb-1">Monto a pagar:</p>
+            <p className="text-2xl font-bold text-success">
               {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto)}
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-900/20 border border-red-800 text-red-300 p-3 rounded mb-4 text-sm flex items-center gap-2">
+            <div className="bg-danger/10 border border-danger/40 text-danger p-3 rounded mb-4 text-sm flex items-center gap-2">
               <span className="font-bold">Error:</span> {error}
             </div>
           )}
@@ -138,8 +138,8 @@ export function ModalPagoStripe({
           ) : (
             !error && (
               <div className="flex flex-col items-center justify-center py-8 gap-3">
-                <Loader2 className="animate-spin w-8 h-8 text-emerald-500" />
-                <p className="text-slate-400 text-sm">Iniciando sesión segura con Stripe...</p>
+                <Loader2 className="animate-spin w-8 h-8 text-success" />
+                <p className="text-muted-foreground text-sm">Iniciando sesión segura con Stripe...</p>
               </div>
             )
           )}

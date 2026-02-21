@@ -25,13 +25,13 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pagado':
-        return 'bg-emerald-900/30 text-emerald-400 border-emerald-800';
+        return 'bg-success/10 text-success border-success/40';
       case 'pendiente':
-        return 'bg-amber-900/30 text-amber-400 border-amber-800';
+        return 'bg-warning/10 text-warning border-warning/40';
       case 'vencido':
-        return 'bg-red-900/30 text-red-400 border-red-800';
+        return 'bg-danger/10 text-danger border-danger/40';
       default:
-        return 'bg-slate-700 text-slate-300 border-slate-600';
+        return 'bg-muted/20 text-muted-foreground border-muted';
     }
   };
 
@@ -59,7 +59,7 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
       body: tableData,
       startY: 40,
       styles: { fontSize: 9 },
-      headStyles: { fillColor: [16, 185, 129] }, // Emerald-600
+      headStyles: { fillColor: [192, 86, 33] },
     });
 
     doc.save('tabla-amortizacion.pdf');
@@ -70,7 +70,7 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
       <div className="flex justify-end">
         <button
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-warm hover:bg-primary-dark transition-colors"
         >
           <Download className="h-4 w-4" />
           Descargar PDF
@@ -78,9 +78,9 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-700">
-        <table className="w-full text-sm text-left text-slate-400">
-          <thead className="text-xs text-slate-200 uppercase bg-slate-800">
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <table className="w-full text-sm text-left text-muted-foreground">
+          <thead className="text-xs text-foreground uppercase bg-background-paper">
             <tr>
               <th scope="col" className="px-6 py-3">
                 No.
@@ -109,11 +109,11 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
             {amortizacion.map((pago) => (
               <tr
                 key={pago.numero_pago}
-                className="bg-slate-800/50 border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
+                className="bg-card border-b border-border hover:bg-background-subtle transition-colors"
               >
-                <td className="px-6 py-4 font-medium text-slate-200">{pago.numero_pago}</td>
+                <td className="px-6 py-4 font-medium text-foreground">{pago.numero_pago}</td>
                 <td className="px-6 py-4">{formatDate(pago.fecha_vencimiento)}</td>
-                <td className="px-6 py-4 font-mono text-slate-200">{formatCurrency(pago.cuota)}</td>
+                <td className="px-6 py-4 font-mono text-foreground">{formatCurrency(pago.cuota)}</td>
                 <td className="px-6 py-4 font-mono">{formatCurrency(pago.interes)}</td>
                 <td className="px-6 py-4 font-mono">{formatCurrency(pago.capital)}</td>
                 <td className="px-6 py-4 font-mono">{formatCurrency(pago.saldo_restante)}</td>
@@ -135,14 +135,14 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
         {amortizacion.map((pago) => (
           <div
             key={pago.numero_pago}
-            className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm"
+            className="bg-card border border-border rounded-2xl p-4 shadow-card"
           >
             <div className="flex justify-between items-start mb-3">
               <div>
-                <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest mb-1">
                   {formatDate(pago.fecha_vencimiento)}
                 </p>
-                <p className="font-medium text-slate-200">Pago #{pago.numero_pago}</p>
+                <p className="font-medium text-foreground">Pago #{pago.numero_pago}</p>
               </div>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(pago.estatus)}`}
@@ -151,26 +151,26 @@ export default function TablaAmortizacion({ amortizacion }: TablaAmortizacionPro
               </span>
             </div>
 
-            <div className="space-y-2 text-sm text-slate-400 mb-3 bg-slate-900/30 p-3 rounded-lg">
+            <div className="space-y-2 text-sm text-muted-foreground mb-3 bg-background-subtle p-3 rounded-xl border border-border/60">
               <div className="flex justify-between">
                 <span>Capital:</span>
-                <span className="text-slate-200 font-mono">{formatCurrency(pago.capital)}</span>
+                <span className="text-foreground font-mono">{formatCurrency(pago.capital)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Interés:</span>
-                <span className="text-slate-200 font-mono">{formatCurrency(pago.interes)}</span>
+                <span className="text-foreground font-mono">{formatCurrency(pago.interes)}</span>
               </div>
-              <div className="flex justify-between border-t border-slate-700/50 pt-2 mt-2">
+              <div className="flex justify-between border-t border-border/60 pt-2 mt-2">
                 <span>Saldo Restante:</span>
-                <span className="text-slate-200 font-mono">
+                <span className="text-foreground font-mono">
                   {formatCurrency(pago.saldo_restante)}
                 </span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-slate-700">
-              <span className="text-sm text-slate-400">Cuota Total</span>
-              <span className="font-mono text-lg font-bold text-slate-200">
+            <div className="flex justify-between items-center pt-3 border-t border-border">
+              <span className="text-sm text-muted-foreground">Cuota Total</span>
+              <span className="font-mono text-lg font-bold text-foreground">
                 {formatCurrency(pago.cuota)}
               </span>
             </div>

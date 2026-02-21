@@ -79,13 +79,15 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 w-full">
+    <div className="bg-card border border-border rounded-2xl p-6 w-full shadow-card">
       {/* Filtros */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Buscar Cliente</label>
+        <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          Buscar Cliente
+        </label>
         <input
           type="text"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
           placeholder="Nombre, Email o RFC..."
           value={filtroTexto}
           onChange={(e) => setFiltroTexto(e.target.value)}
@@ -93,13 +95,13 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
       </div>
 
       {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <table className="min-w-full text-sm text-left text-muted-foreground">
+          <thead className="bg-background-paper text-foreground uppercase font-medium">
             <tr>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                 onClick={() => handleSort('nombre')}
               >
                 Nombre
@@ -109,74 +111,83 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                 onClick={() => handleSort('email')}
               >
                 Email
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                 onClick={() => handleSort('telefono')}
               >
                 Teléfono
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                 onClick={() => handleSort('rfc')}
               >
                 RFC
               </th>
-              <th scope="col" className="relative px-6 py-3">
+              <th
+                scope="col"
+                className="relative px-6 py-4 text-right text-xs font-medium tracking-widest text-muted-foreground"
+              >
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-sm text-muted-foreground"
+                >
                   Cargando clientes...
                 </td>
               </tr>
             ) : clientesPaginados.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-sm text-muted-foreground"
+                >
                   No se encontraron clientes
                 </td>
               </tr>
             ) : (
               clientesPaginados.map((cliente) => (
-                <tr key={cliente.id} className="hover:bg-gray-50">
+                <tr key={cliente.id} className="hover:bg-background-subtle transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-foreground">
                       {cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       Registrado: {formatDate(cliente.created_at)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {cliente.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {cliente.telefono}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {cliente.rfc || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onVerDetalles(cliente.id)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
+                      className="text-primary-light hover:text-primary transition-colors mr-4"
                     >
                       Ver
                     </button>
                     {onEditar && (
                       <button
                         onClick={() => onEditar(cliente.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-primary-light hover:text-primary transition-colors"
                       >
                         Editar
                       </button>
@@ -190,10 +201,10 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
       </div>
 
       {/* Paginación */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+      <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-border sm:px-6 mt-4">
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-muted-foreground">
               Mostrando{' '}
               <span className="font-medium">{(paginaActual - 1) * itemsPorPagina + 1}</span> a{' '}
               <span className="font-medium">
@@ -204,13 +215,13 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
           </div>
           <div>
             <nav
-              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+              className="relative z-0 inline-flex rounded-xl shadow-sm overflow-hidden"
               aria-label="Pagination"
             >
               <button
                 onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
                 disabled={paginaActual === 1}
-                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center px-3 py-2 border border-border text-sm font-medium text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
               >
                 Anterior
               </button>
@@ -220,8 +231,8 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
                   onClick={() => setPaginaActual(i + 1)}
                   className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                     paginaActual === i + 1
-                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      ? 'z-10 bg-primary/10 border-primary text-primary'
+                      : 'bg-background border-border text-muted-foreground hover:bg-background-subtle'
                   }`}
                 >
                   {i + 1}
@@ -230,7 +241,7 @@ const TablaClientes: React.FC<TablaClientesProps> = ({
               <button
                 onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
                 disabled={paginaActual === totalPaginas}
-                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center px-3 py-2 border border-border text-sm font-medium text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
               >
                 Siguiente
               </button>

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Pago, EstatusPago } from '@/types/erp';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { format } from 'date-fns';
 
 interface TablaPagosProps {
@@ -79,13 +80,15 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 w-full">
+    <div className="bg-card border border-border rounded-2xl p-6 w-full shadow-card">
       {/* Filtros */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Estatus</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Estatus
+          </label>
           <select
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={filtroEstatus}
             onChange={(e) => setFiltroEstatus(e.target.value as EstatusPago)}
           >
@@ -96,27 +99,31 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">ID Venta</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            ID Venta
+          </label>
           <input
             type="text"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Buscar por ID venta..."
             value={filtroVenta}
             onChange={(e) => setFiltroVenta(e.target.value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Vencimiento</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Vencimiento
+          </label>
           <input
             type="date"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={filtroFecha}
             onChange={(e) => setFiltroFecha(e.target.value)}
           />
         </div>
         <div className="flex items-end">
           <button
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            className="w-full bg-background border border-border text-sm font-medium text-muted-foreground rounded-xl py-2 px-4 hover:bg-background-subtle transition-colors"
             onClick={() => {
               setFiltroEstatus('');
               setFiltroVenta('');
@@ -129,15 +136,15 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
       </div>
 
       {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-card">
+        <table className="min-w-full text-sm text-left text-muted-foreground">
+          <thead className="bg-background-paper text-foreground uppercase font-medium">
             <tr>
-              {['venta_id', 'numero_pago', 'fecha_vencimiento', 'monto', 'estatus'].map((col) => (
+              {['venta_id', 'numero_pago', 'fecha_vencimiento', 'monto'].map((col) => (
                 <th
                   key={col}
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                   onClick={() => handleSort(col as keyof Pago)}
                 >
                   {col.replace('_', ' ').toUpperCase()}
@@ -148,29 +155,37 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
               ))}
               <th
                 scope="col"
-                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
+                onClick={() => handleSort('estatus')}
+              >
+                ESTATUS
+                <InfoTooltip content="Estado actual del pago dentro del plan de cobranza de la venta." />
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-right text-xs font-medium tracking-widest text-muted-foreground"
               >
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-muted-foreground">
                   Cargando...
                 </td>
               </tr>
             ) : pagosPaginados.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-muted-foreground">
                   No se encontraron pagos
                 </td>
               </tr>
             ) : (
               pagosPaginados.map((pago) => (
-                <tr key={pago.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <tr key={pago.id} className="hover:bg-background-subtle transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {(() => {
                       if (!pago.venta_id) return 'N/A';
                       const ventaId =
@@ -180,24 +195,24 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
                       return ventaId ? String(ventaId).substring(0, 8) + '...' : 'N/A';
                     })()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     #{pago.numero_pago}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {formatDate(pago.fecha_vencimiento)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-medium">
                     {formatCurrency(pago.monto)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      className={`px-2.5 inline-flex text-xs leading-5 font-semibold rounded-full border 
                       ${
                         pago.estatus === 'pagado'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-success/10 text-success border-success/40'
                           : pago.estatus === 'atrasado'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-danger/10 text-danger border-danger/40'
+                            : 'bg-warning/10 text-warning border-warning/40'
                       }`}
                     >
                       {pago.estatus.toUpperCase()}
@@ -206,14 +221,14 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onVerDetalles(pago.id)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      className="text-primary-light hover:text-primary transition-colors mr-3"
                     >
                       Ver
                     </button>
                     {onMarcarPagado && pago.estatus !== 'pagado' && (
                       <button
                         onClick={() => onMarcarPagado(pago.id)}
-                        className="text-green-600 hover:text-green-900 mr-3"
+                        className="text-success hover:text-success/80 transition-colors mr-3"
                       >
                         Pagar
                       </button>
@@ -221,7 +236,7 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
                     {onGenerarRecibo && pago.estatus === 'pagado' && (
                       <button
                         onClick={() => onGenerarRecibo(pago.id)}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Recibo
                       </button>
@@ -235,32 +250,32 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
       </div>
 
       {/* Paginación Simplificada */}
-      <div className="py-3 flex items-center justify-between border-t border-gray-200">
+      <div className="py-3 flex items-center justify-between border-t border-border mt-4">
         <div className="flex-1 flex justify-between sm:hidden">
           <button
             onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
             disabled={paginaActual === 1}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-xl text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
           >
             Anterior
           </button>
           <button
             onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
             disabled={paginaActual === totalPaginas}
-            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-xl text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
           >
             Siguiente
           </button>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-muted-foreground">
               Mostrando {(paginaActual - 1) * itemsPorPagina + 1} a{' '}
               {Math.min(paginaActual * itemsPorPagina, pagosFiltrados.length)} de{' '}
               {pagosFiltrados.length}
             </p>
           </div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          <nav className="relative z-0 inline-flex rounded-xl shadow-sm overflow-hidden">
             {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
               // Lógica simple para mostrar paginación cercana
               let p = i + 1;
@@ -270,7 +285,11 @@ const TablaPagos: React.FC<TablaPagosProps> = ({
                 <button
                   key={p}
                   onClick={() => setPaginaActual(p)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${paginaActual === p ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                    paginaActual === p
+                      ? 'z-10 bg-primary/10 border-primary text-primary'
+                      : 'bg-background border-border text-muted-foreground hover:bg-background-subtle'
+                  }`}
                 >
                   {p}
                 </button>

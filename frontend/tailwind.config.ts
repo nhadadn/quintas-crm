@@ -68,9 +68,9 @@ const config: Config = {
         info: '#2C5282',
       },
       boxShadow: {
-        warm: '0 4px 14px 0 rgba(192, 86, 33, 0.15)',
-        'warm-hover': '0 6px 20px 0 rgba(192, 86, 33, 0.25)',
-        card: '0 2px 8px 0 rgba(74, 44, 33, 0.08)',
+        warm: '0 18px 60px -24px rgba(15, 23, 42, 0.45)',
+        'warm-hover': '0 22px 80px -30px rgba(15, 23, 42, 0.55)',
+        card: '0 14px 40px -24px rgba(15, 23, 42, 0.35)',
       },
       borderRadius: {
         lg: 'var(--radius)',

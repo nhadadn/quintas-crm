@@ -26,7 +26,7 @@ export function PanelLote({ selectedLote, onClose, footer }: PanelLoteProps) {
       {/* Header con gradiente sutil */}
       <div className="p-4 bg-gradient-to-r from-background-subtle to-background-paper border-b border-stone-100 flex justify-between items-start">
         <div>
-          <h2 className="text-xl font-serif font-bold text-primary-dark tracking-tight">
+          <h2 className="text-xl font-bold text-primary-dark tracking-tight">
             Lote {selectedLote.numero_lote}
           </h2>
           <p className="text-xs text-text-muted font-medium uppercase tracking-wider mt-1">

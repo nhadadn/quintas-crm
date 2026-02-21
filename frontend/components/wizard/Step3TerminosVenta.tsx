@@ -7,6 +7,7 @@ import { Cliente, FilaAmortizacion, Vendedor } from '@/types/erp';
 import { calcularAmortizacion } from '@/lib/pagos-api';
 import { fetchVendedores } from '@/lib/vendedores-api';
 import { TablaAmortizacion } from '@/components/pagos/TablaAmortizacion';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 interface Step3Props {
   onNext: (terminos: TerminosVenta) => void;
@@ -94,27 +95,27 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Términos de Venta</h2>
+    <div className="max-w-4xl mx-auto bg-card p-8 rounded-2xl shadow-card border border-border">
+      <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Términos de Venta</h2>
 
-      <div className="bg-slate-900 p-4 rounded-lg mb-6 border border-slate-700">
-        <h3 className="text-lg font-semibold text-slate-200 mb-2">Resumen</h3>
+      <div className="bg-background-paper p-4 rounded-xl mb-6 border border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-2">Resumen</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-slate-400">Lote</p>
-            <p className="text-white font-medium">
+            <p className="text-muted-foreground">Lote</p>
+            <p className="text-foreground font-medium">
               {lote.numero_lote} (Manzana {lote.manzana})
             </p>
           </div>
           <div>
-            <p className="text-slate-400">Precio de Lista</p>
-            <p className="text-emerald-400 font-bold">
+            <p className="text-muted-foreground">Precio de Lista</p>
+            <p className="text-primary-light font-bold">
               ${lote.precio_lista.toLocaleString('es-MX')}
             </p>
           </div>
           <div>
-            <p className="text-slate-400">Cliente</p>
-            <p className="text-white font-medium">
+            <p className="text-muted-foreground">Cliente</p>
+            <p className="text-foreground font-medium">
               {cliente.nombre} {cliente.apellido_paterno}
             </p>
           </div>
@@ -124,13 +125,15 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Vendedor */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Vendedor Asignado</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+            Vendedor Asignado
+          </label>
           {loadingVendedores ? (
-            <div className="text-slate-500 text-sm">Cargando vendedores...</div>
+            <div className="text-muted-foreground text-sm">Cargando vendedores...</div>
           ) : (
             <select
               {...register('vendedor_id', { required: 'Debe seleccionar un vendedor' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             >
               <option value="">Seleccione un vendedor...</option>
               {vendedores.map((vendedor) => (
@@ -148,7 +151,10 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Enganche */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Enganche</label>
+            <label className="flex items-center text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+              Enganche
+              <InfoTooltip content="Monto inicial para apartar el lote. Mínimo 20% del valor." />
+            </label>
             <input
               type="number"
               {...register('enganche', {
@@ -158,19 +164,22 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
                   message: 'El enganche debe ser al menos el 20%',
                 },
               })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             />
             {errors.enganche && (
               <span className="text-red-500 text-xs mt-1">{errors.enganche.message}</span>
             )}
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Mínimo sugerido: ${(lote.precio_lista * 0.2).toLocaleString('es-MX')}
             </p>
           </div>
 
           {/* Plazo */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Plazo (meses)</label>
+            <label className="flex items-center text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+              Plazo (meses)
+              <InfoTooltip content="Tiempo total para liquidar el financiamiento." />
+            </label>
             <input
               type="number"
               {...register('plazo_meses', {
@@ -178,7 +187,7 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
                 min: { value: 6, message: 'Mínimo 6 meses' },
                 max: { value: 360, message: 'Máximo 360 meses' },
               })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             />
             {errors.plazo_meses && (
               <span className="text-red-500 text-xs mt-1">{errors.plazo_meses.message}</span>
@@ -189,8 +198,9 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Tasa Interés */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
+            <label className="flex items-center text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
               Tasa de Interés Anual (%)
+              <InfoTooltip content="Porcentaje de interés anual sobre saldos insolutos." />
             </label>
             <input
               type="number"
@@ -200,16 +210,18 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
                 min: 0,
                 max: 100,
               })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             />
           </div>
 
           {/* Método de Pago */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Método de Pago</label>
+            <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+              Método de Pago
+            </label>
             <select
               {...register('metodo_pago')}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             >
               <option value="transferencia">Transferencia</option>
               <option value="efectivo">Efectivo</option>
@@ -237,50 +249,58 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
           </div>
         )}
 
-        <div className="bg-emerald-900/30 p-4 rounded-lg border border-emerald-800/50">
-          <h4 className="text-emerald-400 font-semibold mb-2">Proyección</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <p className="text-slate-400">Monto a Financiar</p>
-              <p className="text-white text-lg font-bold">
+        <div className="bg-success/5 p-4 rounded-2xl border border-success/30">
+          <h4 className="text-success font-semibold mb-2">Proyección Financiera</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+            <div className="bg-background-paper p-3 rounded border border-border">
+              <p className="text-muted-foreground text-xs">Enganche Total</p>
+              <p className="text-success text-lg font-semibold">
+                ${Number(watchEnganche || 0).toLocaleString('es-MX')}
+              </p>
+            </div>
+            <div className="bg-background-paper p-3 rounded border border-border">
+              <p className="text-muted-foreground text-xs">Monto a Financiar</p>
+              <p className="text-success text-lg font-semibold">
                 ${montoFinanciado.toLocaleString('es-MX')}
               </p>
             </div>
-            <div>
-              <p className="text-slate-400">Mensualidad Estimada</p>
-              <p className="text-white text-lg font-bold">${mensualidad.toLocaleString('es-MX')}</p>
+            <div className="bg-background-paper p-3 rounded border border-border">
+              <p className="text-muted-foreground text-xs">Mensualidad Estimada</p>
+              <p className="text-success text-lg font-semibold">
+                ${mensualidad.toLocaleString('es-MX')}
+              </p>
             </div>
           </div>
 
           {/* Preview Tabla Amortización */}
           {tablaPreview.length > 0 && (
             <div className="mt-4">
-              <h5 className="text-white font-medium mb-2 text-sm">Primeros 5 pagos (Preview)</h5>
-              <div className="overflow-hidden rounded-lg border border-slate-700">
+              <h5 className="text-foreground font-medium mb-2 text-sm">Primeros 5 pagos (Preview)</h5>
+              <div className="overflow-hidden rounded-2xl border border-border">
                 <TablaAmortizacion data={tablaPreview.slice(0, 5)} />
               </div>
             </div>
           )}
 
           {/* Preview Comisiones (Simulación 5%) */}
-          <div className="mt-6 pt-4 border-t border-emerald-800/50">
-            <h5 className="text-emerald-400 font-medium mb-2 text-sm">Comisiones Estimadas (5%)</h5>
+          <div className="mt-6 pt-4 border-t border-success/30">
+            <h5 className="text-success font-medium mb-2 text-sm">Comisiones Estimadas (5%)</h5>
             <div className="grid grid-cols-3 gap-2 text-xs text-center">
-              <div className="bg-slate-900/50 p-2 rounded">
-                <p className="text-slate-400">Enganche (30%)</p>
-                <p className="text-white font-bold">
+              <div className="bg-background-paper p-2 rounded">
+                <p className="text-muted-foreground">Enganche (30%)</p>
+                <p className="text-foreground font-bold">
                   ${(lote.precio_lista * 0.05 * 0.3).toLocaleString('es-MX')}
                 </p>
               </div>
-              <div className="bg-slate-900/50 p-2 rounded">
-                <p className="text-slate-400">Contrato (30%)</p>
-                <p className="text-white font-bold">
+              <div className="bg-background-paper p-2 rounded">
+                <p className="text-muted-foreground">Contrato (30%)</p>
+                <p className="text-foreground font-bold">
                   ${(lote.precio_lista * 0.05 * 0.3).toLocaleString('es-MX')}
                 </p>
               </div>
-              <div className="bg-slate-900/50 p-2 rounded">
-                <p className="text-slate-400">Liquidación (40%)</p>
-                <p className="text-white font-bold">
+              <div className="bg-background-paper p-2 rounded">
+                <p className="text-muted-foreground">Liquidación (40%)</p>
+                <p className="text-foreground font-bold">
                   ${(lote.precio_lista * 0.05 * 0.4).toLocaleString('es-MX')}
                 </p>
               </div>
@@ -288,17 +308,17 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
           </div>
         </div>
 
-        <div className="flex justify-between pt-6 border-t border-slate-700">
+        <div className="flex justify-between pt-6 border-t border-border">
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            className="px-6 py-2 rounded-xl border border-border bg-background text-muted-foreground hover:bg-background-subtle transition-colors"
           >
             Atrás
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors"
+            className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-semibold shadow-warm hover:bg-primary-dark transition-colors"
           >
             Siguiente
           </button>

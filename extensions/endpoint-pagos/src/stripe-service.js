@@ -121,12 +121,10 @@ export const updateSubscription = async (subscriptionId, newPriceId) => {
   const itemId = subscription.items.data[0].id;
 
   return await stripeInstance.subscriptions.update(subscriptionId, {
-    items: [
-      {
-        id: itemId,
-        price: newPriceId,
-      },
-    ],
+    items: [{
+      id: itemId,
+      price: newPriceId,
+    }],
     proration_behavior: 'create_prorations',
   });
 };
@@ -182,13 +180,13 @@ export const createRefund = async ({ paymentIntentId, amount, reason, metadata =
   }
   // Mapear razones comunes de Stripe
   if (reason && ['duplicate', 'fraudulent', 'requested_by_customer'].includes(reason)) {
-    params.reason = reason;
+      params.reason = reason;
   }
-
+  
   return await stripeInstance.refunds.create(params);
 };
 
 export const retrieveBalanceTransactions = async (params) => {
-  const stripeInstance = getStripe();
-  return await stripeInstance.balanceTransactions.list(params);
+    const stripeInstance = getStripe();
+    return await stripeInstance.balanceTransactions.list(params);
 };

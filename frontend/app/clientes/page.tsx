@@ -60,18 +60,18 @@ export default function GestionClientesPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Clientes</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Gestión de Clientes</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Administra la base de datos de clientes y prospectos.
           </p>
         </div>
         <div className="flex space-x-3">
           <Link
             href="/clientes/nuevo"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-warm hover:shadow-warm-hover hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background"
           >
             Nuevo Cliente
           </Link>
@@ -79,21 +79,21 @@ export default function GestionClientesPage() {
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
+        <div className="mb-6 bg-danger/10 border-l-4 border-danger p-4 rounded-r-md">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-red-500" />
+              <AlertCircle className="h-5 w-5 text-danger" />
             </div>
             <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-red-800">Error de Carga</h3>
-              <div className="mt-2 text-sm text-red-700">
+              <h3 className="text-sm font-medium text-danger">Error de Carga</h3>
+              <div className="mt-2 text-sm text-danger/90">
                 <p>{error}</p>
               </div>
               <div className="mt-4">
                 <button
                   type="button"
                   onClick={cargarClientes}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex items-center px-3 py-2 rounded-xl text-sm leading-4 font-medium text-danger bg-danger/10 hover:bg-danger/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-danger/40"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reintentar

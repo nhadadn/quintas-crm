@@ -134,27 +134,35 @@ export default function GeneradorRecibos({ pago, onClose }: GeneradorRecibosProp
     }
   };
 
-  if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-  if (!pago) return <div className="p-4 text-center">No se encontró el pago.</div>;
+  if (error)
+    return <div className="p-4 text-center text-danger text-sm">{error}</div>;
+  if (!pago)
+    return (
+      <div className="p-4 text-center text-sm text-muted-foreground">
+        No se encontró el pago.
+      </div>
+    );
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Generar Recibo</h2>
+    <div className="bg-card border border-border p-5 rounded-2xl shadow-card max-w-sm w-full mx-auto">
+      <h2 className="text-lg font-semibold tracking-tight mb-3 text-text-primary">
+        Generar Recibo
+      </h2>
 
-      <div className="mb-6 space-y-2">
+      <div className="mb-5 space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-600">Pago #:</span>
-          <span className="font-medium">{pago.numero_pago}</span>
+          <span className="text-muted-foreground">Pago #</span>
+          <span className="font-medium text-foreground">{pago.numero_pago}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Monto:</span>
-          <span className="font-medium text-green-600">
+          <span className="text-muted-foreground">Monto</span>
+          <span className="font-semibold text-foreground">
             ${pago.monto_pagado.toLocaleString('es-MX')}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-600">Fecha:</span>
-          <span className="font-medium">
+          <span className="text-muted-foreground">Fecha</span>
+          <span className="font-medium text-foreground">
             {pago.fecha_pago ? new Date(pago.fecha_pago).toLocaleDateString('es-MX') : 'Pendiente'}
           </span>
         </div>
@@ -164,13 +172,13 @@ export default function GeneradorRecibos({ pago, onClose }: GeneradorRecibosProp
         <button
           onClick={() => generarPDF('descargar')}
           disabled={generando || pago.estatus !== 'pagado'}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors
+          className={`w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold shadow-warm transition-colors
             ${
               pago.estatus !== 'pagado'
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed shadow-none'
                 : generando
-                  ? 'bg-blue-400 cursor-wait'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  ? 'bg-primary/70 text-primary-foreground cursor-wait'
+                  : 'bg-primary text-primary-foreground hover:bg-primary-dark hover:shadow-warm-hover'
             }`}
         >
           {generando ? 'Generando PDF...' : 'Descargar Recibo PDF'}
@@ -179,18 +187,18 @@ export default function GeneradorRecibos({ pago, onClose }: GeneradorRecibosProp
         <button
           onClick={() => generarPDF('imprimir')}
           disabled={generando || pago.estatus !== 'pagado'}
-          className={`w-full py-2 px-4 rounded-md text-gray-700 border border-gray-300 font-medium transition-colors
+          className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors
             ${
               pago.estatus !== 'pagado'
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'hover:bg-gray-50'
+                ? 'bg-muted text-muted-foreground border-border cursor-not-allowed'
+                : 'bg-background text-muted-foreground border-border hover:bg-background-subtle'
             }`}
         >
           Imprimir
         </button>
 
         {pago.estatus !== 'pagado' && (
-          <p className="text-sm text-center text-amber-600">
+          <p className="text-xs text-center text-warning">
             Solo se pueden generar recibos de pagos completados.
           </p>
         )}
@@ -198,7 +206,7 @@ export default function GeneradorRecibos({ pago, onClose }: GeneradorRecibosProp
         {onClose && (
           <button
             onClick={onClose}
-            className="w-full py-2 px-4 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="w-full px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground bg-background hover:bg-background-subtle transition-colors"
           >
             Cerrar
           </button>

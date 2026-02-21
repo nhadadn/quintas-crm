@@ -82,13 +82,13 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pagado':
-        return 'bg-emerald-900/30 text-emerald-400 border-emerald-800';
+        return 'bg-success/10 text-success border-success/40';
       case 'pendiente':
-        return 'bg-amber-900/30 text-amber-400 border-amber-800';
+        return 'bg-warning/10 text-warning border-warning/40';
       case 'vencido':
-        return 'bg-red-900/30 text-red-400 border-red-800';
+        return 'bg-danger/10 text-danger border-danger/40';
       default:
-        return 'bg-slate-700 text-slate-300 border-slate-600';
+        return 'bg-muted/20 text-muted-foreground border-muted';
     }
   };
 
@@ -188,97 +188,97 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-card flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Total Pagado</p>
-            <p className="text-2xl font-bold text-emerald-400 mt-1">
+            <p className="text-muted-foreground text-sm font-medium">Total Pagado</p>
+            <p className="text-2xl font-bold text-success mt-1">
               {formatCurrency(estadisticas.total_pagado)}
             </p>
           </div>
-          <div className="p-3 bg-emerald-900/20 rounded-lg">
-            <DollarSign className="w-6 h-6 text-emerald-500" />
+          <div className="p-3 bg-success/10 rounded-lg">
+            <DollarSign className="w-6 h-6 text-success" />
           </div>
         </div>
 
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-card flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Saldo Pendiente</p>
-            <p className="text-2xl font-bold text-amber-400 mt-1">
+            <p className="text-muted-foreground text-sm font-medium">Saldo Pendiente</p>
+            <p className="text-2xl font-bold text-warning mt-1">
               {formatCurrency(estadisticas.saldo_pendiente)}
             </p>
           </div>
-          <div className="p-3 bg-amber-900/20 rounded-lg">
-            <Clock className="w-6 h-6 text-amber-500" />
+          <div className="p-3 bg-warning/10 rounded-lg">
+            <Clock className="w-6 h-6 text-warning" />
           </div>
         </div>
 
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center justify-between">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-card flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Próximo Vencimiento</p>
-            <p className="text-xl font-bold text-slate-200 mt-1">
+            <p className="text-muted-foreground text-sm font-medium">Próximo Vencimiento</p>
+            <p className="text-xl font-bold text-foreground mt-1">
               {estadisticas.proximo_pago ? formatDate(estadisticas.proximo_pago.fecha_pago) : 'N/A'}
             </p>
             {estadisticas.proximo_pago && (
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {formatCurrency(estadisticas.proximo_pago.monto)}
               </p>
             )}
           </div>
-          <div className="p-3 bg-blue-900/20 rounded-lg">
-            <AlertCircle className="w-6 h-6 text-blue-500" />
+          <div className="p-3 bg-info/10 rounded-lg">
+            <AlertCircle className="w-6 h-6 text-info" />
           </div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+      <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center bg-background-paper p-6 rounded-2xl border border-border shadow-card">
         <div className="relative w-full lg:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
             type="text"
             placeholder="Buscar por monto, concepto, lote o venta..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary-light transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-input border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-light transition-colors"
           />
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto">
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative w-full md:w-auto">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 <Calendar className="w-4 h-4" />
               </span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
                 placeholder="Desde"
               />
             </div>
-            <span className="text-slate-500">-</span>
+            <span className="text-muted-foreground">-</span>
             <div className="relative w-full md:w-auto">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 <Calendar className="w-4 h-4" />
               </span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
                 placeholder="Hasta"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Filter className="w-4 h-4 text-slate-400 hidden md:block" />
+            <Filter className="w-4 h-4 text-muted-foreground hidden md:block" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto bg-slate-900 border border-slate-700 rounded-lg text-slate-200 py-2 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
+              className="w-full md:w-auto bg-input border border-input rounded-xl text-foreground py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
             >
               <option value="all">Todos los estatus</option>
               <option value="pagado">Pagado</option>
@@ -290,47 +290,47 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-card">
+      <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-400">
-            <thead className="bg-slate-900/50 text-slate-200 uppercase font-medium">
+          <table className="w-full text-left text-sm text-muted-foreground">
+            <thead className="bg-background-subtle text-foreground uppercase font-medium">
               <tr>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle transition-colors"
                   onClick={() => handleSort('fecha_pago')}
                 >
                   <div className="flex items-center gap-2">
                     Fecha
-                    <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th className="px-6 py-4">Concepto / Ref</th>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle transition-colors"
                   onClick={() => handleSort('monto')}
                 >
                   <div className="flex items-center gap-2">
                     Monto
-                    <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800 transition-colors"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle transition-colors"
                   onClick={() => handleSort('estatus')}
                 >
                   <div className="flex items-center gap-2">
                     Estatus
-                    <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-border">
               {paginatedPagos.length > 0 ? (
                 paginatedPagos.map((pago) => (
-                  <tr key={pago.id} className="hover:bg-slate-700/30 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-200">
+                  <tr key={pago.id} className="hover:bg-background-subtle transition-colors">
+                    <td className="px-6 py-4 font-medium text-foreground">
                       {formatDate(pago.fecha_pago)}
                     </td>
                     <td className="px-6 py-4">
@@ -338,7 +338,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                         ? `Parcialidad ${pago.numero_parcialidad}`
                         : pago.concepto || 'Pago General'}
                     </td>
-                    <td className="px-6 py-4 font-mono text-slate-200">
+                    <td className="px-6 py-4 font-mono text-foreground">
                       {formatCurrency(pago.monto)}
                     </td>
                     <td className="px-6 py-4">
@@ -355,7 +355,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                           pago.estatus === 'atrasado') && (
                           <button
                             onClick={() => handlePagar(pago)}
-                            className="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20 rounded-lg transition-colors"
+                            className="p-2 text-success hover:text-success/80 hover:bg-success/10 rounded-lg transition-colors"
                             title="Pagar ahora"
                           >
                             <CreditCard className="w-5 h-5" />
@@ -379,7 +379,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                     No se encontraron pagos que coincidan con tu búsqueda.
                   </td>
                 </tr>
@@ -393,16 +393,13 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
       <div className="md:hidden space-y-4">
         {paginatedPagos.length > 0 ? (
           paginatedPagos.map((pago) => (
-            <div
-              key={pago.id}
-              className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm"
-            >
+            <div key={pago.id} className="bg-card border border-border rounded-2xl p-5 shadow-card">
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
                     {formatDate(pago.fecha_pago)}
                   </p>
-                  <p className="font-medium text-slate-200">
+                  <p className="font-medium text-foreground">
                     {pago.numero_parcialidad
                       ? `Parcialidad ${pago.numero_parcialidad}`
                       : pago.concepto || 'Pago General'}
@@ -415,8 +412,8 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 </span>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-slate-700">
-                <span className="font-mono text-lg font-bold text-slate-200">
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="font-mono text-lg font-bold text-foreground">
                   {formatCurrency(pago.monto)}
                 </span>
                 <div className="flex gap-2">
@@ -425,7 +422,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                     pago.estatus === 'atrasado') && (
                     <button
                       onClick={() => handlePagar(pago)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm text-white transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-success hover:bg-success/80 rounded-lg text-sm text-background-paper transition-colors"
                     >
                       <CreditCard className="w-4 h-4" />
                       <span>Pagar</span>
@@ -435,7 +432,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                   <button
                     onClick={() => handleDownload(pago.id)}
                     disabled={downloadingId === pago.id}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-primary-light transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-background-paper hover:bg-background-subtle rounded-lg text-sm text-primary-light transition-colors disabled:opacity-50"
                   >
                     {downloadingId === pago.id ? (
                       <div className="w-4 h-4 border-2 border-primary-light border-t-transparent rounded-full animate-spin" />
@@ -449,7 +446,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             </div>
           ))
         ) : (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center text-slate-500">
+          <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground">
             No se encontraron pagos.
           </div>
         )}
@@ -457,26 +454,26 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-          <div className="text-sm text-slate-400">
+        <div className="flex items-center justify-between bg-background-paper p-4 rounded-xl border border-border">
+          <div className="text-sm text-muted-foreground">
             <span className="hidden sm:inline">Mostrando </span>
-            <span className="font-medium text-slate-200">
+            <span className="font-medium text-foreground">
               {(currentPage - 1) * itemsPerPage + 1}
             </span>{' '}
             -{' '}
-            <span className="font-medium text-slate-200">
+            <span className="font-medium text-foreground">
               {Math.min(currentPage * itemsPerPage, filteredAndSortedPagos.length)}
             </span>
             <span className="hidden sm:inline">
               {' '}
-              de <span className="font-medium text-slate-200">{filteredAndSortedPagos.length}</span>
+              de <span className="font-medium text-foreground">{filteredAndSortedPagos.length}</span>
             </span>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-background-subtle disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Página anterior"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -484,7 +481,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-background-subtle disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Siguiente página"
             >
               <ChevronRight className="w-5 h-5" />

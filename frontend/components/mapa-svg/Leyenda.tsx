@@ -3,7 +3,7 @@ import { COLORES_ESTATUS, EstatusLote } from '@/types/lote';
 export function Leyenda() {
   return (
     <div className="p-4 bg-background-paper border-b border-stone-100/50 backdrop-blur-sm">
-      <h3 className="font-serif font-bold text-primary-dark mb-3 text-sm tracking-wide border-b border-stone-100 pb-2">
+      <h3 className="font-bold text-primary-dark mb-3 text-sm tracking-wide border-b border-stone-100 pb-2">
         ESTATUS DE LOTES
       </h3>
       <div className="space-y-3">

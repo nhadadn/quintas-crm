@@ -26,6 +26,8 @@ export default function WizardVenta() {
   const router = useRouter();
   const [state, setState] = useState<WizardState>(INITIAL_STATE);
   const [loaded, setLoaded] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [createdSaleId, setCreatedSaleId] = useState<string | number | null>(null);
 
   // Cargar estado guardado
   useEffect(() => {
@@ -147,10 +149,9 @@ export default function WizardVenta() {
           console.error('Error enviando notificación de actualización:', e);
         }
 
-        alert('Venta creada exitosamente!');
         localStorage.removeItem(STORAGE_KEY);
-        setState(INITIAL_STATE);
-        router.push(`/ventas/${ventaCreada.id}`);
+        setCreatedSaleId(ventaCreada.id);
+        setSuccess(true);
       } else {
         throw new Error('No se recibió la venta creada');
       }
@@ -171,55 +172,92 @@ export default function WizardVenta() {
 
   if (!loaded) return null;
 
+  if (success && createdSaleId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card p-8 rounded-2xl shadow-warm max-w-md w-full text-center border border-border">
+          <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-success/20">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-success"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+            ¡Venta Exitosa!
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            La venta se ha registrado correctamente en el sistema.
+          </p>
+          <button
+            onClick={() => {
+              setState(INITIAL_STATE);
+              router.push(`/ventas/${createdSaleId}`);
+            }}
+            className="w-full bg-primary text-primary-foreground font-semibold py-3 px-4 rounded-xl transition-colors shadow-warm hover:shadow-warm-hover hover:bg-primary-dark"
+          >
+            Ver Detalle de Venta
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header Wizard */}
-      <div className="bg-slate-800 border-b border-slate-700 p-4 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span className="bg-emerald-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">
+      <div className="bg-card border-b border-border p-4 shadow-card sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <span className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-card">
               Wizard
             </span>
             Nueva Venta
           </h1>
 
-          <div className="flex items-center space-x-2">
-            {[1, 2, 3, 4].map((step) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-                    state.currentStep === step
-                      ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-800'
-                      : state.currentStep > step
-                        ? 'bg-emerald-900 text-emerald-200'
-                        : 'bg-slate-700 text-slate-400'
-                  }`}
-                >
-                  {step}
-                </div>
-                {step < 4 && (
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-center md:justify-start space-x-2 overflow-x-auto pb-1">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="flex items-center flex-shrink-0">
                   <div
-                    className={`w-8 h-1 mx-1 rounded ${
-                      state.currentStep > step ? 'bg-emerald-800' : 'bg-slate-700'
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+                      state.currentStep === step
+                        ? 'bg-primary text-primary-foreground ring-2 ring-primary-light ring-offset-2 ring-offset-background'
+                        : state.currentStep > step
+                          ? 'bg-primary/10 text-primary-dark'
+                          : 'bg-muted/40 text-muted-foreground'
                     }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+                  >
+                    {step}
+                  </div>
+                  {step < 4 && (
+                    <div
+                      className={`w-8 h-1 mx-1 rounded ${
+                        state.currentStep > step ? 'bg-primary-light' : 'bg-border'
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
 
-          <button
-            onClick={handleCancel}
-            className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
-          >
-            Cancelar
-          </button>
+            <button
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors flex-shrink-0"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 max-w-7xl mx-auto w-full p-4">
-        <h2 className="text-2xl font-bold mb-6 text-white">
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:py-8">
+        <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-6 text-text-primary">
           {state.currentStep === 1 && 'Selección de Lote'}
           {state.currentStep === 2 && 'Datos del Cliente'}
           {state.currentStep === 3 && 'Términos de Venta'}

@@ -72,15 +72,15 @@ export default function ModalRegistrarPago({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-card dark:bg-slate-800 rounded-2xl shadow-warm w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-border max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-4 border-b border-border dark:border-gray-700 bg-background-subtle dark:bg-gray-900/50">
+          <h2 className="text-lg font-semibold text-foreground dark:text-gray-100">
             Registrar Pago Manual
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            className="text-muted-foreground hover:text-foreground dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -88,37 +88,37 @@ export default function ModalRegistrarPago({
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
+            <div className="bg-danger/10 dark:bg-red-900/20 text-danger dark:text-red-400 p-3 rounded-md text-sm flex items-start gap-2">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">ID Venta</label>
+            <label className="text-sm font-medium text-foreground dark:text-gray-300">ID Venta</label>
             <input
               type="text"
               name="venta_id"
               value={formData.venta_id}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-2 border border-border dark:border-gray-600 rounded-md bg-input dark:bg-slate-900 text-foreground dark:text-white focus:ring-2 focus:ring-primary outline-none"
               placeholder="Ej. 123"
               required
             />
-            <p className="text-xs text-gray-500">Ingrese el ID numérico de la venta</p>
+            <p className="text-xs text-muted-foreground">Ingrese el ID numérico de la venta</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Monto</label>
+              <label className="text-sm font-medium text-foreground dark:text-gray-300">Monto</label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-muted-foreground">$</span>
                 <input
                   type="number"
                   name="monto"
                   value={formData.monto}
                   onChange={handleChange}
-                  className="w-full p-2 pl-7 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full p-2 pl-7 border border-border dark:border-gray-600 rounded-md bg-input dark:bg-slate-900 text-foreground dark:text-white focus:ring-2 focus:ring-primary outline-none"
                   placeholder="0.00"
                   step="0.01"
                   min="0.01"
@@ -128,7 +128,7 @@ export default function ModalRegistrarPago({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-foreground dark:text-gray-300">
                 Fecha Pago
               </label>
               <input
@@ -136,21 +136,21 @@ export default function ModalRegistrarPago({
                 name="fecha_pago"
                 value={formData.fecha_pago}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full p-2 border border-border dark:border-gray-600 rounded-md bg-input dark:bg-slate-900 text-foreground dark:text-white focus:ring-2 focus:ring-primary outline-none"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="text-sm font-medium text-foreground dark:text-gray-300">
               Método de Pago
             </label>
             <select
               name="metodo_pago"
               value={formData.metodo_pago}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-2 border border-border dark:border-gray-600 rounded-md bg-input dark:bg-slate-900 text-foreground dark:text-white focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="efectivo">Efectivo</option>
               <option value="transferencia">Transferencia Bancaria</option>
@@ -174,12 +174,12 @@ export default function ModalRegistrarPago({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
+            <label className="text-sm font-medium text-foreground dark:text-gray-300">Notas</label>
             <textarea
               name="notas"
               value={formData.notas}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none h-20 resize-none"
+              className="w-full p-2 border border-border dark:border-gray-600 rounded-md bg-input dark:bg-slate-900 text-foreground dark:text-white focus:ring-2 focus:ring-primary outline-none h-20 resize-none"
               placeholder="Observaciones adicionales..."
             />
           </div>
@@ -188,14 +188,14 @@ export default function ModalRegistrarPago({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-background-subtle focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={loading}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               <Save className="w-4 h-4" />

@@ -97,13 +97,15 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 w-full">
+    <div className="bg-card border border-border rounded-2xl p-6 w-full shadow-card">
       {/* Filtros */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Estatus</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Estatus
+          </label>
           <select
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={filtroEstatus}
             onChange={(e) => setFiltroEstatus(e.target.value as EstatusVenta)}
           >
@@ -116,27 +118,31 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Vendedor</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Vendedor
+          </label>
           <input
             type="text"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Buscar vendedor..."
             value={filtroVendedor}
             onChange={(e) => setFiltroVendedor(e.target.value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Fecha Venta</label>
+          <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Fecha Venta
+          </label>
           <input
             type="date"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            className="mt-1 block w-full rounded-xl bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={filtroFecha}
             onChange={(e) => setFiltroFecha(e.target.value)}
           />
         </div>
         <div className="flex items-end">
           <button
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+            className="w-full bg-background border border-border text-sm font-medium text-muted-foreground rounded-xl py-2 px-4 hover:bg-background-subtle transition-colors"
             onClick={() => {
               setFiltroEstatus('');
               setFiltroVendedor('');
@@ -150,15 +156,15 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
 
       {/* Tabla */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full text-sm text-left text-muted-foreground">
+          <thead className="bg-background-paper text-foreground uppercase font-medium">
             <tr>
               {['fecha_venta', 'cliente', 'vendedor', 'lote_id', 'monto_total', 'estatus'].map(
                 (col) => (
                   <th
                     key={col}
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-4 text-left text-xs font-medium tracking-widest text-muted-foreground cursor-pointer hover:bg-background-subtle"
                     onClick={() => handleSort(col as any)}
                   >
                     {col.replace('_', ' ').toUpperCase()}
@@ -170,60 +176,60 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
               )}
               <th
                 scope="col"
-                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-4 text-right text-xs font-medium tracking-widest text-muted-foreground"
               >
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted-foreground">
                   Cargando...
                 </td>
               </tr>
             ) : ventasPaginadas.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted-foreground">
                   No se encontraron ventas
                 </td>
               </tr>
             ) : (
               ventasPaginadas.map((venta) => (
-                <tr key={venta.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr key={venta.id} className="hover:bg-background-subtle transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     {formatDate(venta.fecha_venta)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {typeof venta.cliente_id === 'object' && venta.cliente_id !== null
                       ? `${(venta.cliente_id as any).nombre} ${(venta.cliente_id as any).apellido_paterno}`
                       : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {typeof venta.vendedor_id === 'object' && venta.vendedor_id !== null
                       ? `${(venta.vendedor_id as any).nombre} ${(venta.vendedor_id as any).apellido_paterno}`
                       : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {typeof venta.lote_id === 'object' && venta.lote_id !== null
                       ? (venta.lote_id as any).identificador
                       : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-medium">
                     {formatCurrency(venta.monto_total)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      className={`px-2.5 inline-flex text-xs leading-5 font-semibold rounded-full border 
                       ${
                         venta.estatus === 'liquidado'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-success/10 text-success border-success/40'
                           : venta.estatus === 'cancelada'
-                            ? 'bg-red-100 text-red-800'
+                            ? 'bg-danger/10 text-danger border-danger/40'
                             : venta.estatus === 'apartado'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-warning/10 text-warning border-warning/40'
+                              : 'bg-muted/20 text-muted-foreground border-muted'
                       }`}
                     >
                       {venta.estatus.toUpperCase()}
@@ -232,14 +238,14 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => onVerDetalles(venta.id)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      className="text-primary-light hover:text-primary transition-colors mr-3"
                     >
                       Ver
                     </button>
                     {onEditar && (
                       <button
                         onClick={() => onEditar(venta.id)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        className="text-secondary hover:text-secondary-dark transition-colors mr-3"
                       >
                         Editar
                       </button>
@@ -247,7 +253,7 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
                     {onGenerarContrato && venta.estatus === 'apartado' && (
                       <button
                         onClick={() => onGenerarContrato(venta.id)}
-                        className="text-green-600 hover:text-green-900"
+                        className="text-success hover:text-success/80 transition-colors"
                       >
                         Contrato
                       </button>
@@ -261,26 +267,26 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
       </div>
 
       {/* Paginación */}
-      <div className="py-3 flex items-center justify-between border-t border-gray-200">
+      <div className="py-3 flex items-center justify-between border-t border-border mt-4">
         <div className="flex-1 flex justify-between sm:hidden">
           <button
             onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
             disabled={paginaActual === 1}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-xl text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
           >
             Anterior
           </button>
           <button
             onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
             disabled={paginaActual === totalPaginas}
-            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-xl text-muted-foreground bg-background hover:bg-background-subtle disabled:opacity-50"
           >
             Siguiente
           </button>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-muted-foreground">
               Mostrando{' '}
               <span className="font-medium">{(paginaActual - 1) * itemsPorPagina + 1}</span> a{' '}
               <span className="font-medium">
@@ -296,22 +302,23 @@ const TablaVentas: React.FC<TablaVentasProps> = ({
                 setItemsPorPagina(Number(e.target.value));
                 setPaginaActual(1);
               }}
-              className="mr-4 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-1 border"
+              className="mr-4 rounded-xl bg-input border border-border px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value={10}>10 por pág</option>
               <option value={25}>25 por pág</option>
               <option value={50}>50 por pág</option>
             </select>
-            <nav
-              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-              aria-label="Pagination"
-            >
+            <nav className="relative z-0 inline-flex rounded-xl shadow-sm overflow-hidden" aria-label="Pagination">
               {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => setPaginaActual(page)}
                   className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                    ${paginaActual === page ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                    ${
+                      paginaActual === page
+                        ? 'z-10 bg-primary/10 border-primary text-primary'
+                        : 'bg-background border-border text-muted-foreground hover:bg-background-subtle'
+                    }`}
                 >
                   {page}
                 </button>

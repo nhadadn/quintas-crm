@@ -19,15 +19,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)]">
-      {' '}
-      {/* 64px is navbar height */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:block">
-        <div className="p-4">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+    <div className="flex min-h-[calc(100vh-64px)] bg-background">
+      <aside className="w-64 bg-background-paper border-r border-border hidden md:block">
+        <div className="px-5 py-6 space-y-4">
+          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
             Analytics
           </h2>
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -35,13 +33,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors ${
                     isActive
-                      ? 'bg-emerald-500/10 text-emerald-400'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                      ? 'bg-accent/10 text-foreground'
+                      : 'text-muted-foreground hover:bg-background-subtle hover:text-foreground'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-card border border-border shadow-card">
+                    <Icon className="w-4 h-4" />
+                  </span>
                   {item.name}
                 </Link>
               );
@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-y-auto bg-slate-950">
+      <main className="flex-1 px-8 py-8 overflow-y-auto bg-background">
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
     </div>

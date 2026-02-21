@@ -8,10 +8,10 @@ interface TablaAmortizacionProps {
 }
 
 const STATUS_STYLES: Record<EstatusPago, string> = {
-  pagado: 'bg-emerald-900/30 text-emerald-400 border border-emerald-800',
-  pendiente: 'bg-yellow-900/30 text-yellow-400 border border-yellow-800',
-  atrasado: 'bg-red-900/30 text-red-400 border border-red-800',
-  vencido: 'bg-red-900/30 text-red-400 border border-red-800',
+  pagado: 'bg-success/10 text-success border border-success/40',
+  pendiente: 'bg-warning/10 text-warning border border-warning/40',
+  atrasado: 'bg-danger/10 text-danger border border-danger/40',
+  vencido: 'bg-danger/10 text-danger border border-danger/40',
 };
 
 export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
@@ -143,10 +143,10 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
 
   if (loading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center bg-slate-900 rounded-lg border border-slate-700">
+      <div className="w-full h-64 flex items-center justify-center bg-card rounded-2xl border border-border shadow-card">
         <div className="flex flex-col items-center gap-3">
           <svg
-            className="animate-spin h-8 w-8 text-emerald-500"
+            className="animate-spin h-8 w-8 text-primary"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -165,7 +165,7 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="text-slate-400 text-sm">Calculando tabla de amortización...</p>
+          <p className="text-sm text-muted-foreground">Calculando tabla de amortización...</p>
         </div>
       </div>
     );
@@ -173,22 +173,22 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
 
   if (error) {
     return (
-      <div className="w-full p-6 bg-red-900/20 border border-red-800 rounded-lg text-red-200 text-center">
-        <p>{error}</p>
+      <div className="w-full p-6 bg-danger/10 border border-danger rounded-2xl text-danger text-center">
+        <p className="text-sm font-medium">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
-      <div className="p-6 border-b border-slate-700 flex justify-between items-center flex-wrap gap-4">
+    <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-card">
+      <div className="p-6 border-b border-border flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h3 className="text-xl font-bold text-white">Tabla de Amortización</h3>
-          <p className="text-slate-400 text-sm mt-1">Desglose de pagos y saldos</p>
+          <h3 className="text-xl font-semibold text-foreground">Tabla de Amortización</h3>
+          <p className="text-sm text-muted-foreground mt-1">Desglose de pagos y saldos</p>
         </div>
         <button
           onClick={handleDownloadPDF}
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold shadow-warm hover:bg-primary-dark hover:shadow-warm-hover transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -203,8 +203,8 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-900/50 text-slate-300 uppercase text-xs font-semibold">
+        <table className="w-full text-sm text-left text-muted-foreground">
+          <thead className="bg-background-paper text-foreground uppercase text-xs font-medium">
             <tr>
               <th className="px-6 py-4">No.</th>
               <th className="px-6 py-4">Vencimiento</th>
@@ -215,21 +215,24 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
               <th className="px-6 py-4 text-center">Estatus</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-border">
             {tabla.map((fila) => (
-              <tr key={fila.numero_pago} className="hover:bg-slate-700/50 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">#{fila.numero_pago}</td>
-                <td className="px-6 py-4 text-slate-300">{formatDate(fila.fecha_vencimiento)}</td>
-                <td className="px-6 py-4 text-right font-medium text-white">
+              <tr
+                key={fila.numero_pago}
+                className="bg-card hover:bg-background-subtle transition-colors"
+              >
+                <td className="px-6 py-4 font-medium text-foreground">#{fila.numero_pago}</td>
+                <td className="px-6 py-4">{formatDate(fila.fecha_vencimiento)}</td>
+                <td className="px-6 py-4 text-right font-medium text-foreground">
                   {formatCurrency(fila.cuota)}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-300">
+                <td className="px-6 py-4 text-right">
                   {formatCurrency(fila.interes)}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-300">
+                <td className="px-6 py-4 text-right">
                   {formatCurrency(fila.capital)}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-300">
+                <td className="px-6 py-4 text-right">
                   {formatCurrency(fila.saldo_restante)}
                 </td>
                 <td className="px-6 py-4 flex justify-center">
@@ -242,18 +245,18 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
               </tr>
             ))}
           </tbody>
-          <tfoot className="bg-slate-900/50 text-slate-300 font-semibold border-t border-slate-700">
+          <tfoot className="bg-background-subtle text-muted-foreground font-semibold border-t border-border">
             <tr>
               <td colSpan={2} className="px-6 py-4 text-right">
                 Totales:
               </td>
-              <td className="px-6 py-4 text-right text-emerald-400">
+              <td className="px-6 py-4 text-right text-success">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.cuota, 0))}
               </td>
-              <td className="px-6 py-4 text-right text-slate-300">
+              <td className="px-6 py-4 text-right">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.interes, 0))}
               </td>
-              <td className="px-6 py-4 text-right text-slate-300">
+              <td className="px-6 py-4 text-right">
                 {formatCurrency(tabla.reduce((sum, f) => sum + f.capital, 0))}
               </td>
               <td colSpan={2}></td>

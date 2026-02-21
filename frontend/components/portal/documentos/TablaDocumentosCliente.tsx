@@ -42,13 +42,13 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
   const getIcon = (tipo: TipoDocumento) => {
     switch (tipo) {
       case 'contrato':
-        return <FileText className="w-5 h-5 text-blue-400" />;
+        return <FileText className="w-5 h-5 text-primary-light" />;
       case 'recibo':
-        return <FileCheck className="w-5 h-5 text-emerald-400" />;
+        return <FileCheck className="w-5 h-5 text-success" />;
       case 'estado_cuenta':
-        return <FileSpreadsheet className="w-5 h-5 text-amber-400" />;
+        return <FileSpreadsheet className="w-5 h-5 text-warning" />;
       default:
-        return <File className="w-5 h-5 text-slate-400" />;
+        return <File className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -224,15 +224,15 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+      <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-background-paper p-4 rounded-xl border border-border">
         <div className="relative w-full lg:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Buscar documentos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary-light transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-input border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-light transition-colors"
           />
         </div>
 
@@ -242,23 +242,23 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm p-2"
+              className="bg-input border border-input rounded-lg text-foreground text-sm p-2"
             />
-            <span className="text-slate-500">-</span>
+            <span className="text-muted-foreground">-</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm p-2"
+              className="bg-input border border-input rounded-lg text-foreground text-sm p-2"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-muted-foreground" />
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-lg text-slate-200 py-2 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
+              className="bg-input border border-input rounded-lg text-foreground py-2 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
             >
               <option value="all">Todos los tipos</option>
               <option value="recibo">Recibos</option>
@@ -278,10 +278,10 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
           <button
             onClick={handleBulkDownload}
             disabled={isZipping}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-light text-slate-900 rounded-lg font-medium hover:bg-primary transition-colors text-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-light text-foreground rounded-lg font-medium hover:bg-primary transition-colors text-sm disabled:opacity-50"
           >
             {isZipping ? (
-              <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
             ) : (
               <Download className="w-4 h-4" />
             )}
@@ -291,10 +291,10 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
       )}
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-card">
+      <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden shadow-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-400">
-            <thead className="bg-slate-900/50 text-slate-200 uppercase font-medium">
+          <table className="w-full text-left text-sm text-muted-foreground">
+            <thead className="bg-background-subtle text-foreground uppercase font-medium">
               <tr>
                 <th className="px-6 py-4 w-12">
                   <button onClick={toggleAllPage} className="flex items-center">
@@ -302,70 +302,70 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
                     paginatedDocs.every((d) => selectedIds.has(d.id)) ? (
                       <CheckSquare className="w-5 h-5 text-primary-light" />
                     ) : (
-                      <Square className="w-5 h-5 text-slate-500 hover:text-slate-300" />
+                      <Square className="w-5 h-5 text-muted-foreground hover:text-foreground" />
                     )}
                   </button>
                 </th>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle"
                   onClick={() => handleSort('titulo')}
                 >
                   <div className="flex items-center gap-2">
-                    Documento <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    Documento <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle"
                   onClick={() => handleSort('tipo')}
                 >
                   <div className="flex items-center gap-2">
-                    Tipo <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    Tipo <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th
-                  className="px-6 py-4 cursor-pointer hover:bg-slate-800"
+                  className="px-6 py-4 cursor-pointer hover:bg-background-subtle"
                   onClick={() => handleSort('fecha')}
                 >
                   <div className="flex items-center gap-2">
-                    Fecha <ArrowUpDown className="w-4 h-4 text-slate-500" />
+                    Fecha <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-border">
               {paginatedDocs.length > 0 ? (
                 paginatedDocs.map((doc) => (
                   <tr
                     key={doc.id}
-                    className={`hover:bg-slate-700/30 transition-colors ${selectedIds.has(doc.id) ? 'bg-slate-700/20' : ''}`}
+                    className={`hover:bg-background-subtle transition-colors ${selectedIds.has(doc.id) ? 'bg-background-subtle' : ''}`}
                   >
                     <td className="px-6 py-4">
                       <button onClick={() => toggleSelection(doc.id)}>
                         {selectedIds.has(doc.id) ? (
                           <CheckSquare className="w-5 h-5 text-primary-light" />
                         ) : (
-                          <Square className="w-5 h-5 text-slate-500 hover:text-slate-300" />
+                          <Square className="w-5 h-5 text-muted-foreground hover:text-foreground" />
                         )}
                       </button>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-slate-800 rounded-lg border border-slate-700">
+                        <div className="p-2 bg-background-subtle rounded-lg border border-border">
                           {getIcon(doc.tipo)}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-200">{doc.titulo}</p>
-                          <p className="text-xs text-slate-500">{doc.referencia}</p>
+                          <p className="font-medium text-foreground">{doc.titulo}</p>
+                          <p className="text-xs text-muted-foreground">{doc.referencia}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/20 text-muted-foreground border border-muted">
                         {getTypeLabel(doc.tipo)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-mono text-slate-300">{formatDate(doc.fecha)}</td>
+                    <td className="px-6 py-4 font-mono text-foreground">{formatDate(doc.fecha)}</td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleDownload(doc)}
@@ -384,7 +384,7 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                     No se encontraron documentos.
                   </td>
                 </tr>
@@ -399,34 +399,34 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
         {paginatedDocs.map((doc) => (
           <div
             key={doc.id}
-            className={`bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm ${selectedIds.has(doc.id) ? 'ring-1 ring-primary-light' : ''}`}
+            className={`bg-card border border-border rounded-2xl p-5 shadow-card ${selectedIds.has(doc.id) ? 'ring-1 ring-primary-light' : ''}`}
           >
             <div className="flex items-start gap-3 mb-3">
               <button onClick={() => toggleSelection(doc.id)} className="mt-1">
                 {selectedIds.has(doc.id) ? (
                   <CheckSquare className="w-5 h-5 text-primary-light" />
                 ) : (
-                  <Square className="w-5 h-5 text-slate-500" />
+                  <Square className="w-5 h-5 text-muted-foreground" />
                 )}
               </button>
               <div className="flex-1">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-medium text-slate-200">{doc.titulo}</h3>
-                  <span className="text-xs text-slate-400">{formatDate(doc.fecha)}</span>
+                  <h3 className="font-medium text-foreground">{doc.titulo}</h3>
+                  <span className="text-xs text-muted-foreground">{formatDate(doc.fecha)}</span>
                 </div>
-                <p className="text-sm text-slate-500 mt-1">{doc.referencia}</p>
+                <p className="text-sm text-muted-foreground mt-1">{doc.referencia}</p>
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-slate-700 mt-3">
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+            <div className="flex justify-between items-center pt-3 border-t border-border mt-3">
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 {getIcon(doc.tipo)}
                 {getTypeLabel(doc.tipo)}
               </span>
               <button
                 onClick={() => handleDownload(doc)}
                 disabled={downloadingId === doc.id}
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-primary-light transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-1.5 bg-background-paper hover:bg-background-subtle rounded-lg text-sm text-primary-light transition-colors disabled:opacity-50"
               >
                 {downloadingId === doc.id ? (
                   <div className="w-4 h-4 border-2 border-primary-light border-t-transparent rounded-full animate-spin" />
@@ -442,25 +442,25 @@ export function TablaDocumentosCliente({ documentos }: TablaDocumentosClientePro
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+        <div className="flex items-center justify-between bg-background-paper p-4 rounded-xl border border-border">
           {/* Same pagination logic as Pagos table */}
-          <div className="text-sm text-slate-400">
+          <div className="text-sm text-muted-foreground">
             Página {currentPage} de {totalPages}
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2 border border-slate-700 rounded-lg disabled:opacity-50"
+              className="p-2 border border-border rounded-lg disabled:opacity-50"
             >
-              <ChevronLeft className="w-5 h-5 text-slate-400" />
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2 border border-slate-700 rounded-lg disabled:opacity-50"
+              className="p-2 border border-border rounded-lg disabled:opacity-50"
             >
-              <ChevronRight className="w-5 h-5 text-slate-400" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>

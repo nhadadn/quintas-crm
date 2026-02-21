@@ -18,7 +18,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="min-h-screen antialiased bg-slate-950 text-slate-50">
+      <body className="min-h-screen antialiased bg-background text-foreground">
         <Providers>
           <GlobalErrorHandler />
           <InactivityListener />

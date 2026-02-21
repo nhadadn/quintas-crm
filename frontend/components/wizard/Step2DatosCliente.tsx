@@ -121,12 +121,15 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Datos del Cliente</h2>
+
+    <div className="max-w-4xl mx-auto bg-card p-8 rounded-2xl shadow-card border border-border">
+      <h2 className="text-2xl font-semibold tracking-tight text-text-primary mb-6">
+        Datos del Cliente
+      </h2>
 
       {/* Buscador de Clientes */}
-      <div className="mb-8 bg-slate-900 p-4 rounded-lg border border-slate-700">
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+      <div className="mb-8 bg-background-paper p-4 rounded-2xl border border-border shadow-card">
+        <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
           Buscar Cliente Existente (Email o RFC)
         </label>
         <div className="flex gap-2 relative">
@@ -136,31 +139,31 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="ejemplo@email.com o RFC"
-            className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
           />
           <button
             type="button"
             onClick={handleSearch}
             disabled={searching}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            className="px-4 py-2 rounded-xl border border-border bg-background text-foreground hover:bg-background-subtle transition-colors disabled:opacity-50"
           >
             {searching ? 'Buscando...' : 'Buscar'}
           </button>
 
           {/* Resultados de búsqueda */}
           {searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-10 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-card z-10 max-h-60 overflow-y-auto">
               {searchResults.map((cliente) => (
                 <button
                   key={cliente.id}
                   type="button"
                   onClick={() => selectCliente(cliente)}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-700 border-b border-slate-700 last:border-0"
+                  className="w-full text-left px-4 py-3 hover:bg-background-subtle border-b border-border last:border-0"
                 >
-                  <p className="font-semibold text-white">
+                  <p className="font-medium text-foreground">
                     {cliente.nombre} {cliente.apellido_paterno}
                   </p>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-xs text-muted-foreground">
                     {cliente.email} - {cliente.rfc}
                   </p>
                 </button>
@@ -169,159 +172,177 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
           )}
         </div>
         {searchResults.length === 0 && searchQuery && !searching && (
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Si no encuentras al cliente, llena el formulario para crear uno nuevo.
           </p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Nombre</label>
-            <input
-              {...register('nombre', { required: 'El nombre es obligatorio' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.nombre && (
-              <span className="text-red-500 text-xs mt-1">{errors.nombre.message}</span>
-            )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <div className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Información Personal
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Nombre
+              </label>
+              <input
+                {...register('nombre', { required: 'El nombre es obligatorio' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.nombre && (
+                <span className="text-red-500 text-xs mt-1">{errors.nombre.message}</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Apellido Paterno
+              </label>
+              <input
+                {...register('apellido_paterno', { required: 'El apellido paterno es obligatorio' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.apellido_paterno && (
+                <span className="text-red-500 text-xs mt-1">{errors.apellido_paterno.message}</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Apellido Materno
+              </label>
+              <input
+                {...register('apellido_materno')}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+            </div>
           </div>
 
-          {/* Apellido Paterno */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                RFC
+              </label>
+              <input
+                {...register('rfc', {
+                  required: 'El RFC es obligatorio',
+                })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.rfc && <span className="text-red-500 text-xs mt-1">{errors.rfc.message}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Información de Contacto
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                {...register('email', {
+                  required: 'El email es obligatorio',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Email inválido',
+                  },
+                })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.email && (
+                <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Teléfono
+              </label>
+              <input
+                {...register('telefono', { required: 'El teléfono es obligatorio' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.telefono && (
+                <span className="text-red-500 text-xs mt-1">{errors.telefono.message}</span>
+              )}
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Apellido Paterno
+            <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+              Dirección
             </label>
             <input
-              {...register('apellido_paterno', { required: 'El apellido paterno es obligatorio' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              {...register('direccion', { required: 'La dirección es obligatoria' })}
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
             />
-            {errors.apellido_paterno && (
-              <span className="text-red-500 text-xs mt-1">{errors.apellido_paterno.message}</span>
+            {errors.direccion && (
+              <span className="text-red-500 text-xs mt-1">{errors.direccion.message}</span>
             )}
           </div>
 
-          {/* Apellido Materno */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Apellido Materno
-            </label>
-            <input
-              {...register('apellido_materno')}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Ciudad
+              </label>
+              <input
+                {...register('ciudad', { required: 'La ciudad es obligatoria' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.ciudad && (
+                <span className="text-red-500 text-xs mt-1">{errors.ciudad.message}</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Estado
+              </label>
+              <input
+                {...register('estado', { required: 'El estado es obligatorio' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.estado && (
+                <span className="text-red-500 text-xs mt-1">{errors.estado.message}</span>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">
+                Código Postal
+              </label>
+              <input
+                {...register('cp', { required: 'El CP es obligatorio' })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+              />
+              {errors.cp && <span className="text-red-500 text-xs mt-1">{errors.cp.message}</span>}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input
-              type="email"
-              {...register('email', {
-                required: 'El email es obligatorio',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Email inválido',
-                },
-              })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.email && (
-              <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
-            )}
-          </div>
-
-          {/* Teléfono */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Teléfono</label>
-            <input
-              {...register('telefono', { required: 'El teléfono es obligatorio' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.telefono && (
-              <span className="text-red-500 text-xs mt-1">{errors.telefono.message}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* RFC */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">RFC</label>
-            <input
-              {...register('rfc', {
-                required: 'El RFC es obligatorio',
-              })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.rfc && <span className="text-red-500 text-xs mt-1">{errors.rfc.message}</span>}
-          </div>
-        </div>
-
-        {/* Dirección */}
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Dirección</label>
-          <input
-            {...register('direccion', { required: 'La dirección es obligatoria' })}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          {errors.direccion && (
-            <span className="text-red-500 text-xs mt-1">{errors.direccion.message}</span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Ciudad */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Ciudad</label>
-            <input
-              {...register('ciudad', { required: 'La ciudad es obligatoria' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.ciudad && (
-              <span className="text-red-500 text-xs mt-1">{errors.ciudad.message}</span>
-            )}
-          </div>
-
-          {/* Estado */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Estado</label>
-            <input
-              {...register('estado', { required: 'El estado es obligatorio' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.estado && (
-              <span className="text-red-500 text-xs mt-1">{errors.estado.message}</span>
-            )}
-          </div>
-
-          {/* CP */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Código Postal</label>
-            <input
-              {...register('cp', { required: 'El CP es obligatorio' })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            {errors.cp && <span className="text-red-500 text-xs mt-1">{errors.cp.message}</span>}
-          </div>
-        </div>
-
-        <div className="flex justify-between pt-6 border-t border-slate-700">
+        <div className="flex justify-between pt-6 border-t border-border">
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            className="px-6 py-2 rounded-xl border border-border bg-background text-muted-foreground hover:bg-background-subtle transition-colors"
           >
             Atrás
           </button>
           <button
             type="submit"
             disabled={isValidating}
-            className={`px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors ${isValidating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`px-6 py-2 rounded-xl bg-primary text-primary-foreground font-semibold shadow-warm hover:bg-primary-dark transition-colors ${isValidating ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isValidating ? 'Validando...' : 'Siguiente'}
           </button>

@@ -45,10 +45,12 @@ export function KPICard({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group relative">
-      <div className="flex justify-between items-start mb-2">
+    <div className="bg-card border border-border rounded-2xl p-6 shadow-card hover:shadow-warm-hover transition-all duration-300 group relative">
+      <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</p>
+          <p className="text-sm font-medium text-muted-foreground tracking-wide uppercase">
+            {title}
+          </p>
           {tooltip && (
             <div className="relative group/tooltip">
               <HelpCircle className="w-4 h-4 text-slate-400 cursor-help" />
@@ -60,13 +62,13 @@ export function KPICard({
           )}
         </div>
         {icon && (
-          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
+          <div className="p-2.5 bg-background-subtle rounded-xl text-primary-light shadow-sm">
             {icon}
           </div>
         )}
       </div>
 
-      <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 transition-all duration-500">
+      <h3 className="text-2xl font-semibold tracking-tight leading-tight text-foreground transition-all duration-500">
         {prefix}
         {typeof value === 'number' ? value.toLocaleString() : value}
         {suffix}

@@ -19,7 +19,7 @@ export default async function WebhooksPage() {
         <h1 className="text-2xl font-bold text-slate-100">Webhooks</h1>
         <Link
           href="/developer-portal/webhooks/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 text-sm font-medium transition-colors"
+          className="bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium shadow-warm transition-colors"
         >
           <Plus className="w-4 h-4" />
           Crear Webhook

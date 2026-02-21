@@ -80,7 +80,7 @@ export default function ReportesPage() {
   if (loading && !metrics) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-slate-400 animate-pulse flex items-center gap-2">
+        <div className="text-muted-foreground animate-pulse flex items-center gap-2">
           <RefreshCw className="w-5 h-5 animate-spin" />
           Generando reportes financieros...
         </div>
@@ -90,44 +90,46 @@ export default function ReportesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Reportes Financieros
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400">
-            Métricas clave de rendimiento y proyecciones.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-1 rounded-full bg-accent/60" />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight leading-tight text-foreground">
+              Reportes Financieros
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Métricas clave de rendimiento y proyecciones.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
+          <div className="flex items-center bg-card border border-border rounded-xl px-3 py-2">
             <input
               type="date"
               value={dateRange.start}
               onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
-              className="bg-transparent border-none text-sm text-slate-700 dark:text-slate-300 focus:ring-0"
+              className="bg-transparent border-none text-sm text-foreground focus:ring-0 focus:outline-none"
             />
-            <span className="text-slate-400 mx-2">→</span>
+            <span className="text-muted-foreground mx-2">→</span>
             <input
               type="date"
               value={dateRange.end}
               onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
-              className="bg-transparent border-none text-sm text-slate-700 dark:text-slate-300 focus:ring-0"
+              className="bg-transparent border-none text-sm text-foreground focus:ring-0 focus:outline-none"
             />
           </div>
 
           <button
             onClick={loadData}
-            className="p-2 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-primary-light hover:bg-background-subtle transition-colors"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-colors text-sm font-medium"
           >
             <Download className="w-4 h-4" />
             Exportar
@@ -136,19 +138,19 @@ export default function ReportesPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="MRR"
           value={`$${metrics?.mrr.mrr.toLocaleString('es-MX')}`}
           subtext="Ingreso Mensual Recurrente"
-          icon={<DollarSign className="w-6 h-6 text-emerald-500" />}
+          icon={<DollarSign className="w-6 h-6 text-success" />}
           trend={+5.2} // Placeholder for trend calculation
         />
         <KPICard
           title="Suscripciones Activas"
           value={metrics?.subscriptions.total_active || 0}
           subtext={`${metrics?.subscriptions.new_subscriptions} nuevas este periodo`}
-          icon={<Users className="w-6 h-6 text-blue-500" />}
+          icon={<Users className="w-6 h-6 text-primary" />}
           trend={
             metrics?.subscriptions.new_subscriptions && metrics.subscriptions.total_active
               ? (metrics.subscriptions.new_subscriptions / metrics.subscriptions.total_active) * 100
@@ -159,7 +161,7 @@ export default function ReportesPage() {
           title="Churn Rate"
           value={`${metrics?.churn.churn_rate.toFixed(1)}%`}
           subtext={`${metrics?.churn.canceled_count} cancelaciones`}
-          icon={<Activity className="w-6 h-6 text-rose-500" />}
+          icon={<Activity className="w-6 h-6 text-danger" />}
           trend={-0.5} // Placeholder
           inverse
         />
@@ -167,16 +169,16 @@ export default function ReportesPage() {
           title="Tasa de Fallos"
           value={`${metrics?.payment_health.failure_rate.toFixed(1)}%`}
           subtext="Pagos fallidos vs totales"
-          icon={<CreditCard className="w-6 h-6 text-amber-500" />}
+          icon={<CreditCard className="w-6 h-6 text-warning" />}
           inverse
         />
       </div>
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* MRR History */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-card">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground mb-4">
             Crecimiento MRR
           </h3>
           <div className="h-64">
@@ -223,8 +225,8 @@ export default function ReportesPage() {
         </div>
 
         {/* Revenue Forecast */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-card">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground mb-4">
             Proyección de Ingresos (3 Meses)
           </h3>
           <div className="h-64">

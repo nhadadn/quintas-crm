@@ -24,11 +24,11 @@ export default async function PagosPage() {
   if (['Administrator', 'Vendedor', 'admin', 'Admin'].includes(role)) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-slate-800 shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
+        <div className="bg-card shadow rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-semibold text-foreground mb-4">
             Vista de Pagos ({role})
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">
+          <p className="text-muted-foreground mb-4">
             Como administrador/vendedor, no tienes un historial de pagos personal. Por favor,
             utiliza el Dashboard Administrativo para ver los pagos de los clientes.
           </p>
@@ -72,12 +72,16 @@ export default async function PagosPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
-            <CreditCard className="w-8 h-8 text-primary-light" />
-            Historial de Pagos
-          </h1>
-          <p className="text-slate-400 mt-1">Consulta y descarga tus comprobantes de pago.</p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+            <CreditCard className="w-5 h-5 text-primary-light" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Historial de Pagos</h1>
+            <p className="text-muted-foreground mt-1">
+              Consulta y descarga tus comprobantes de pago.
+            </p>
+          </div>
         </div>
       </div>
 
