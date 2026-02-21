@@ -3,7 +3,6 @@ services:
     image: mysql:8.0
     container_name: quintas_mysql
     restart: always
-    command: ["mysqld","--default-authentication-plugin=mysql_native_password"]
     env_file:
       - .env.docker
     environment:
@@ -14,7 +13,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
-      - '3307:3306'
+      - '3306:3306'
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER} -p${MYSQL_PASSWORD} || exit 1"]
       interval: 10s
@@ -56,12 +55,12 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       PUBLIC_URL: ${PUBLIC_URL}
-      DB_CLIENT: ${DB_CLIENT}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_CLIENT: 'mysql'
+      DB_HOST: 'mysql'
+      DB_PORT: '3306'
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
       CACHE_ENABLED: 'true'
       CACHE_STORE: 'redis'
       CACHE_REDIS: 'redis://redis:6379'
@@ -72,7 +71,7 @@ services:
       CORS_ORIGIN: 'true'
       WEBSOCKETS_ENABLED: 'true'
     healthcheck:
-      test: ["CMD", "wget", "-qO", "-", "http://localhost:8055/server/health" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8055/server/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -111,7 +110,8 @@ services:
     env_file:
       - .env.docker
     depends_on:
-      - directus
+      directus:
+        condition: service_healthy
     networks:
       - public
       - internal

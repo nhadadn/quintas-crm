@@ -4,36 +4,6 @@
 - Docker Desktop instalado y en ejecución.
 - Docker Compose disponible (incluido en Docker Desktop).
 
-## Guía Rápida (Windows CMD)
-1. Preparar variables:
-   ```cmd
-   copy .env.docker.example .env.docker
-   ```
-2. Editar `.env.docker` y definir:
-   - MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD
-   - DIRECTUS_KEY, DIRECTUS_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
-   - NEXTAUTH_SECRET, AUTH_SECRET
-3. Levantar servicios:
-   ```cmd
-   docker compose --env-file .env.docker up -d
-   ```
-4. Ver estado:
-   ```cmd
-   docker compose ps
-   ```
-5. Logs (si algo falla):
-   ```cmd
-   docker compose logs -f directus
-   docker compose logs -f migrations
-   ```
-
-## Guía Rápida (Mac/Linux)
-```bash
-cp .env.docker.example .env.docker
-docker compose --env-file .env.docker up -d
-docker compose ps
-```
-
 ## Pasos de arranque
 1. Copiar el archivo de variables:
    - Windows: `copy .env.docker.example .env.docker`
@@ -48,17 +18,6 @@ docker compose ps
 ## Servicios y accesos
 - Frontend: http://localhost:3000
 - Directus: http://localhost:8055/admin
-
-## Verificación funcional
-- Salud de Directus:
-  ```cmd
-  curl http://localhost:8055/server/health
-  ```
-- Acceder a http://localhost:8055/admin con las credenciales de ADMIN_EMAIL/ADMIN_PASSWORD.
-- Acceder a http://localhost:3000 y verificar carga del portal.
-- Validar migraciones: revisar `docker compose logs migrations` y confirmar mensajes:
-  - `[MIGRATIONS] Aplicando <archivo>.sql...`
-  - `[MIGRATIONS] Ok <archivo>.sql`
 
 ## Detener, reiniciar y logs
 - Detener: `docker compose down`
