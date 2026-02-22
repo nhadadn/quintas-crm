@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quintas-CRM — La Plataforma Inmobiliaria que Cierra Más Ventas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    * { font-family: 'Inter', sans-serif; }
+
+    .gradient-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f4c2a 100%);
+    }
+    .gradient-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+    .gradient-green {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    .gradient-accent {
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #10b981, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .glow-green {
+      box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+    }
+    .glow-blue {
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(16, 185, 129, 0.15);
+    }
+    .stat-counter {
+      font-variant-numeric: tabular-nums;
+    }
+    .lote-disponible { background: #10b981; }
+    .lote-apartado   { background: #f59e0b; }
+    .lote-vendido    { background: #ef4444; }
+    .lote-liquidado  { background: #8b5cf6; }
+    .lote-bloqueado  { background: #6b7280; }
+
+    /* Map grid animation */
+    .map-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+    .map-cell {
+      height: 28px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.85;
+    }
+    .map-cell:hover { opacity: 1; transform: scale(1.1); }
+
+    /* Pulse animation */
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+    .pulse-green { animation: pulse-green 2s infinite; }
+
+    /* Slide in animation */
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in { animation: slideInUp 0.6s ease forwards; }
+
+    /* Bar chart animation */
+    @keyframes growBar {
+      from { height: 0; }
+      to { height: var(--bar-height); }
+    }
+    .bar-animate {
+      animation: growBar 1s ease forwards;
+      animation-delay: var(--delay, 0s);
+    }
+
+    /* Notification slide */
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .notif-1 { animation: slideInRight 0.5s ease 0.2s both; }
+    .notif-2 { animation: slideInRight 0.5s ease 0.6s both; }
+    .notif-3 { animation: slideInRight 0.5s ease 1.0s both; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+
+    /* Nav blur */
+    .nav-blur {
+      backdrop-filter: blur(20px);
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    /* Feature icon bg */
+    .icon-bg {
+      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(59,130,246,0.1));
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+
+    /* Timeline */
+    .timeline-line {
+      background: linear-gradient(to bottom, #10b981, #3b82f6);
+    }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="bg-slate-950 text-white overflow-x-hidden">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════════════════════════ -->
+  <nav class="fixed top-0 left-0 right-0 z-50 nav-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl gradient-green flex items-center justify-center glow-green">
+          <i data-lucide="mountain" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-xl font-bold">Quintas<span class="text-gradient">-CRM</span></span>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
+        <a href="#problema" class="hover:text-white transition-colors">Problema</a>
+        <a href="#solucion" class="hover:text-white transition-colors">Solución</a>
+        <a href="#funcionalidades" class="hover:text-white transition-colors">Funcionalidades</a>
+        <a href="#dashboard" class="hover:text-white transition-colors">Dashboard</a>
+        <a href="#roi" class="hover:text-white transition-colors">ROI</a>
+      </div>
+      <a href="#demo" class="hidden md:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-lg hover:shadow-emerald-500/25">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        Solicitar Demo
+      </a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HERO SECTION
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="gradient-hero min-h-screen flex items-center pt-20 relative overflow-hidden">
+
+    <!-- Background grid pattern -->
+    <div class="absolute inset-0 opacity-5" style="background-image: linear-gradient(rgba(16,185,129,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.5) 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+    <!-- Floating orbs -->
+    <div class="absolute top-20 right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+    <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+        <!-- Left: Copy -->
+        <div class="slide-in">
+          <!-- Badge -->
+          <div class="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium px-4 py-2 rounded-full mb-8">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-green"></span>
+            PropTech para Desarrolladoras Inmobiliarias
+          </div>
+
+          <h1 class="text-5xl lg:text-6xl font-black leading-tight mb-6">
+            Cierra ventas en
+            <span class="text-gradient"> 15 minutos</span>,
+            no en 3 días
+          </h1>
+
+          <p class="text-xl text-slate-300 leading-relaxed mb-8 max-w-xl">
+            El primer CRM inmobiliario con <strong class="text-white">mapa interactivo georeferenciado</strong> como núcleo operativo. Gestiona lotes, leads de Facebook, ventas, pagos y comisiones desde una sola plataforma.
+          </p>
+
+          <!-- Stats row -->
+          <div class="flex flex-wrap gap-6 mb-10">
+            <div class="text-center">
+              <div class="text-3xl font-black text-emerald-400 stat-counter">70%</div>
+              <div class="text-xs text-slate-400 mt-1">Menos tiempo<br>de gestión</div>
+            </div>
+            <div class="w-px bg-slate-700"></div>
+            <div class="text-center">
+              <div class="text-3xl font-black text-blue-400 stat-counter">400%</div>
+              <div class="text-xs text-slate-400 mt-1">Más conversión<br>de leads</div>
+            </div>
+            <div class="w-px bg-slate-700"></div>
+            <div class="text-center">
+              <div class="text-3xl font-black text-purple-400 stat-counter">7 meses</div>
+              <div class="text-xs text-slate-400 mt-1">Recuperación<br>de inversión</div>
+            </div>
+          </div>
+
+          <!-- CTAs -->
+          <div class="flex flex-wrap gap-4">
+            <a href="#demo" class="flex items-center gap-2 gradient-green text-white font-bold px-8 py-4 rounded-2xl text-lg glow-green hover:scale-105 transition-transform">
+              <i data-lucide="play-circle" class="w-5 h-5"></i>
+              Ver Demo en Vivo
+            </a>
+            <a href="#dashboard" class="flex items-center gap-2 border border-slate-600 hover:border-emerald-500 text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-all">
+              <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+              Ver Dashboard
+            </a>
+          </div>
+
+          <!-- Social proof -->
+          <div class="flex items-center gap-3 mt-8 text-sm text-slate-400">
+            <div class="flex -space-x-2">
+              <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold">JM</div>
+              <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold">AR</div>
+              <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-xs font-bold">LC</div>
+            </div>
+            <span>Más de <strong class="text-white">65 vendedores</strong> ya usan Quintas-CRM</span>
+          </div>
+        </div>
+
+        <!-- Right: Hero Visual — Mini Map Preview -->
+        <div class="relative">
+          <div class="gradient-card rounded-3xl p-6 border border-slate-700 glow-blue">
+
+            <!-- Map header -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <i data-lucide="map" class="w-5 h-5 text-emerald-400"></i>
+                <span class="font-semibold text-sm">Mapa Interactivo — Quintas de Otinapa</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full">
+                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-green"></span>
+                En vivo
+              </div>
+            </div>
+
+            <!-- Fake map grid -->
+            <div class="map-grid mb-4 p-3 bg-slate-900/50 rounded-2xl">
+              <!-- Row 1 -->
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-apartado"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <!-- Row 2 -->
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-apartado"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-liquidado"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-vendido"></div>
+              <!-- Row 3 -->
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-liquidado"></div>
+              <div class="map-cell lote-apartado"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-apartado"></div>
+              <!-- Row 4 -->
+              <div class="map-cell lote-apartado"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-liquidado"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <!-- Row 5 -->
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-liquidado"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-disponible"></div>
+              <div class="map-cell lote-apartado"></div>
+              <div class="map-cell lote-vendido"></div>
+              <div class="map-cell lote-disponible"></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap gap-3 text-xs mb-4">
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded lote-disponible"></span><span class="text-slate-400">Disponible</span></div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded lote-apartado"></span><span class="text-slate-400">Apartado</span></div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded lote-vendido"></span><span class="text-slate-400">Vendido</span></div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded lote-liquidado"></span><span class="text-slate-400">Liquidado</span></div>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="grid grid-cols-4 gap-2">
+              <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+                <div class="text-xl font-black text-emerald-400">847</div>
+                <div class="text-xs text-slate-400">Disponibles</div>
+              </div>
+              <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-center">
+                <div class="text-xl font-black text-amber-400">43</div>
+                <div class="text-xs text-slate-400">Apartados</div>
+              </div>
+              <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+                <div class="text-xl font-black text-red-400">412</div>
+                <div class="text-xs text-slate-400">Vendidos</div>
+              </div>
+              <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-center">
+                <div class="text-xl font-black text-purple-400">198</div>
+                <div class="text-xs text-slate-400">Liquidados</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating notification -->
+          <div class="notif-1 absolute -top-4 -right-4 bg-slate-800 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl max-w-xs">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i data-lucide="user-plus" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-white">Nuevo Lead — Facebook</div>
+                <div class="text-xs text-slate-400">Carlos M. · Zona A · $350k presupuesto</div>
+                <div class="text-xs text-emerald-400 mt-1">Asignado a: Juan Pérez ✓</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating sale badge -->
+          <div class="notif-2 absolute -bottom-4 -left-4 bg-slate-800 border border-blue-500/40 rounded-2xl p-3 shadow-2xl">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-4 h-4 text-blue-400"></i>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-white">¡Venta Cerrada!</div>
+                <div class="text-xs text-slate-400">Lote M3-L047 · $385,000 MXN</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PROBLEMA / SOLUCIÓN
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="problema" class="py-24 bg-slate-900">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium px-4 py-2 rounded-full mb-6">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          El Problema Real
+        </div>
+        <h2 class="text-4xl lg:text-5xl font-black mb-4">
+          El caos del <span class="text-red-400">Excel</span> vs.<br>
+          la eficiencia de <span class="text-gradient">Quintas-CRM</span>
+        </h2>
+        <p class="text-xl text-slate-400 max-w-2xl mx-auto">
+          El 73% de las inmobiliarias en México gestiona su inventario en hojas de cálculo. Esto tiene un costo invisible pero devastador.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+
+        <!-- El Caos (Excel) -->
+        <div class="bg-red-950/30 border border-red-800/40 rounded-3xl p-8">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
+              <i data-lucide="file-spreadsheet" class="w-6 h-6 text-red-400"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-red-400">Con Excel y WhatsApp</h3>
+              <p class="text-sm text-slate-400">El método tradicional</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-start gap-3 p-4 bg-red-900/20 rounded-2xl">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Lotes vendidos dos veces</div>
+                <div class="text-xs text-slate-400 mt-1">Dos vendedores ofrecen el mismo lote simultáneamente. El cliente que pierde la venta nunca regresa.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-red-900/20 rounded-2xl">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Leads de Facebook perdidos</div>
+                <div class="text-xs text-slate-400 mt-1">El lead llega a las 11pm a un grupo de WhatsApp. Nadie lo ve hasta el día siguiente. El cliente ya compró con la competencia.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-red-900/20 rounded-2xl">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Cálculos manuales con errores</div>
+                <div class="text-xs text-slate-400 mt-1">15-20% de los cálculos de amortización tienen errores. Cada error es un conflicto con el cliente o una pérdida para la empresa.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-red-900/20 rounded-2xl">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Sin visibilidad en tiempo real</div>
+                <div class="text-xs text-slate-400 mt-1">Para saber cuántos lotes disponibles hay, alguien tiene que abrir el Excel, buscar, filtrar y llamar para confirmar. 15 minutos mínimo.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-red-900/20 rounded-2xl">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Cartera vencida sin control</div>
+                <div class="text-xs text-slate-400 mt-1">Nadie recuerda llamar a los 47 clientes con pagos vencidos. El dinero se queda en la calle.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- La Solución (Quintas-CRM) -->
+        <div class="bg-emerald-950/30 border border-emerald-800/40 rounded-3xl p-8">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center">
+              <i data-lucide="zap" class="w-6 h-6 text-emerald-400"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-emerald-400">Con Quintas-CRM</h3>
+              <p class="text-sm text-slate-400">La plataforma inteligente</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-start gap-3 p-4 bg-emerald-900/20 rounded-2xl">
+              <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Inventario bloqueado automáticamente</div>
+                <div class="text-xs text-slate-400 mt-1">Al iniciar un apartado, el lote se bloquea instantáneamente para todos los demás vendedores. Imposible vender dos veces.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-emerald-900/20 rounded-2xl">
+              <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Leads asignados en &lt; 2 minutos</div>
+                <div class="text-xs text-slate-400 mt-1">El lead de Facebook llega automáticamente al vendedor correcto con notificación de WhatsApp. A cualquier hora, cualquier día.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-emerald-900/20 rounded-2xl">
+              <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Cálculos 100% automáticos</div>
+                <div class="text-xs text-slate-400 mt-1">Amortización, mora, comisiones — todo calculado por el sistema con fórmulas financieras exactas. Cero errores humanos.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-emerald-900/20 rounded-2xl">
+              <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Disponibilidad en 3 segundos</div>
+                <div class="text-xs text-slate-400 mt-1">El mapa muestra en tiempo real el estado de cada lote. El vendedor en campo tiene la información antes de que el cliente pregunte.</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 bg-emerald-900/20 rounded-2xl">
+              <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <div class="font-semibold text-sm">Recordatorios automáticos de pago</div>
+                <div class="text-xs text-slate-400 mt-1">El sistema envía recordatorios 7 días antes, el día del vencimiento y 3 días después. Reducción del 40% en cartera vencida.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FUNCIONALIDADES GRID
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="funcionalidades" class="py-24 bg-slate-950">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium px-4 py-2 rounded-full mb-6">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          Funcionalidades Completas
+        </div>
+        <h2 class="text-4xl lg:text-5xl font-black mb-4">
+          Todo lo que necesitas para<br>
+          <span class="text-gradient">dominar tu mercado</span>
+        </h2>
+        <p class="text-xl text-slate-400 max-w-2xl mx-auto">
+          Seis módulos integrados que cubren el ciclo completo de ventas inmobiliarias, desde el primer lead hasta el último pago.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Feature 1: Mapa Interactivo -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="map-pin" class="w-7 h-7 text-emerald-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Mapa Interactivo</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Visualiza todos tus lotes en un mapa georeferenciado con vista satelital. Colores en tiempo real por estado, click para ver detalles completos y filtros instantáneos.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">Mapbox GL JS</span>
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">GeoJSON</span>
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full">Tiempo real</span>
+          </div>
+        </div>
+
+        <!-- Feature 2: CRM Móvil -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="smartphone" class="w-7 h-7 text-blue-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">CRM Móvil para Vendedores</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Tus vendedores cierran ventas desde el campo con su teléfono. Acceso al mapa, calculadora de financiamiento, registro de clientes y firma de contratos — sin regresar a la oficina.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full">Responsive</span>
+            <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full">Offline-ready</span>
+            <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full">iOS / Android</span>
+          </div>
+        </div>
+
+        <!-- Feature 3: Reportes en Tiempo Real -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="bar-chart-3" class="w-7 h-7 text-purple-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Reportes en Tiempo Real</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Dashboard ejecutivo con KPIs actualizados al instante. Ventas por período, cartera vencida, rendimiento por vendedor y análisis de conversión de leads.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 py-1 rounded-full">KPIs live</span>
+            <span class="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 py-1 rounded-full">Exportar Excel</span>
+            <span class="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 py-1 rounded-full">PDF automático</span>
+          </div>
+        </div>
+
+        <!-- Feature 4: Integración Meta -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="share-2" class="w-7 h-7 text-pink-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Integración Facebook & Instagram</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Los leads de tus campañas de Meta llegan automáticamente al CRM en menos de 2 minutos. Asignación inteligente round-robin y notificación instantánea al vendedor por WhatsApp.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 px-3 py-1 rounded-full">Meta Lead Ads</span>
+            <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 px-3 py-1 rounded-full">WhatsApp API</span>
+            <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 px-3 py-1 rounded-full">Round-Robin</span>
+          </div>
+        </div>
+
+        <!-- Feature 5: Gestión de Pagos -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="credit-card" class="w-7 h-7 text-amber-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Gestión de Pagos y Amortización</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Tabla de amortización generada automáticamente, registro de pagos con cálculo de mora, recordatorios automáticos y portal del cliente para consulta 24/7.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full">Amortización</span>
+            <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full">Cálculo de mora</span>
+            <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full">Portal cliente</span>
+          </div>
+        </div>
+
+        <!-- Feature 6: Comisiones Automáticas -->
+        <div class="card-hover gradient-card border border-slate-700 rounded-3xl p-8">
+          <div class="icon-bg w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+            <i data-lucide="trophy" class="w-7 h-7 text-yellow-400"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Comisiones Automáticas</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Cálculo automático de comisiones al cerrar cada venta. Múltiples esquemas (al contrato, proporcional, escalonado), dashboard personal para vendedores y aprobación con un click.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-3 py-1 rounded-full">Multi-esquema</span>
+            <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-3 py-1 rounded-full">Escalonado</span>
+            <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-3 py-1 rounded-full">Auditoría</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       EXECUTIVE DASHBOARD PREVIEW
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="dashboard" class="py-24 bg-slate-900">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-medium px-4 py-2 rounded-full mb-6">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard Ejecutivo
+        </div>
+        <h2 class="text-4xl lg:text-5xl font-black mb-4">
+          Tu desarrollo, bajo control<br>
+          <span class="text-gradient">en tiempo real</span>
+        </h2>
+        <p class="text-xl text-slate-400 max-w-2xl mx-auto">
+          Toda la información que necesitas para tomar decisiones inteligentes, disponible desde cualquier dispositivo, en cualquier momento.
+        </p>
+      </div>
+
+      <!-- Dashboard Mockup -->
+      <div class="gradient-card border border-slate-700 rounded-3xl p-6 glow-blue">
+
+        <!-- Dashboard Header -->
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl gradient-green flex items-center justify-center">
+              <i data-lucide="mountain" class="w-4 h-4 text-white"></i>
+            </div>
+            <div>
+              <div class="font-bold text-sm">Quintas de Otinapa</div>
+              <div class="text-xs text-slate-400">Dashboard Ejecutivo · Enero 2026</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full">
+              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-green"></span>
+              Actualizado hace 2 min
+            </div>
+            <button class="p-2 hover:bg-slate-700 rounded-xl transition-colors">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Cards Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs text-slate-400 font-medium">Ventas del Mes</span>
+              <div class="w-7 h-7 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">$4.2M</div>
+            <div class="flex items-center gap-1 text-xs text-emerald-400">
+              <i data-lucide="arrow-up" class="w-3 h-3"></i>
+              +23% vs mes anterior
+            </div>
+          </div>
+
+          <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs text-slate-400 font-medium">Lotes Vendidos</span>
+              <div class="w-7 h-7 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="home" class="w-3.5 h-3.5 text-blue-400"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">12</div>
+            <div class="flex items-center gap-1 text-xs text-blue-400">
+              <i data-lucide="arrow-up" class="w-3 h-3"></i>
+              +4 vs mes anterior
+            </div>
+          </div>
+
+          <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs text-slate-400 font-medium">Leads Recibidos</span>
+              <div class="w-7 h-7 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="users" class="w-3.5 h-3.5 text-pink-400"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">247</div>
+            <div class="flex items-center gap-1 text-xs text-pink-400">
+              <i data-lucide="arrow-up" class="w-3 h-3"></i>
+              Tasa conversión: 4.9%
+            </div>
+          </div>
+
+          <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs text-slate-400 font-medium">Cartera Vencida</span>
+              <div class="w-7 h-7 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-400"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white mb-1">$89K</div>
+            <div class="flex items-center gap-1 text-xs text-amber-400">
+              <i data-lucide="arrow-down" class="w-3 h-3"></i>
+              -40% vs mes anterior
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid lg:grid-cols-3 gap-4 mb-6">
+
+          <!-- Bar Chart: Ventas por Vendedor -->
+          <div class="lg:col-span-2 bg-slate-800/60 rounded-2xl p-5 border border-slate-700">
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <div class="font-semibold text-sm">Ventas por Vendedor</div>
+                <div class="text-xs text-slate-400">Enero 2026 · Top 6</div>
+              </div>
+              <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Este mes</span>
+            </div>
+            <!-- Bar chart visual -->
+            <div class="flex items-end gap-3 h-32">
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-emerald-500 rounded-t-lg" style="height: 90%;"></div>
+                <span class="text-xs text-slate-400">Juan P.</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-emerald-500/70 rounded-t-lg" style="height: 75%;"></div>
+                <span class="text-xs text-slate-400">María G.</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-emerald-500/60 rounded-t-lg" style="height: 60%;"></div>
+                <span class="text-xs text-slate-400">Carlos R.</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-blue-500/70 rounded-t-lg" style="height: 50%;"></div>
+                <span class="text-xs text-slate-400">Ana L.</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-blue-500/50 rounded-t-lg" style="height: 40%;"></div>
+                <span class="text-xs text-slate-400">Pedro M.</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full bg-slate-600 rounded-t-lg" style="height: 25%;"></div>
+                <span class="text-xs text-slate-400">Luis T.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Donut: Inventario -->
+          <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700">
+            <div class="font-semibold text-sm mb-1">Estado del Inventario</div>
+            <div class="text-xs text-slate-400 mb-5">1,500 lotes totales</div>
+
+            <!-- Fake donut using CSS -->
+            <div class="relative w-32 h-32 mx-auto mb-5">
+              <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                <!-- Background -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e293b" stroke-width="3.8"/>
+                <!-- Disponible: 56% -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" stroke-width="3.8"
+                  stroke-dasharray="56 44" stroke-dashoffset="0"/>
+                <!-- Vendido: 27% -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" stroke-width="3.8"
+                  stroke-dasharray="27 73" stroke-dashoffset="-56"/>
+                <!-- Apartado: 3% -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" stroke-width="3.8"
+                  stroke-dasharray="3 97" stroke-dashoffset="-83"/>
+                <!-- Liquidado: 14% -->
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8b5cf6" stroke-width="3.8"
+                  stroke-dasharray="14 86" stroke-dashoffset="-86"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-xl font-black">847</div>
+                <div class="text-xs text-slate-400">disponibles</div>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Disponibles</div>
+                <span class="font-semibold">847 (56%)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>Vendidos</div>
+                <span class="font-semibold">412 (27%)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>Liquidados</div>
+                <span class="font-semibold">198 (14%)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>Apartados</div>
+                <span class="font-semibold">43 (3%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-slate-800/60 rounded-2xl p-5 border border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-semibold text-sm">Actividad Reciente</div>
+            <button class="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">Ver todo →</button>
+          </div>
+          <div class="space-y-3">
+            <div class="notif-1 flex items-center gap-4 p-3 bg-slate-900/50 rounded-xl">
+              <div class="w-8 h-8 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium">Venta cerrada — Lote M3-L047</div>
+                <div class="text-xs text-slate-400">Juan Pérez · $385,000 MXN · hace 12 min</div>
+              </div>
+              <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full flex-shrink-0">+$11,550 comisión</span>
+            </div>
+            <div class="notif-2 flex items-center gap-4 p-3 bg-slate-900/50 rounded-xl">
+              <div class="w-8 h-8 bg-pink-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i data-lucide="user-plus" class="w-4 h-4 text-pink-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium">Nuevo lead — Facebook Ads</div>
+                <div class="text-xs text-slate-400">Carlos Mendoza · Zona A · Asignado a María García</div>
+              </div>
+              <span class="text-xs bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full flex-shrink-0">hace 28 min</span>
+            </div>
+            <div class="notif-3 flex items-center gap-4 p-3 bg-slate-900/50 rounded-xl">
+              <div class="w-8 h-8 bg-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i data-lucide="credit-card" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium">Pago registrado — Lote A-01-023</div>
+                <div class="text-xs text-slate-400">Roberto Sánchez · Mensualidad #8 · $5,445 MXN</div>
+              </div>
+              <span class="text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full flex-shrink-0">hace 1 hora</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       ROI SECTION
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="roi" class="py-24 bg-slate-950">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium px-4 py-2 rounded-full mb-6">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+          Retorno de Inversión
+        </div>
+        <h2 class="text-4xl lg:text-5xl font-black mb-4">
+          Se paga sola en<br>
+          <span class="text-gradient">menos de 7 meses</span>
+        </h2>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8 mb-16">
+        <div class="gradient-card border border-slate-700 rounded-3xl p-8 text-center card-hover">
+          <div class="text-5xl font-black text-emerald-400 mb-2">$145K</div>
+          <div class="text-lg font-semibold mb-2">Inversión Inicial</div>
+          <div class="text-sm text-slate-400">Desarrollo completo de la plataforma, implementación y capacitación del equipo</div>
+        </div>
+        <div class="gradient-card border border-emerald-500/30 rounded-3xl p-8 text-center card-hover glow-green">
+          <div class="text-5xl font-black text-white mb-2">78%</div>
+          <div class="text-lg font-semibold mb-2 text-emerald-400">ROI Primer Año</div>
+          <div class="text-sm text-slate-400">Basado en ahorros operativos, ventas adicionales y reducción de cartera vencida</div>
+        </div>
+        <div class="gradient-card border border-slate-700 rounded-3xl p-8 text-center card-hover">
+          <div class="text-5xl font-black text-blue-400 mb-2">$21.5K</div>
+          <div class="text-lg font-semibold mb-2">Ahorro Mensual</div>
+          <div class="text-sm text-slate-400">En tiempo de gestión, errores evitados y ventas adicionales por mes</div>
+        </div>
+      </div>
+
+      <!-- ROI Breakdown -->
+      <div class="gradient-card border border-slate-700 rounded-3xl p-8">
+        <h3 class="text-xl font-bold mb-6 text-center">Desglose del Ahorro Mensual</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-800/50 rounded-2xl p-4 text-center">
+            <i data-lucide="clock" class="w-8 h-8 text-emerald-400 mx-auto mb-3"></i>
+            <div class="text-xl font-bold text-emerald-400">$8,500</div>
+            <div class="text-sm font-medium mt-1">Tiempo de gestión</div>
+            <div class="text-xs text-slate-400 mt-1">70% reducción en horas administrativas</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-2xl p-4 text-center">
+            <i data-lucide="x-octagon" class="w-8 h-8 text-blue-400 mx-auto mb-3"></i>
+            <div class="text-xl font-bold text-blue-400">$4,000</div>
+            <div class="text-sm font-medium mt-1">Errores evitados</div>
+            <div class="text-xs text-slate-400 mt-1">Cálculos manuales incorrectos eliminados</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-2xl p-4 text-center">
+            <i data-lucide="users" class="w-8 h-8 text-pink-400 mx-auto mb-3"></i>
+            <div class="text-xl font-bold text-pink-400">$6,000</div>
+            <div class="text-sm font-medium mt-1">Ventas adicionales</div>
+            <div class="text-xs text-slate-400 mt-1">Leads contactados a tiempo = más cierres</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-2xl p-4 text-center">
+            <i data-lucide="wallet" class="w-8 h-8 text-amber-400 mx-auto mb-3"></i>
+            <div class="text-xl font-bold text-amber-400">$3,000</div>
+            <div class="text-sm font-medium mt-1">Cartera recuperada</div>
+            <div class="text-xs text-slate-400 mt-1">40% menos pagos vencidos por recordatorios</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CTA / DEMO SECTION
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="demo" class="py-24 bg-slate-900">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+
+      <div class="gradient-card border border-emerald-500/30 rounded-3xl p-12 glow-green relative overflow-hidden">
+
+        <!-- Background decoration -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10">
+          <div class="w-16 h-16 gradient-green rounded-2xl flex items-center justify-center mx-auto mb-6 glow-green">
+            <i data-lucide="calendar-check" class="w-8 h-8 text-white"></i>
+          </div>
+
+          <h2 class="text-4xl lg:text-5xl font-black mb-4">
+            ¿Listo para transformar<br>
+            <span class="text-gradient">tu fuerza de ventas?</span>
+          </h2>
+
+          <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            Agenda una demo personalizada de 30 minutos. Te mostramos el sistema con los datos reales de tu desarrollo.
+          </p>
+
+          <!-- Demo form -->
+          <div class="bg-slate-800/60 rounded-2xl p-6 mb-8 text-left max-w-lg mx-auto">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Nombre</label>
+                <input type="text" placeholder="Tu nombre" class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" />
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 mb-1 block">Empresa</label>
+                <input type="text" placeholder="Tu inmobiliaria" class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="text-xs text-slate-400 mb-1 block">WhatsApp</label>
+              <input type="tel" placeholder="+52 (000) 000-0000" class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" />
+            </div>
+            <div class="mb-4">
+              <label class="text-xs text-slate-400 mb-1 block">¿Cuántos lotes tiene tu desarrollo?</label>
+              <select class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors text-slate-300">
+                <option>Menos de 100</option>
+                <option>100 - 500</option>
+                <option selected>500 - 1,500</option>
+                <option>Más de 1,500</option>
+              </select>
+            </div>
+            <button class="w-full gradient-green text-white font-bold py-4 rounded-xl text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+              <i data-lucide="send" class="w-5 h-5"></i>
+              Solicitar Demo Gratuita
+            </button>
+          </div>
+
+          <!-- Trust signals -->
+          <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400">
+            <div class="flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+              Sin compromiso
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+              Demo en 30 minutos
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="star" class="w-4 h-4 text-emerald-400"></i>
+              Con datos de tu proyecto
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════════════════ -->
+  <footer class="bg-slate-950 border-t border-slate-800 py-16">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="grid md:grid-cols-4 gap-10 mb-12">
+
+        <!-- Brand -->
+        <div class="md:col-span-1">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl gradient-green flex items-center justify-center">
+              <i data-lucide="mountain" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="text-xl font-bold">Quintas<span class="text-gradient">-CRM</span></span>
+          </div>
+          <p class="text-sm text-slate-400 leading-relaxed mb-4">
+            La plataforma PropTech líder para desarrolladoras inmobiliarias en México. Mapa interactivo, CRM y gestión financiera en una sola solución.
+          </p>
+          <div class="flex gap-3">
+            <a href="#" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-xl flex items-center justify-center transition-colors">
+              <i data-lucide="facebook" class="w-4 h-4 text-slate-400"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-xl flex items-center justify-center transition-colors">
+              <i data-lucide="instagram" class="w-4 h-4 text-slate-400"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-xl flex items-center justify-center transition-colors">
+              <i data-lucide="linkedin" class="w-4 h-4 text-slate-400"></i>
+            </a>
+            <a href="#" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-xl flex items-center justify-center transition-colors">
+              <i data-lucide="youtube" class="w-4 h-4 text-slate-400"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Product -->
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Producto</h4>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li><a href="#funcionalidades" class="hover:text-white transition-colors">Funcionalidades</a></li>
+            <li><a href="#dashboard" class="hover:text-white transition-colors">Dashboard Ejecutivo</a></li>
+            <li><a href="#roi" class="hover:text-white transition-colors">Calculadora de ROI</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Integraciones</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Roadmap</a></li>
+          </ul>
+        </div>
+
+        <!-- Resources -->
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Recursos</h4>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li><a href="#" class="hover:text-white transition-colors">Documentación</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Guía de Inicio Rápido</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">API Reference</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Blog PropTech</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Casos de Éxito</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Contacto</h4>
+          <ul class="space-y-3 text-sm text-slate-400">
+            <li class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-emerald-400"></i>
+              <a href="mailto:ventas@quintas-crm.com" class="hover:text-white transition-colors">ventas@quintas-crm.com</a>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-emerald-400"></i>
+              <a href="tel:+526181234567" class="hover:text-white transition-colors">+52 (618) 123-4567</a>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+              <a href="#" class="hover:text-white transition-colors">WhatsApp Business</a>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400"></i>
+              <span>Durango, México</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="text-sm text-slate-500">
+          © 2026 Quintas-CRM. Todos los derechos reservados. Desarrollado con ❤️ en México.
+        </div>
+        <div class="flex gap-6 text-sm text-slate-500">
+          <a href="#" class="hover:text-slate-300 transition-colors">Aviso de Privacidad</a>
+          <a href="#" class="hover:text-slate-300 transition-colors">Términos de Uso</a>
+          <a href="#" class="hover:text-slate-300 transition-colors">Seguridad</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Animate map cells on hover with tooltip
+    document.querySelectorAll('.map-cell').forEach((cell, index) => {
+      const estados = ['Disponible', 'Apartado', 'Vendido', 'Liquidado'];
+      const precios = ['$320,000', '$350,000', '$380,000', '$410,000', '$290,000'];
+      cell.title = `Lote M${Math.floor(index/8)+1}-L${String(index%8+1).padStart(3,'0')} · ${precios[index%5]}`;
+    });
+
+    // Intersection Observer for animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.card-hover').forEach(card => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      observer.observe(card);
+    });
+  </script>
+</body>
+</html>
