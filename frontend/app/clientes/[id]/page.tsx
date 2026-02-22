@@ -9,6 +9,7 @@ import { fetchVentasByClienteId } from '@/lib/ventas-api';
 import { Cliente, Venta } from '@/types/erp';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import ModalCrearAcceso from '@/components/clientes/ModalCrearAcceso';
 
 interface PageProps {
   params: Promise<{
@@ -25,6 +26,7 @@ export default function DetalleClientePage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'ventas'>('info');
   const [isEditing, setIsEditing] = useState(false);
+  const [showCrearAcceso, setShowCrearAcceso] = useState(false);
 
   // Form handling
   const {
@@ -139,6 +141,33 @@ export default function DetalleClientePage({ params }: PageProps) {
       {/* Contenido Info */}
       {activeTab === 'info' && (
         <div className="bg-white shadow rounded-lg p-6">
+          {/* Sección Acceso al Portal */}
+          <div className="mb-6 p-4 border rounded-lg">
+            {(cliente as any)?.user_id ? (
+              <div className="flex items-center justify-between">
+                <div className="text-emerald-700 font-medium">✓ Tiene acceso al portal</div>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded border text-sm text-gray-600 hover:bg-gray-50"
+                  disabled
+                  title="Pendiente"
+                >
+                  Restablecer contraseña
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="text-amber-700 font-medium">Sin acceso</div>
+                <button
+                  type="button"
+                  onClick={() => setShowCrearAcceso(true)}
+                  className="px-3 py-1.5 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                >
+                  Crear credenciales de acceso
+                </button>
+              </div>
+            )}
+          </div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div className="sm:col-span-1">
@@ -228,6 +257,15 @@ export default function DetalleClientePage({ params }: PageProps) {
               </div>
             )}
           </form>
+          <ModalCrearAcceso
+            open={showCrearAcceso}
+            onClose={() => setShowCrearAcceso(false)}
+            cliente={{ id, email: cliente.email, nombre: cliente.nombre }}
+            token={session?.accessToken}
+            onSuccess={(userId) => {
+              setCliente({ ...(cliente as any), user_id: userId } as any);
+            }}
+          />
         </div>
       )}
 

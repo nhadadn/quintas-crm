@@ -3,8 +3,8 @@
 import React, { useEffect, useState, use } from 'react';
 import { useSession } from 'next-auth/react';
 import { getVentaById } from '@/lib/ventas-api';
-import { fetchPagos } from '@/lib/pagos-api';
-import { Venta, Pago } from '@/types/erp';
+import { fetchPagos, fetchMovimientos } from '@/lib/pagos-api';
+import { Venta, Pago, MovimientoPago } from '@/types/erp';
 import { format } from 'date-fns';
 import TablaPagos from '@/components/gestion/TablaPagos';
 import { TablaAmortizacion } from '@/components/pagos/TablaAmortizacion';
@@ -21,6 +21,7 @@ export default function DetalleVentaPage({ params }: PageProps) {
   const { data: session } = useSession();
   const [venta, setVenta] = useState<Venta | null>(null);
   const [pagos, setPagos] = useState<Pago[]>([]);
+  const [movs, setMovs] = useState<MovimientoPago[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'detalle' | 'pagos' | 'amortizacion'>('detalle');
 
@@ -33,15 +34,16 @@ export default function DetalleVentaPage({ params }: PageProps) {
         const ventaData = await getVentaById(id);
         setVenta(ventaData);
 
-        // Cargar pagos asociados
-        const pagosData = await fetchPagos({}, session?.accessToken || undefined);
-        // Filtrar pagos de esta venta (idealmente el API debería soportar filtro por venta_id)
-        const pagosVenta = pagosData.filter((p) => {
-          if (!p.venta_id) return false;
-          const ventaId = typeof p.venta_id === 'object' ? p.venta_id.id : p.venta_id;
-          return String(ventaId) === String(id);
-        });
-        setPagos(pagosVenta);
+        const pagosData = await fetchPagos(
+          { filter: { venta_id: { _eq: id } } },
+          session?.accessToken || undefined,
+        );
+        setPagos(pagosData);
+        const movsData = await fetchMovimientos(
+          { filter: { venta_id: { _eq: id } }, sort: ['-fecha_movimiento'] },
+          session?.accessToken || undefined,
+        );
+        setMovs(movsData);
       } catch (error) {
         console.error('Error cargando datos de venta:', error);
       } finally {
@@ -243,11 +245,46 @@ export default function DetalleVentaPage({ params }: PageProps) {
       )}
 
       {activeTab === 'pagos' && isPostProcessOk && (
-        <TablaPagos
-          pagos={pagos}
-          onVerDetalles={(pagoId) => console.log('Ver pago', pagoId)}
-          onGenerarRecibo={(pagoId) => console.log('Generar recibo', pagoId)}
-        />
+        <div className="space-y-8">
+          <TablaPagos
+            pagos={pagos}
+            onVerDetalles={(pagoId) => console.log('Ver pago', pagoId)}
+            onGenerarRecibo={(pagoId) => console.log('Generar recibo', pagoId)}
+          />
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3">Movimientos manuales</h3>
+            <div className="overflow-x-auto rounded border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"># Cuota</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estatus</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {movs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-6 text-center text-gray-500">Sin movimientos</td>
+                    </tr>
+                  ) : (
+                    movs.map((m) => (
+                      <tr key={String(m.id)}>
+                        <td className="px-4 py-2 text-sm">{String(m.fecha_movimiento).slice(0,10)}</td>
+                        <td className="px-4 py-2 text-sm">{m.numero_pago}</td>
+                        <td className="px-4 py-2 text-sm">${Number(m.monto).toFixed(2)}</td>
+                        <td className="px-4 py-2 text-sm">{m.estatus}</td>
+                        <td className="px-4 py-2 text-sm max-w-xs truncate">{m.notas || ''}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTab === 'amortizacion' && <TablaAmortizacion venta_id={String(venta.id)} />}

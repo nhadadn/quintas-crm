@@ -81,6 +81,88 @@ export function FiltrosMapa({ filtros, onChange }: FiltrosMapaProps) {
           </div>
         </label>
 
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block group">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block group-focus-within:text-primary transition-colors">
+              Zona
+            </span>
+            <input
+              className="w-full bg-background-subtle text-text-primary border border-stone-200 rounded-lg px-3 py-2 text-sm placeholder:text-text-muted/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={filtros.zona?.[0] ?? ''}
+              onChange={(e) =>
+                update({ zona: e.target.value ? [e.target.value] : undefined })
+              }
+              placeholder="Ej. A"
+            />
+          </label>
+
+          <label className="block group">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block group-focus-within:text-primary transition-colors">
+              Área mínima (m²)
+            </span>
+            <input
+              type="number"
+              min={0}
+              className="w-full bg-background-subtle text-text-primary border border-stone-200 rounded-lg px-3 py-2 text-sm placeholder:text-text-muted/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={filtros.areaMin ?? ''}
+              onChange={(e) =>
+                update({ areaMin: e.target.value ? Number(e.target.value) : undefined })
+              }
+              placeholder="Ej. 100"
+            />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block group">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block group-focus-within:text-primary transition-colors">
+              Área máxima (m²)
+            </span>
+            <input
+              type="number"
+              min={0}
+              className="w-full bg-background-subtle text-text-primary border border-stone-200 rounded-lg px-3 py-2 text-sm placeholder:text-text-muted/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={filtros.areaMax ?? ''}
+              onChange={(e) =>
+                update({ areaMax: e.target.value ? Number(e.target.value) : undefined })
+              }
+              placeholder="Ej. 500"
+            />
+          </label>
+
+          <label className="block group">
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block group-focus-within:text-primary transition-colors">
+              Precio mín. (MXN)
+            </span>
+            <input
+              type="number"
+              min={0}
+              className="w-full bg-background-subtle text-text-primary border border-stone-200 rounded-lg px-3 py-2 text-sm placeholder:text-text-muted/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={filtros.precioMin ?? ''}
+              onChange={(e) =>
+                update({ precioMin: e.target.value ? Number(e.target.value) : undefined })
+              }
+              placeholder="Ej. 200000"
+            />
+          </label>
+        </div>
+
+        <label className="block group">
+          <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block group-focus-within:text-primary transition-colors">
+            Precio máx. (MXN)
+          </span>
+          <input
+            type="number"
+            min={0}
+            className="w-full bg-background-subtle text-text-primary border border-stone-200 rounded-lg px-3 py-2 text-sm placeholder:text-text-muted/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            value={filtros.precioMax ?? ''}
+            onChange={(e) =>
+              update({ precioMax: e.target.value ? Number(e.target.value) : undefined })
+            }
+            placeholder="Ej. 800000"
+          />
+        </label>
+
         <button
           type="button"
           className="w-full py-2 px-4 bg-background-subtle hover:bg-stone-100 text-text-secondary text-xs font-semibold rounded-lg border border-stone-200 transition-colors flex items-center justify-center gap-2 group"

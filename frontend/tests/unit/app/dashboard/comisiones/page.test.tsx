@@ -1,63 +1,74 @@
-import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
-import DashboardComisionesPage from '@/app/dashboard/comisiones/page';
+import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useSession } from 'next-auth/react';
-import * as dashboardApi from '@/lib/dashboard-api';
+import DashboardComisionesPage from '@/app/dashboard/comisiones/page';
+import { auth } from '@/lib/auth';
+import { fetchComisionesByVendedor } from '@/lib/comisiones-api';
+import { getVendedorById } from '@/lib/vendedores-api';
 
-// Mock dependencies
-vi.mock('next-auth/react');
-vi.mock('@/lib/dashboard-api');
-vi.mock('@/components/dashboard/KPICard', () => ({
-  KPICard: ({ title, value }: any) => (
-    <div data-testid="kpi-card">
-      {title}: {value}
-    </div>
-  ),
+vi.mock('@/lib/auth', () => ({
+  auth: vi.fn(),
 }));
 
-// Mock Lazy component
-vi.mock('@/components/dashboard/TablaRankingVendedores', () => ({
-  TablaRankingVendedores: () => <div data-testid="tabla-ranking">Tabla Ranking</div>,
+vi.mock('@/lib/comisiones-api', () => ({
+  fetchComisionesByVendedor: vi.fn(),
+}));
+
+vi.mock('@/lib/vendedores-api', () => ({
+  getVendedorById: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
+}));
+
+vi.mock('@/components/ui/InfoTooltip', () => ({
+  InfoTooltip: ({ content }: any) => <span data-testid="info-tooltip">{content}</span>,
 }));
 
 describe('DashboardComisionesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useSession as any).mockReturnValue({
-      data: { accessToken: 'fake-token', user: { name: 'Test User' } },
-      status: 'authenticated',
-    });
   });
 
-  it('renders and handles data with undefined values safely', async () => {
-    // Mock API responses with undefined numeric values to test the fix
-    (dashboardApi.fetchKPIs as any).mockResolvedValue({
-      comisiones_pendientes: 1000,
+  it('renderiza el dashboard de comisiones del vendedor autenticado', async () => {
+    (auth as any).mockResolvedValue({
+      user: { name: 'Vendedor Demo', vendedorId: 'v-1', role: 'Vendedor' },
+      accessToken: 'fake-token',
     });
 
-    (dashboardApi.fetchComisionesPorVendedor as any).mockResolvedValue([
+    (getVendedorById as any).mockResolvedValue({
+      id: 'v-1',
+      nombre: 'Vendedor',
+      apellido_paterno: 'Demo',
+      email: 'demo@example.com',
+      created_at: '2024-01-01T00:00:00.000Z',
+    });
+
+    (fetchComisionesByVendedor as any).mockResolvedValue([
       {
-        vendedor_id: 1,
-        vendedor: 'Vendedor 1',
-        cantidad_ventas: 5,
-        total_vendido: undefined, // This caused the crash
-        total_comisiones: undefined, // This caused the crash
+        id: 'c-1',
+        vendedor_id: 'v-1',
+        monto_comision: 1500,
+        estatus: 'pendiente',
+        fecha_pago_programada: '2024-02-01',
+        venta_id: {
+          id: 'venta-1',
+          lote_id: { numero_lote: 'L12', manzana: 'A' },
+          cliente_id: { nombre: 'Juan', apellido_paterno: 'Pérez', apellido_materno: 'López' },
+        },
       },
     ]);
 
-    await act(async () => {
-      render(<DashboardComisionesPage />);
-    });
+    const jsx = await DashboardComisionesPage();
+    render(jsx);
 
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Vendedor 1')).toBeInTheDocument();
-    });
-
-    // Verify it rendered without crashing and shows 0 or handled value
-    // Since we use toLocaleString on (undefined || 0), it should display $0.00 (depending on locale formatting)
-    // We check that it didn't crash.
-    expect(screen.getByText('Vendedor 1')).toBeInTheDocument();
+    expect(screen.getByText('Mis Comisiones')).toBeDefined();
+    expect(screen.getByText('Vendedor Demo')).toBeDefined();
+    expect(screen.getByText('Comisiones Pendientes')).toBeDefined();
+    expect(screen.getByText('Comisiones Pagadas')).toBeDefined();
+    expect(screen.getByText('Total Generado')).toBeDefined();
+    expect(screen.getByText('L12 · Mz. A')).toBeDefined();
+    expect(screen.getByText('Juan Pérez López')).toBeDefined();
+    expect(screen.getByTestId('info-tooltip')).toBeDefined();
   });
 });

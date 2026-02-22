@@ -9,67 +9,83 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl, headers } }) {
+      const pathname = nextUrl.pathname;
       const isLoggedIn = !!auth?.user;
-      const isOnPortal = nextUrl.pathname.startsWith('/portal');
-      const isLoginPage =
-        nextUrl.pathname === '/portal/auth/login' || nextUrl.pathname === '/login';
-      const isAuthPage =
-        nextUrl.pathname.startsWith('/portal/auth') || nextUrl.pathname === '/login';
+      const role = auth?.user?.role || '';
+
+      const isLoginPage = pathname === '/portal/auth/login' || pathname === '/login';
+      const isAuthPage = pathname.startsWith('/portal/auth') || pathname === '/login';
+
+      const isOnPortal = pathname.startsWith('/portal');
+      const isOnDashboard = pathname.startsWith('/dashboard');
+      const isOnDevPortal = pathname.startsWith('/developer-portal');
+
+      const isPublicNonAuth = pathname === '/' || pathname === '/recover' || pathname === '/mapa';
+
+      const isClientRole = role === 'Cliente' || role === 'ROL_CLIENTE';
+      const isVendorRole = role === 'Vendedor' || role === 'ROL_VENDEDOR';
+      const isAdminRole =
+        role === 'Administrator' || role === 'SuperAdmin' || role === 'ROL_ADMIN';
 
       // Obtener IP (mejor esfuerzo en Edge/Middleware)
       // Nota: headers.get puede no estar disponible en todas las versiones de NextAuth authorized callback
       // pero request es NextRequest.
       const ip = headers?.get('x-forwarded-for') || 'unknown';
 
-      // Allow access to login and auth pages without being logged in
-      if (isLoginPage || isAuthPage) {
+      const redirectToLogin = () => Response.redirect(new URL('/login', nextUrl));
+      const redirectToClientHome = () => Response.redirect(new URL('/portal', nextUrl));
+      const redirectToVendorHome = () => Response.redirect(new URL('/dashboard/ventas', nextUrl));
+      const redirectToAdminHome = () => Response.redirect(new URL('/dashboard', nextUrl));
+
+      if (isAuthPage) {
         if (isLoggedIn) {
-          // If already logged in, redirect based on role
-          const role = auth.user?.role;
-          if (role === 'Administrator' || role === 'Vendedor') {
-            return Response.redirect(new URL('/dashboard', nextUrl));
-          }
-          return Response.redirect(new URL('/portal', nextUrl));
+          if (isAdminRole) return redirectToAdminHome();
+          if (isVendorRole) return redirectToVendorHome();
+          if (isClientRole) return redirectToClientHome();
+          return redirectToLogin();
         }
         return true;
       }
 
-      // 1. Protect Portal (Clients & Admins)
+      if (isPublicNonAuth) {
+        return true;
+      }
+
+      const isInternal = isOnPortal || isOnDashboard || isOnDevPortal;
+
+      if (isInternal && !isLoggedIn) {
+        logAccess({
+          ip,
+          path: pathname,
+          action: 'ACCESS_PROTECTED',
+          result: 'DENIED',
+          details: 'Unauthenticated',
+        });
+        return redirectToLogin();
+      }
+
       if (isOnPortal) {
-        if (!isLoggedIn) {
+        if (!isClientRole && !isAdminRole) {
           logAccess({
             ip,
-            path: nextUrl.pathname,
+            userId: auth?.user?.email || auth?.user?.id,
+            path: pathname,
             action: 'ACCESS_PROTECTED',
             result: 'DENIED',
-            details: 'Unauthenticated',
-          });
-          return false; // Redirect unauthenticated users to login page
-        }
-
-        // Validar rol: Cliente y Administrator tienen acceso
-        // Vendedor es redirigido a su dashboard
-        if (auth.user?.role !== 'Cliente' && auth.user?.role !== 'Administrator') {
-          logAccess({
-            ip,
-            userId: auth.user?.email || auth.user?.id,
-            path: nextUrl.pathname,
-            action: 'ACCESS_PROTECTED',
-            result: 'DENIED',
-            details: `Invalid Role for Portal: ${auth.user?.role}`,
+            details: `Invalid Role for Portal: ${role}`,
           });
 
-          if (auth.user?.role === 'Vendedor') {
-            return Response.redirect(new URL('/dashboard', nextUrl));
+          if (isVendorRole) {
+            return redirectToVendorHome();
           }
 
-          return Response.redirect(new URL('/portal/auth/error?error=AccessDenied', nextUrl));
+          return redirectToLogin();
         }
 
         logAccess({
           ip,
-          userId: auth.user?.email || auth.user?.id,
-          path: nextUrl.pathname,
+          userId: auth?.user?.email || auth?.user?.id,
+          path: pathname,
           action: 'ACCESS_PROTECTED',
           result: 'SUCCESS',
         });
@@ -77,51 +93,81 @@ export const authConfig = {
         return true;
       }
 
-      // 2. Protect Dashboard (Admins & Vendedores)
-      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       if (isOnDashboard) {
-        if (!isLoggedIn) {
-          // Redirigir al login del portal por defecto si no hay otro
-          return false;
-        }
-
-        if (auth.user?.role !== 'Administrator' && auth.user?.role !== 'Vendedor') {
+        if (!isAdminRole && !isVendorRole) {
           logAccess({
             ip,
-            userId: auth.user?.email || auth.user?.id,
-            path: nextUrl.pathname,
+            userId: auth?.user?.email || auth?.user?.id,
+            path: pathname,
             action: 'ACCESS_PROTECTED',
             result: 'DENIED',
-            details: `Invalid Role for Dashboard: ${auth.user?.role}`,
+            details: `Invalid Role for Dashboard: ${role}`,
           });
 
-          if (auth.user?.role === 'Cliente') {
-            return Response.redirect(new URL('/portal', nextUrl));
+          if (isClientRole) {
+            return redirectToClientHome();
           }
 
-          return Response.redirect(new URL('/portal/auth/error?error=AccessDenied', nextUrl));
+          return redirectToLogin();
         }
+
+        if (isAdminRole) {
+          return true;
+        }
+
+        const vendorAllowedPrefixes = [
+          '/dashboard',
+          '/dashboard/ventas',
+          '/dashboard/clientes',
+          '/dashboard/comisiones',
+          '/dashboard/mapa',
+        ];
+
+        const isVendorAllowed =
+          pathname === '/dashboard' ||
+          vendorAllowedPrefixes.some((path) =>
+            path === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname === path || pathname.startsWith(`${path}/`),
+          );
+
+        if (!isVendorAllowed) {
+          logAccess({
+            ip,
+            userId: auth?.user?.email || auth?.user?.id,
+            path: pathname,
+            action: 'ACCESS_PROTECTED',
+            result: 'DENIED',
+            details: `Vendor route not allowed: ${pathname}`,
+          });
+          return redirectToVendorHome();
+        }
+
+        logAccess({
+          ip,
+          userId: auth?.user?.email || auth?.user?.id,
+          path: pathname,
+          action: 'ACCESS_PROTECTED',
+          result: 'SUCCESS',
+        });
 
         return true;
       }
 
-      // 3. Protect Developer Portal (All authenticated users)
-      const isOnDevPortal = nextUrl.pathname.startsWith('/developer-portal');
       if (isOnDevPortal) {
         if (!isLoggedIn) {
           logAccess({
             ip,
-            path: nextUrl.pathname,
+            path: pathname,
             action: 'ACCESS_PROTECTED',
             result: 'DENIED',
             details: 'Unauthenticated',
           });
-          return false;
+          return redirectToLogin();
         }
         return true;
       }
 
-      // 4. Default protection for other routes
       return true;
     },
     async jwt({ token, user }) {

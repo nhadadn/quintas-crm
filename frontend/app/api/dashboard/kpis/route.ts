@@ -4,10 +4,16 @@ import axios from 'axios';
 export const dynamic = 'force-dynamic';
 
 const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
+const STATIC_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_STATIC_TOKEN;
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('Authorization');
-  const headers = authHeader ? { Authorization: authHeader } : {};
+  const headers =
+    STATIC_TOKEN && STATIC_TOKEN.length > 0
+      ? { Authorization: `Bearer ${STATIC_TOKEN}` }
+      : authHeader
+        ? { Authorization: authHeader }
+        : {};
   const tenantId = request.headers.get('X-Tenant-ID') || undefined;
 
   try {
@@ -109,7 +115,7 @@ export async function GET(request: Request) {
     }
 
     const kpis = {
-      total_ventas: totalVentas,
+      total_ventas: totalContratado,
       total_pagado: totalPagado,
       total_pendiente: totalPendiente,
       ventas_mes_actual: ventasMesActual,

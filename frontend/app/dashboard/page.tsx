@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { directusClient, type DirectusResponse } from "@/lib/directus-api";
 import KpiCard from "@/components/dashboard/kpi-card";
 import { MonthlyRevenueArea } from "@/components/dashboard/charts";
@@ -41,6 +43,8 @@ function SkeletonCard() {
 }
 
 export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [data, setData] = useState<KPIs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +52,12 @@ export default function DashboardPage() {
   const [canRenderChart, setCanRenderChart] = useState(false);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    // Gate: si es Vendedor, no montar KPIs de Admin y redirigir a su panel
+    if (session?.user?.role === 'Vendedor') {
+      router.replace('/dashboard/comisiones');
+      return;
+    }
     let cancelled = false;
     async function load() {
       setLoading(true);
@@ -71,7 +81,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [session?.user?.role, status, router]);
 
   const kpis = useMemo(() => {
     const getN = (keys: string[], fallback = 0) => {
@@ -138,7 +148,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="space-y-6">
         <div>

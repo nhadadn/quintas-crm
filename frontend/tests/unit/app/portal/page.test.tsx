@@ -61,7 +61,7 @@ describe('Portal Page', () => {
     const jsx = await PortalClientePage();
     render(jsx);
 
-    expect(screen.getByText('Bienvenido, Test User')).toBeDefined();
+    expect(screen.getByText('Bienvenido Test User a tu perfil')).toBeDefined();
     expect(screen.getAllByTestId('stats-card')).toHaveLength(4);
     expect(screen.getByTestId('tabla-amortizacion')).toBeDefined();
   });
@@ -129,7 +129,7 @@ describe('Portal Page', () => {
     const jsx = await PortalClientePage();
     render(jsx);
 
-    expect(screen.getByText('Bienvenido, New User')).toBeDefined();
+    expect(screen.getByText('Bienvenido New User a tu perfil')).toBeDefined();
     expect(screen.getByText('No hay información de pagos disponible.')).toBeDefined();
   });
 });

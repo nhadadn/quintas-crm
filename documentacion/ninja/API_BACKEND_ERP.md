@@ -81,14 +81,49 @@ Simula una tabla de amortización (método francés).
   }
   ```
 
-### 2.3 Dashboard (`/dashboard`)
-- `/kpis`: Totales de ventas, cobranza y clientes.
-- `/ventas-por-mes`: Histórico mensual.
-- `/ventas-por-vendedor`: Ranking de vendedores.
-- `/ventas-por-zona`: Ventas agrupadas por zona del lote.
-- `/pagos-por-estatus`: Desglose de pagos.
-- `/lotes-por-estatus`: Estado del inventario.
-- `/comisiones-por-vendedor`: Resumen de comisiones por vendedor.
+### 2.3 Dashboard y Estadísticas (`/crm-analytics`)
+
+- `GET /crm-analytics/kpis`: Totales de ventas, cobranza y clientes.
+- `GET /crm-analytics/ventas-por-mes`: Histórico mensual.
+- `GET /crm-analytics/ventas-por-vendedor`: Ranking de vendedores.
+- `GET /crm-analytics/ventas-por-zona`: Ventas agrupadas por zona del lote.
+- `GET /crm-analytics/pagos-por-estatus`: Desglose de pagos.
+- `GET /crm-analytics/lotes-por-estatus`: Estado del inventario.
+- `GET /crm-analytics/comisiones-por-vendedor`: Resumen de comisiones por vendedor.
+
+#### `GET /crm-analytics/estadisticas/ventas`
+Endpoint unificado de estadísticas de ventas.
+
+- **Query Params opcionales**:
+  - `desde`: Fecha inicial (YYYY-MM-DD)
+  - `hasta`: Fecha final (YYYY-MM-DD)
+- **Response**:
+
+```json
+{
+  "data": {
+    "kpis": {
+      "total_ventas": 1000000,
+      "total_cobrado": 800000,
+      "por_cobrar": 200000,
+      "clientes_activos": 42,
+      "ventas_count": 18
+    },
+    "ventas_por_mes": [
+      { "mes": "2026-01", "total": 250000 },
+      { "mes": "2026-02", "total": 750000 }
+    ],
+    "ventas_por_vendedor": [
+      { "vendedor": "Juan Pérez", "total": 600000, "cantidad": 7 },
+      { "vendedor": "María López", "total": 400000, "cantidad": 5 }
+    ],
+    "ventas_por_zona": [
+      { "zona": "Norte", "total": 700000, "cantidad": 8 },
+      { "zona": "Sur", "total": 300000, "cantidad": 4 }
+    ]
+  }
+}
+```
 
 ## 3. Lógica de Negocio y Hooks
 

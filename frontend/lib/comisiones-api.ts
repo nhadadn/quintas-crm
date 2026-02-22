@@ -62,13 +62,26 @@ export async function fetchComisionesByVendedor(
             _eq: vendedorId,
           },
         },
-        fields: '*.*', // Obtener relaciones (venta, vendedor)
+        fields: [
+          '*',
+          'venta_id.*',
+          'vendedor_id',
+          'vendedor_id.id',
+          'vendedor_id.nombre',
+        ].join(','),
         sort: '-fecha_pago_programada',
         limit: -1,
       },
       headers,
     });
-    return response.data.data;
+    let data = response.data.data || [];
+    // Fallback defensivo por si el filtro server-side no aplica cuando vendedor_id es relación
+    data = data.filter((c: any) => {
+      const v = (c as any).vendedor_id;
+      const id = typeof v === 'object' ? v?.id : v;
+      return String(id) === String(vendedorId);
+    });
+    return data;
   } catch (error) {
     handleAxiosError(error, 'fetchComisionesByVendedor');
     return [];

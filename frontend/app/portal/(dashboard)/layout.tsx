@@ -11,7 +11,7 @@ export default async function PortalLayout({ children }: { children: React.React
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <PortalNavbar user={session.user} />
       <main className="flex-grow">{children}</main>
       <PortalFooter />

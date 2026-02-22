@@ -31,6 +31,7 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
   const [searchResults, setSearchResults] = useState<Cliente[]>([]);
   const [searching, setSearching] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [accessState, setAccessState] = useState<'none' | 'has' | 'unknown'>('unknown');
 
   const {
     register,
@@ -45,6 +46,8 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
   useEffect(() => {
     if (initialCliente) {
       reset(initialCliente);
+      const has = Boolean((initialCliente as any)?.user_id);
+      setAccessState(has ? 'has' : 'none');
     }
   }, [initialCliente, reset]);
 
@@ -65,6 +68,8 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
     reset(cliente);
     setSearchResults([]);
     setSearchQuery('');
+    const has = Boolean((cliente as any)?.user_id);
+    setAccessState(has ? 'has' : 'none');
   };
 
   const onSubmit = async (data: ClienteFormInputs) => {
@@ -126,6 +131,28 @@ export function Step2DatosCliente({ onNext, onBack, initialCliente }: Step2Props
       <h2 className="text-2xl font-semibold tracking-tight text-text-primary mb-6">
         Datos del Cliente
       </h2>
+
+      {/* Estado de acceso al portal */}
+      {accessState !== 'unknown' && (
+        <div
+          className={`mb-6 rounded-xl border p-4 ${
+            accessState === 'has'
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+              : 'border-amber-300 bg-amber-50 text-amber-800'
+          }`}
+        >
+          {accessState === 'has' ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold">✓ Tiene acceso al portal.</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold">⚠️ Este cliente no tiene acceso al portal.</span>
+              <span>Se crearán credenciales en el siguiente paso.</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Buscador de Clientes */}
       <div className="mb-8 bg-background-paper p-4 rounded-2xl border border-border shadow-card">

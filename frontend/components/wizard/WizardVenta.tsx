@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { WizardState, TerminosVenta } from './types';
@@ -6,10 +6,13 @@ import { Step1SeleccionLote } from './Step1SeleccionLote';
 import { Step2DatosCliente } from './Step2DatosCliente';
 import { Step3TerminosVenta } from './Step3TerminosVenta';
 import { Step4Confirmacion } from './Step4Confirmacion';
+import { Step4Credenciales } from './Step4Credenciales';
 import { LoteProperties } from '@/types/lote';
 import { Cliente, Venta } from '@/types/erp';
 import { createVenta } from '@/lib/ventas-api';
 import { createCliente } from '@/lib/clientes-api';
+// Usuario Cliente ahora se crea vía API Route server-side
+import { toast } from 'sonner';
 
 const STORAGE_KEY = 'wizard_venta_state';
 
@@ -28,6 +31,8 @@ export default function WizardVenta() {
   const [loaded, setLoaded] = useState(false);
   const [success, setSuccess] = useState(false);
   const [createdSaleId, setCreatedSaleId] = useState<string | number | null>(null);
+  const portalCredentialsRef = useRef<{ password: string; sendEmail: boolean } | null>(null);
+  const [goToVentasOffer, setGoToVentasOffer] = useState(false);
 
   // Cargar estado guardado
   useEffect(() => {
@@ -79,6 +84,12 @@ export default function WizardVenta() {
     const token = session?.accessToken as string | undefined;
 
     try {
+      // 0. Variables auxiliares
+      const clienteSeleccionado: any = state.cliente;
+      const clienteYaTieneAcceso = Boolean(clienteSeleccionado?.user_id);
+      let userCreationWarning = false;
+      let linkedUserId: string | undefined = clienteSeleccionado?.user_id;
+
       // 1. Asegurar que el cliente existe
       let clienteId = state.cliente.id;
       if (
@@ -110,6 +121,7 @@ export default function WizardVenta() {
               clienteId = existente.id;
               // Actualizamos el estado para que futuras referencias usen este ID
               updateState({ cliente: existente });
+              linkedUserId = (existente as any)?.user_id;
             } else {
               throw createError; // No se encontró, relanzar error original
             }
@@ -132,14 +144,64 @@ export default function WizardVenta() {
         enganche: state.terminos.enganche,
         monto_financiado: state.terminos.monto_financiado,
         plazo_meses: state.terminos.plazo_meses,
+        tasa_interes: state.terminos.tasa_interes,
+        // tipo_plan por defecto 'frances' para sistema de amortización
+        // y tipo_venta derivado (plazo > 0 y hay principal)
+        // El createVenta normaliza y rellena defaults en backend SSR
+        ...(state.terminos.plazo_meses > 0 &&
+        (state.loteSeleccionado.precio_lista - state.terminos.enganche) > 0
+          ? { tipo_venta: 'financiado' as any }
+          : {}),
+        ...( { tipo_plan: 'frances' } as any ),
         estatus: 'contrato', // Estatus inicial
         metodo_pago: state.terminos.metodo_pago,
       };
 
       // 3. Crear venta
+      console.log('[Wizard] Creando venta...');
       const ventaCreada = await createVenta(nuevaVenta, token);
+      console.log('[Wizard] Venta OK:', ventaCreada?.id || nuevaVenta.id);
 
       if (ventaCreada) {
+        // 3.1 Intentar crear/enlazar usuario Directus (post-venta, no bloqueante)
+        if (!clienteYaTieneAcceso) {
+          try {
+            const email = state.cliente.email;
+            // Diagnóstico solicitado
+            console.log('[Wizard] Iniciando creación de usuario Cliente...');
+            if (portalCredentialsRef.current?.password) {
+              const resp = await fetch('/api/usuarios/crear-cliente', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                  email,
+                  password: portalCredentialsRef.current.password,
+                  clienteId: String(clienteId),
+                }),
+              });
+              const json = await resp.json();
+              if (!resp.ok || json?.success !== true) {
+                userCreationWarning = true;
+                console.warn('[Wizard] crear-cliente error:', json?.error || `HTTP ${resp.status}`);
+              } else {
+                linkedUserId = json.userId;
+                console.log('[Wizard] Usuario creado/enlazado OK. ID:', linkedUserId);
+              }
+            } else {
+              userCreationWarning = true;
+              console.warn(
+                '[Wizard] No se proporcionó contraseña para crear el usuario. Continuando sin credenciales.',
+              );
+            }
+          } catch (e) {
+            console.warn('[Wizard] Falló creación/enlace de usuario:', e);
+            userCreationWarning = true;
+          }
+        }
+
         // Notificar a otras pestañas que hubo una nueva venta para actualizar dashboard
         try {
           const channel = new BroadcastChannel('dashboard_updates');
@@ -150,8 +212,15 @@ export default function WizardVenta() {
         }
 
         localStorage.removeItem(STORAGE_KEY);
-        setCreatedSaleId(ventaCreada.id);
+        setCreatedSaleId(ventaCreada.id || nuevaVenta.id || null);
         setSuccess(true);
+        toast.success('Venta creada correctamente');
+
+        if (userCreationWarning) {
+          toast.warning(
+            'Venta creada, pero no se pudieron generar/enlazar credenciales. Puedes crearlas en el perfil del cliente.',
+          );
+        }
       } else {
         throw new Error('No se recibió la venta creada');
       }
@@ -166,7 +235,11 @@ export default function WizardVenta() {
         errorMessage = `Error: ${error.message}`;
       }
 
-      alert(errorMessage);
+      toast.error(errorMessage);
+      const status = error?.response?.status;
+      if (status === 403 || status === 500) {
+        setGoToVentasOffer(true);
+      }
     }
   };
 
@@ -221,7 +294,7 @@ export default function WizardVenta() {
 
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center md:justify-start space-x-2 overflow-x-auto pb-1">
-              {[1, 2, 3, 4].map((step) => (
+              {(state.cliente && (state.cliente as any)?.user_id ? [1, 2, 3, 4] : [1, 2, 3, 4, 5]).map((step) => (
                 <div key={step} className="flex items-center flex-shrink-0">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
@@ -234,7 +307,7 @@ export default function WizardVenta() {
                   >
                     {step}
                   </div>
-                  {step < 4 && (
+                  {step < (state.cliente && (state.cliente as any)?.user_id ? 4 : 5) && (
                     <div
                       className={`w-8 h-1 mx-1 rounded ${
                         state.currentStep > step ? 'bg-primary-light' : 'bg-border'
@@ -261,8 +334,23 @@ export default function WizardVenta() {
           {state.currentStep === 1 && 'Selección de Lote'}
           {state.currentStep === 2 && 'Datos del Cliente'}
           {state.currentStep === 3 && 'Términos de Venta'}
-          {state.currentStep === 4 && 'Confirmación'}
+          {state.currentStep === 4 &&
+            (state.cliente && (state.cliente as any)?.user_id
+              ? 'Confirmación'
+              : 'Acceso al Portal del Cliente')}
+          {state.currentStep === 5 && 'Confirmación'}
         </h2>
+        {goToVentasOffer && (
+          <div className="mb-6 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 flex items-center justify-between">
+            <div>El lote podría haber quedado apartado. Revisa tus ventas para confirmar.</div>
+            <button
+              onClick={() => router.push('/dashboard/ventas')}
+              className="px-3 py-2 rounded bg-amber-600 text-white hover:bg-amber-700"
+            >
+              Ir a mis ventas
+            </button>
+          </div>
+        )}
 
         {state.currentStep === 1 && (
           <Step1SeleccionLote
@@ -299,7 +387,29 @@ export default function WizardVenta() {
           />
         )}
 
-        {state.currentStep === 4 && (
+        {/* Paso de Credenciales si el cliente NO tiene acceso aún */}
+        {state.currentStep === 4 &&
+          state.cliente &&
+          !(state.cliente as any)?.user_id && (
+            <Step4Credenciales
+              email={state.cliente.email}
+              onBack={prevStep}
+              onNext={({ password, sendEmail }) => {
+                portalCredentialsRef.current = { password, sendEmail };
+                nextStep();
+              }}
+            />
+          )}
+
+        {/* Confirmación cuando el cliente YA tiene acceso */}
+        {state.currentStep === 4 &&
+          state.cliente &&
+          (state.cliente as any)?.user_id && (
+            <Step4Confirmacion state={state} onBack={prevStep} onConfirm={handleFinish} />
+          )}
+
+        {/* Confirmación cuando se mostró credenciales */}
+        {state.currentStep === 5 && (
           <Step4Confirmacion state={state} onBack={prevStep} onConfirm={handleFinish} />
         )}
       </div>

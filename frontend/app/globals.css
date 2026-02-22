@@ -33,6 +33,16 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    /* Quintas CRM - Background Surfaces */
+    --background-paper: 0 0% 100%;    /* Blanco para tarjetas en modo claro */
+    --background-subtle: 0 0% 98%;    /* Sutil gris cálido para secciones */
+
+    /* Quintas CRM - Semantic Colors (HSL) */
+    --success: 80 60% 34%;            /* Oliva */
+    --warning: 42 72% 50%;            /* Ocre/Dorado */
+    --info: 212 49% 34%;              /* Azul marino cálido */
+    --danger: 0 56% 38%;              /* Rojo vino */
   }
 
   .dark {
@@ -63,6 +73,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Quintas CRM - Dark Surfaces */
+    --background-paper: 222.2 20% 9%;    /* Ligeramente más claro que card */
+    --background-subtle: 217.2 18% 12%;  /* Subtle para secciones */
+
+    /* Quintas CRM - Semantic Colors (HSL) */
+    --success: 80 50% 38%;
+    --warning: 42 70% 52%;
+    --info: 212 45% 40%;
+    --danger: 0 55% 44%;
   }
 }
 

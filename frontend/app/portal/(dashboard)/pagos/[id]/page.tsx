@@ -14,6 +14,11 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
     redirect('/portal/auth/login');
   }
 
+  const role = session.user?.role || '';
+  const isClientRole = role === 'Cliente' || role === 'ROL_CLIENTE';
+  const isAdminRole =
+    role === 'Administrator' || role === 'SuperAdmin' || role === 'ROL_ADMIN';
+
   const { id } = await params;
 
   try {
@@ -69,6 +74,33 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       );
+    }
+
+    if (isClientRole) {
+      const sessionClienteId = (session.user as any)?.clienteId as string | undefined;
+
+      if (!sessionClienteId || String(sessionClienteId) !== String(clienteId)) {
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-4">
+              <AlertCircle className="w-6 h-6 text-red-500 mt-1" />
+              <div>
+                <h2 className="text-lg font-bold text-red-800">Acceso no autorizado</h2>
+                <p className="text-red-600">
+                  No tienes permiso para acceder a este pago. Solo puedes visualizar pagos asociados a
+                  tu cuenta.
+                </p>
+                <Link
+                  href="/portal/pagos"
+                  className="text-red-700 underline mt-2 inline-block"
+                >
+                  Volver a mis pagos
+                </Link>
+              </div>
+            </div>
+          </div>
+        );
+      }
     }
 
     return (

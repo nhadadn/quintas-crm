@@ -175,10 +175,8 @@ describe('TablaPagosCliente Component', () => {
       <TablaPagosCliente pagos={[vencidoPago]} estadisticas={mockEstadisticas} clienteId={123} />,
     );
 
-    // Check if class contains red color (border-red-800 or text-red-400)
-    // We can find the element and check class
     const statusBadges = screen.getAllByText('VENCIDO');
-    expect(statusBadges[0].className).toContain('text-red-400');
+    expect(statusBadges[0].className).toContain('text-danger');
   });
 
   it('handles download receipt failure', async () => {

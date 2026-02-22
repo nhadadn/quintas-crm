@@ -7,21 +7,27 @@ import { toast } from 'sonner';
 import { Download, Plus } from 'lucide-react';
 import TablaPagos from '@/components/gestion/TablaPagos';
 import ModalRegistrarPago from '@/components/pagos/ModalRegistrarPago';
-import { fetchPagos, marcarComoPagado, descargarReporteIngresos } from '@/lib/pagos-api';
-import { Pago } from '@/types/erp';
+import { fetchPagos, fetchMovimientos, marcarComoPagado, descargarReporteIngresos } from '@/lib/pagos-api';
+import { Pago, MovimientoPago } from '@/types/erp';
 
 export default function GestionPagosPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [pagos, setPagos] = useState<Pago[]>([]);
+  const [movimientos, setMovimientos] = useState<MovimientoPago[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMovs, setLoadingMovs] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (session?.accessToken) {
-      cargarPagos();
+      void cargarTodo();
     }
   }, [session]);
+
+  const cargarTodo = async () => {
+    await Promise.all([cargarPagos(), cargarMovimientos()]);
+  };
 
   const cargarPagos = async () => {
     setLoading(true);
@@ -38,6 +44,18 @@ export default function GestionPagosPage() {
     }
   };
 
+  const cargarMovimientos = async () => {
+    setLoadingMovs(true);
+    try {
+      const data = await fetchMovimientos({}, session?.accessToken);
+      if (data) setMovimientos(data);
+    } catch (error) {
+      console.error('Error cargando movimientos:', error);
+    } finally {
+      setLoadingMovs(false);
+    }
+  };
+
   const handleVerDetalles = (id: string | number) => {
     router.push(`/pagos/${id}`);
   };
@@ -48,7 +66,7 @@ export default function GestionPagosPage() {
     try {
       await marcarComoPagado(id, session?.accessToken);
       toast.success('Pago marcado como completado');
-      cargarPagos(); // Recargar lista
+      await cargarTodo();
     } catch (error: any) {
       console.error('Error al marcar pagado:', error);
       toast.error(error.message || 'Error al actualizar el pago');
@@ -126,8 +144,47 @@ export default function GestionPagosPage() {
         <ModalRegistrarPago
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={cargarPagos}
+          onSuccess={cargarTodo}
         />
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">Movimientos manuales</h2>
+          <div className="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-slate-800">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venta</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"># Cuota</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estatus</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
+                {loadingMovs ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500">Cargando movimientos…</td>
+                  </tr>
+                ) : movimientos.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500">Sin movimientos</td>
+                  </tr>
+                ) : (
+                  movimientos.map((m) => (
+                    <tr key={String(m.id)}>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">{m.fecha_movimiento?.toString().slice(0, 10)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">{String(m.venta_id)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">{m.numero_pago}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">${Number(m.monto).toFixed(2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">{m.estatus}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm max-w-xs truncate">{m.notas || ''}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FilaAmortizacion, EstatusPago } from '@/types/erp';
-import { generarTablaAmortizacion } from '@/lib/pagos-api';
+import { fetchAmortizacionByVenta } from '@/lib/pagos-api';
 
 interface TablaAmortizacionProps {
   venta_id?: string;
@@ -31,7 +31,7 @@ export function TablaAmortizacion({ venta_id, data }: TablaAmortizacionProps) {
 
       setLoading(true);
       try {
-        const result = await generarTablaAmortizacion(venta_id);
+        const result = await fetchAmortizacionByVenta(venta_id);
         setTabla(result);
       } catch (e) {
         setError('Error al cargar la tabla de amortización');

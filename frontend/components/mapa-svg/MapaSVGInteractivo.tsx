@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { LoteFeature, FiltrosMapa } from '@/types/lote';
 import { fetchLotesAsGeoJSON } from '@/lib/directus-api';
@@ -80,7 +80,7 @@ export function MapaSVGInteractivo({
     };
 
     void load();
-  }, []);
+  }, [token]);
 
   const handleZoomIn = actions.zoomIn;
   const handleZoomOut = actions.zoomOut;
@@ -115,6 +115,41 @@ export function MapaSVGInteractivo({
     return null;
   };
 
+  const filteredLotes = useMemo(() => {
+    return lotes.filter((f) => {
+      const estatusOk =
+        !filtros.estatus || filtros.estatus.includes(f.properties.estatus as any);
+      const numeroOk =
+        !filtros.numero_lote ||
+        String(f.properties.numero_lote)
+          .toLowerCase()
+          .includes(String(filtros.numero_lote).toLowerCase());
+      const zonaOk =
+        !filtros.zona ||
+        filtros.zona.length === 0 ||
+        filtros.zona.some((z) =>
+          String(f.properties.zona || '')
+            .toLowerCase()
+            .includes(String(z).toLowerCase()),
+        );
+
+      const precioLista = Number(f.properties.precio_lista || 0);
+      const areaM2 = Number(f.properties.area_m2 || 0);
+
+      const precioMinOk =
+        filtros.precioMin === undefined || (!Number.isNaN(precioLista) && precioLista >= filtros.precioMin);
+      const precioMaxOk =
+        filtros.precioMax === undefined || (!Number.isNaN(precioLista) && precioLista <= filtros.precioMax);
+
+      const areaMinOk =
+        filtros.areaMin === undefined || (!Number.isNaN(areaM2) && areaM2 >= filtros.areaMin);
+      const areaMaxOk =
+        filtros.areaMax === undefined || (!Number.isNaN(areaM2) && areaM2 <= filtros.areaMax);
+
+      return estatusOk && numeroOk && zonaOk && precioMinOk && precioMaxOk && areaMinOk && areaMaxOk;
+    });
+  }, [lotes, filtros]);
+
   return (
     <div className="relative w-full h-screen bg-slate-900 flex">
       <div className="relative flex-1 flex items-center justify-center">
@@ -129,16 +164,7 @@ export function MapaSVGInteractivo({
           >
             <g transform={`translate(${offset.x} ${offset.y}) scale(${scale})`}>
               <SVGLoteLayer
-                lotes={lotes.filter((f) => {
-                  const estatusOk =
-                    !filtros.estatus || filtros.estatus.includes(f.properties.estatus as any);
-                  const numeroOk =
-                    !filtros.numero_lote ||
-                    String(f.properties.numero_lote)
-                      .toLowerCase()
-                      .includes(String(filtros.numero_lote).toLowerCase());
-                  return estatusOk && numeroOk;
-                })}
+                lotes={filteredLotes}
                 onSelectLote={handleSelectLote}
                 svgConfig={frontendConfig}
                 onHover={(props, e) => setHoverInfo({ props, x: e.clientX, y: e.clientY })}

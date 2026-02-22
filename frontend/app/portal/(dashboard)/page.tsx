@@ -70,6 +70,8 @@ export default async function PortalClientePage() {
   const { perfil, estadisticas } = perfilData;
   const ventaActiva = perfil.ventas && perfil.ventas.length > 0 ? perfil.ventas[0] : null;
 
+  const userName = session.user?.name || perfil.nombre;
+
   // Stats for cards
   const stats = [
     {
@@ -126,11 +128,13 @@ export default async function PortalClientePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Mi Portal</h1>
-          <p className="text-slate-400 mt-1">Bienvenido, {perfil.nombre}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Bienvenido {userName} a tu perfil
+          </h1>
+          <p className="mt-1 text-muted-foreground">Aquí puedes consultar tu estado de cuenta y pagos.</p>
         </div>
         {ventaActiva && (
-          <div className="bg-emerald-900/30 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium border border-emerald-800 self-start md:self-auto">
+          <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-primary/30 self-start md:self-auto">
             Contrato #{ventaActiva.id} - {ventaActiva.estatus.toUpperCase()}
           </div>
         )}
@@ -146,10 +150,10 @@ export default async function PortalClientePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Tabla de Amortización */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-slate-100 mb-4">Estado de Cuenta</h2>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-card">
+            <h2 className="text-xl font-bold text-foreground mb-4">Estado de Cuenta</h2>
             {amortizacionData.length === 0 && (
-              <div className="text-slate-400 py-2 text-center bg-slate-800/50 rounded-lg mb-4">
+              <div className="text-muted-foreground py-2 text-center bg-background-paper rounded-xl mb-4">
                 No hay información de pagos disponible.
               </div>
             )}
@@ -159,10 +163,10 @@ export default async function PortalClientePage() {
 
         {/* Sidebar / Documentos */}
         <div className="space-y-6">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">Documentos</h3>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-card">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Documentos</h3>
             <ul className="space-y-3">
-              <li className="flex items-center justify-between p-3 bg-slate-700/50 rounded hover:bg-slate-700 transition-colors cursor-pointer group">
+              <li className="flex items-center justify-between p-3 bg-background-paper rounded-xl hover:bg-background transition-colors cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <svg
                     className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform"
@@ -177,13 +181,13 @@ export default async function PortalClientePage() {
                       d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-slate-200">
+                  <span className="text-sm font-medium text-foreground">
                     Contrato de Compraventa
                   </span>
                 </div>
-                <span className="text-xs text-slate-400">PDF</span>
+                <span className="text-xs text-muted-foreground">PDF</span>
               </li>
-              <li className="flex items-center justify-between p-3 bg-slate-700/50 rounded hover:bg-slate-700 transition-colors cursor-pointer group">
+              <li className="flex items-center justify-between p-3 bg-background-paper rounded-xl hover:bg-background transition-colors cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <svg
                     className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform"
@@ -198,27 +202,27 @@ export default async function PortalClientePage() {
                       d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-slate-200">Reglamento Interno</span>
+                  <span className="text-sm font-medium text-foreground">Reglamento Interno</span>
                 </div>
-                <span className="text-xs text-slate-400">PDF</span>
+                <span className="text-xs text-muted-foreground">PDF</span>
               </li>
             </ul>
           </div>
 
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">Mis Datos</h3>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-card">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Mis Datos</h3>
             <div className="space-y-4 text-sm">
               <div>
-                <label className="block text-slate-400 text-xs uppercase mb-1">Nombre</label>
-                <div className="font-medium text-slate-200">{perfil.nombre}</div>
+                <label className="block text-muted-foreground text-xs uppercase mb-1">Nombre</label>
+                <div className="font-medium text-foreground">{perfil.nombre}</div>
               </div>
               <div>
-                <label className="block text-slate-400 text-xs uppercase mb-1">Email</label>
-                <div className="font-medium text-slate-200">{perfil.email}</div>
+                <label className="block text-muted-foreground text-xs uppercase mb-1">Email</label>
+                <div className="font-medium text-foreground">{perfil.email}</div>
               </div>
               <div>
-                <label className="block text-slate-400 text-xs uppercase mb-1">Teléfono</label>
-                <div className="font-medium text-slate-200">{perfil.telefono}</div>
+                <label className="block text-muted-foreground text-xs uppercase mb-1">Teléfono</label>
+                <div className="font-medium text-foreground">{perfil.telefono}</div>
               </div>
               {/* <button className="w-full py-2 mt-2 border border-slate-600 rounded hover:bg-slate-700 text-slate-300 transition-colors">
                 Editar Información

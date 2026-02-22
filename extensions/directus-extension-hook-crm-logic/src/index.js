@@ -401,6 +401,46 @@ export default ({ filter, action, schedule }, { services, database, getSchema })
     }
   });
 
+  action('pagos_movimientos.items.create', async (meta) => {
+    if (!globalThis.__movsProcessed) globalThis.__movsProcessed = new Set();
+    try {
+      const movId = meta.key;
+      if (globalThis.__movsProcessed.has(movId)) {
+        console.log(`[pagos_movimientos.create] Skip duplicate ${movId}`);
+        return;
+      }
+      const movimiento = await database('pagos_movimientos').where({ id: movId }).first();
+      if (!movimiento) return;
+      const ventaId = movimiento.venta_id;
+      const numeroPago = movimiento.numero_pago;
+      const monto = parseFloat(movimiento.monto || 0);
+      const notas = movimiento.notas || '';
+      if (!ventaId || !numeroPago || monto <= 0) return;
+      if (typeof notas === 'string' && notas.includes('[APLICACION_AUTOMATICA]')) {
+        globalThis.__movsProcessed.add(movId);
+        return;
+      }
+      console.log(`[pagos_movimientos.create] Apply ${movId} venta=${ventaId} cuota=${numeroPago} monto=${monto}`);
+      const cuota = await database('amortizacion').where({ venta_id: ventaId, numero_pago: numeroPago }).first();
+      if (!cuota) {
+        globalThis.__movsProcessed.add(movId);
+        return;
+      }
+      const montoCuota = parseFloat(cuota.monto_cuota || 0);
+      const pagadoPrev = parseFloat(cuota.monto_pagado || 0);
+      const nuevoPagado = pagadoPrev + monto;
+      const nuevoEstatus = nuevoPagado >= (montoCuota - 0.01) ? 'pagado' : 'parcial';
+      await database('amortizacion').where({ id: cuota.id }).update({
+        monto_pagado: nuevoPagado,
+        estatus: nuevoEstatus,
+        updated_at: new Date(),
+      });
+      globalThis.__movsProcessed.add(movId);
+    } catch (e) {
+      console.error('❌ Error en hook pagos_movimientos.items.create:', e);
+    }
+  });
+
   // =================================================================================
   // 5. CRON JOB: Calcular Penalizaciones Diarias
   // =================================================================================

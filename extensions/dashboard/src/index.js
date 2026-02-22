@@ -254,6 +254,158 @@ export default (router, { services, database, getSchema }) => {
     }
   });
 
+  router.get('/estadisticas/ventas', async (req, res) => {
+    try {
+      const { desde, hasta } = req.query;
+
+      const ventasService = new ItemsService('ventas', {
+        schema: req.schema,
+        knex: database,
+        accountability: req.accountability,
+      });
+      const pagosService = new ItemsService('pagos', {
+        schema: req.schema,
+        knex: database,
+        accountability: req.accountability,
+      });
+      const clientesService = new ItemsService('clientes', {
+        schema: req.schema,
+        knex: database,
+        accountability: req.accountability,
+      });
+
+      const ventasFilter = {};
+      if (desde || hasta) {
+        ventasFilter.fecha_venta = {};
+        if (desde) ventasFilter.fecha_venta._gte = desde;
+        if (hasta) ventasFilter.fecha_venta._lte = hasta;
+      }
+
+      const ventasAgg = await ventasService.readByQuery({
+        filter: ventasFilter,
+        aggregate: { sum: ['monto_total'], count: ['*'] },
+        limit: -1,
+      });
+
+      const pagosFilter = { estatus: { _eq: 'pagado' } };
+      if (desde || hasta) {
+        pagosFilter.fecha_pago = {};
+        if (desde) pagosFilter.fecha_pago._gte = desde;
+        if (hasta) pagosFilter.fecha_pago._lte = hasta;
+      }
+
+      const pagosAgg = await pagosService.readByQuery({
+        filter: pagosFilter,
+        aggregate: { sum: ['monto'] },
+        limit: -1,
+      });
+
+      const clientesAgg = await clientesService.readByQuery({
+        aggregate: { count: ['*'] },
+        limit: -1,
+      });
+
+      const totalVentas = parseFloat(ventasAgg[0]?.sum?.monto_total || 0);
+      const totalCobrado = parseFloat(pagosAgg[0]?.sum?.monto || 0);
+      const totalClientes = parseInt(clientesAgg[0]?.count || 0);
+
+      const ventasPorVendedorRaw = await ventasService.readByQuery({
+        filter: ventasFilter,
+        aggregate: { sum: ['monto_total'], count: ['*'] },
+        groupBy: ['vendedor_id'],
+        limit: -1,
+      });
+
+      const vendedoresService = new ItemsService('vendedores', {
+        schema: req.schema,
+        knex: database,
+        accountability: req.accountability,
+      });
+
+      const ventasPorVendedor = await Promise.all(
+        ventasPorVendedorRaw.map(async (item) => {
+          let vendedorName = 'Desconocido';
+          if (item.vendedor_id) {
+            try {
+              const vendedor = await vendedoresService.readOne(item.vendedor_id, {
+                fields: ['nombre', 'apellido_paterno'],
+              });
+              vendedorName =
+                `${vendedor?.nombre || ''} ${vendedor?.apellido_paterno || ''}`.trim() ||
+                'Desconocido';
+            } catch (e) {}
+          }
+          return {
+            vendedor: vendedorName,
+            total: parseFloat(item.sum?.monto_total || 0),
+            cantidad: parseInt(item.count || 0),
+          };
+        })
+      );
+
+      ventasPorVendedor.sort((a, b) => b.total - a.total);
+
+      const ventasPorZonaQuery = database('ventas')
+        .join('lotes', 'ventas.lote_id', 'lotes.id')
+        .select('lotes.zona')
+        .sum('ventas.monto_total as total')
+        .count('ventas.id as cantidad');
+
+      if (desde) ventasPorZonaQuery.where('ventas.fecha_venta', '>=', desde);
+      if (hasta) ventasPorZonaQuery.where('ventas.fecha_venta', '<=', hasta);
+
+      const ventasPorZonaRaw = await ventasPorZonaQuery
+        .groupBy('lotes.zona')
+        .orderBy('total', 'desc');
+
+      const ventasPorZona = ventasPorZonaRaw.map((row) => ({
+        zona: row.zona || 'Sin Zona',
+        total: parseFloat(row.total || 0),
+        cantidad: parseInt(row.cantidad || 0),
+      }));
+
+      const ventasPorMesQuery = database('ventas')
+        .select(
+          database.raw("DATE_FORMAT(fecha_venta, '%Y-%m') as mes"),
+          database.raw('SUM(monto_total) as total')
+        );
+
+      if (desde) ventasPorMesQuery.where('fecha_venta', '>=', desde);
+      if (hasta) ventasPorMesQuery.where('fecha_venta', '<=', hasta);
+
+      const ventasPorMesRaw = await ventasPorMesQuery
+        .groupByRaw("DATE_FORMAT(fecha_venta, '%Y-%m')")
+        .orderBy('mes', 'desc')
+        .limit(12);
+
+      const ventasPorMes = ventasPorMesRaw
+        .slice()
+        .reverse()
+        .map((row) => ({
+          mes: row.mes,
+          total: parseFloat(row.total || 0),
+        }));
+
+      res.json({
+        data: {
+          kpis: {
+            total_ventas: totalVentas,
+            total_cobrado: totalCobrado,
+            por_cobrar: totalVentas - totalCobrado,
+            clientes_activos: totalClientes,
+            ventas_count: parseInt(ventasAgg[0]?.count || 0),
+          },
+          ventas_por_mes: ventasPorMes,
+          ventas_por_vendedor: ventasPorVendedor,
+          ventas_por_zona: ventasPorZona,
+        },
+      });
+    } catch (error) {
+      console.error('[EstadisticasVentas] Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // NUEVO: Comisiones por Vendedor
   router.get('/comisiones-por-vendedor', async (req, res) => {
     try {

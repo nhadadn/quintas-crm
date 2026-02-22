@@ -10,9 +10,9 @@ const config: Config = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: {
-          DEFAULT: 'hsl(var(--background))', // Crema suave (Warm paper) - Mapeado a variable
-          paper: '#FFFFFF', // Blanco puro para tarjetas
-          subtle: '#FFF5F5', // Rosado muy pálido para secciones alternas
+          DEFAULT: 'hsl(var(--background))',
+          paper: 'hsl(var(--background-paper))',
+          subtle: 'hsl(var(--background-subtle))',
         },
         foreground: 'hsl(var(--foreground))',
         primary: {
@@ -62,10 +62,10 @@ const config: Config = {
           liquidado: '#2C5282', // Azul marino cálido
         },
         // Mantener compatibilidad con clases anteriores
-        success: '#6B8E23',
-        warning: '#D69E2E',
-        danger: '#9B2C2C',
-        info: '#2C5282',
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
+        danger: 'hsl(var(--danger))',
+        info: 'hsl(var(--info))',
       },
       boxShadow: {
         warm: '0 18px 60px -24px rgba(15, 23, 42, 0.45)',

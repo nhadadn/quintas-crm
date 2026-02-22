@@ -56,6 +56,15 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
     cargarVendedores();
   }, []);
 
+  // Si es Vendedor, bloquear selección y autoseleccionar su ID
+  useEffect(() => {
+    const role = session?.user?.role;
+    const vendedorId = session?.user?.vendedorId as any;
+    if (role === 'Vendedor' && vendedorId) {
+      setValue('vendedor_id', vendedorId);
+    }
+  }, [session, setValue]);
+
   const { mensualidad, montoFinanciado, tablaPreview, customError } = useMemo(() => {
     const enganche = Number(watchEnganche) || 0;
     const plazo = Number(watchPlazo) || 1;
@@ -131,17 +140,31 @@ export function Step3TerminosVenta({ onNext, onBack, initialTerminos, lote, clie
           {loadingVendedores ? (
             <div className="text-muted-foreground text-sm">Cargando vendedores...</div>
           ) : (
-            <select
-              {...register('vendedor_id', { required: 'Debe seleccionar un vendedor' })}
-              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
-            >
-              <option value="">Seleccione un vendedor...</option>
-              {vendedores.map((vendedor) => (
-                <option key={vendedor.id} value={vendedor.id}>
-                  {vendedor.nombre} {vendedor.apellido_paterno}
-                </option>
-              ))}
-            </select>
+            <>
+              {session?.user?.role === 'Vendedor' ? (
+                <select
+                  {...register('vendedor_id', { required: 'Debe seleccionar un vendedor' })}
+                  disabled
+                  className="w-full bg-muted/40 border border-border rounded-xl px-4 py-2.5 text-foreground"
+                >
+                  <option value={session?.user?.vendedorId}>
+                    {`Vendedor asignado (ID: ${session?.user?.vendedorId || '-'})`}
+                  </option>
+                </select>
+              ) : (
+                <select
+                  {...register('vendedor_id', { required: 'Debe seleccionar un vendedor' })}
+                  className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent"
+                >
+                  <option value="">Seleccione un vendedor...</option>
+                  {vendedores.map((vendedor) => (
+                    <option key={vendedor.id} value={vendedor.id}>
+                      {vendedor.nombre} {vendedor.apellido_paterno}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </>
           )}
           {errors.vendedor_id && (
             <span className="text-red-500 text-xs mt-1">{errors.vendedor_id.message}</span>

@@ -240,7 +240,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             placeholder="Buscar por monto, concepto, lote o venta..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-input border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-light transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-input border border-input rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
@@ -254,7 +254,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary transition-colors"
                 placeholder="Desde"
               />
             </div>
@@ -267,7 +267,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary-light transition-colors"
+                className="w-full md:w-40 pl-9 pr-3 py-2.5 bg-input border border-input rounded-xl text-foreground text-sm focus:outline-none focus:border-primary transition-colors"
                 placeholder="Hasta"
               />
             </div>
@@ -278,7 +278,7 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto bg-input border border-input rounded-xl text-foreground py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary-light transition-colors cursor-pointer"
+              className="w-full md:w-auto bg-input border border-input rounded-xl text-foreground py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary transition-colors cursor-pointer"
             >
               <option value="all">Todos los estatus</option>
               <option value="pagado">Pagado</option>
@@ -364,11 +364,11 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                         <button
                           onClick={() => handleDownload(pago.id)}
                           disabled={downloadingId === pago.id}
-                          className="text-primary-light hover:text-primary transition-colors p-2 hover:bg-primary-light/10 rounded-lg disabled:opacity-50"
+                          className="text-primary hover:text-primary/90 transition-colors p-2 hover:bg-primary/10 rounded-lg disabled:opacity-50"
                           title="Descargar Recibo"
                         >
                           {downloadingId === pago.id ? (
-                            <div className="w-5 h-5 border-2 border-primary-light border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <Download className="w-5 h-5" />
                           )}
@@ -432,10 +432,10 @@ export function TablaPagosCliente({ pagos, estadisticas, clienteId }: TablaPagos
                   <button
                     onClick={() => handleDownload(pago.id)}
                     disabled={downloadingId === pago.id}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-background-paper hover:bg-background-subtle rounded-lg text-sm text-primary-light transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-1.5 bg-background-paper hover:bg-background-subtle rounded-lg text-sm text-primary transition-colors disabled:opacity-50"
                   >
                     {downloadingId === pago.id ? (
-                      <div className="w-4 h-4 border-2 border-primary-light border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <Download className="w-4 h-4" />
                     )}

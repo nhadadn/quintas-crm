@@ -107,6 +107,50 @@ export default (router, { services, database, getSchema }) => {
   // NEW ROUTES (Must come before generic /:id)
   // =================================================================================
 
+  router.post('/registrar-manual', async (req, res) => {
+    let trx;
+    try {
+      const { venta_id, monto, metodo_pago, fecha_pago, concepto } = req.body || {};
+      if (!venta_id) throw new InvalidPayloadException('venta_id es requerido');
+      if (!monto || Number(monto) <= 0) throw new InvalidPayloadException('monto debe ser > 0');
+      trx = await database.transaction();
+      const cuota = await trx('amortizacion')
+        .where({ venta_id })
+        .whereIn('estatus', ['pendiente', 'parcial'])
+        .orderBy('numero_pago', 'asc')
+        .first();
+      if (!cuota) throw new NotFoundException('No hay cuotas pendientes/parciales para esta venta');
+      const { randomUUID } = await import('node:crypto');
+      const id = randomUUID();
+      await trx('pagos_movimientos').insert({
+        id,
+        venta_id: String(venta_id),
+        numero_pago: cuota.numero_pago,
+        monto: parseFloat(monto),
+        fecha_movimiento: fecha_pago || new Date(),
+        tipo: 'abono',
+        estatus: 'aplicado',
+        metodo_pago_detalle: metodo_pago ? JSON.stringify({ metodo: metodo_pago }) : null,
+        notas: `[APLICACION_AUTOMATICA] ${concepto || ''}`.trim(),
+        pago_id: null,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      await trx.commit();
+      res.json({
+        data: {
+          movimiento_id: id,
+          numero_pago: cuota.numero_pago,
+          monto_aplicado: parseFloat(monto),
+          estatus_cuota: 'aplicado',
+        },
+      });
+    } catch (e) {
+      if (trx) await trx.rollback();
+      handleError(e, res);
+    }
+  });
+
   // Estado de Cuenta
   router.get('/estado-cuenta/:venta_id', async (req, res) => {
     try {

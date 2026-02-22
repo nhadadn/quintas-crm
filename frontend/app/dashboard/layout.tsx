@@ -3,6 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { LoadingDashboard } from '@/components/dashboard/LoadingDashboard';
 import { LayoutDashboard, ShoppingBag, CreditCard, Users, FileText, Settings } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -17,6 +19,18 @@ const sidebarItems = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const role = session?.user?.role;
+  const items = React.useMemo(() => {
+    if (role === 'Vendedor') {
+      return sidebarItems.filter((i) => ['Ventas', 'Comisiones'].includes(i.name));
+    }
+    return sidebarItems;
+  }, [role]);
+
+  if (status === 'loading') {
+    return <LoadingDashboard text="Cargando panel..." fullScreen />;
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] bg-background">
@@ -26,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Analytics
           </h2>
           <nav className="space-y-1.5">
-            {sidebarItems.map((item) => {
+            {items.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (

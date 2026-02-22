@@ -1,8 +1,7 @@
-import { FilaAmortizacion, Pago } from '@/types/erp';
+import { FilaAmortizacion, Pago, MovimientoPago } from '@/types/erp';
 import axios from 'axios';
 import { directusClient, DirectusResponse, handleAxiosError } from './directus-api';
 
-// Function to calculate amortization schedule based on parameters
 export function calcularAmortizacion(
   montoFinanciado: number,
   tasaAnual: number,
@@ -10,9 +9,6 @@ export function calcularAmortizacion(
   fechaInicio: Date = new Date(),
 ): FilaAmortizacion[] {
   const tasaMensual = tasaAnual / 100 / 12;
-
-  // PMT Formula: P * (r * (1 + r)^n) / ((1 + r)^n - 1)
-  // If rate is 0, simple division
   let cuota = 0;
   if (tasaMensual > 0) {
     cuota =
@@ -21,42 +17,74 @@ export function calcularAmortizacion(
   } else {
     cuota = montoFinanciado / plazoMeses;
   }
-
   let saldo = montoFinanciado;
   const tabla: FilaAmortizacion[] = [];
-
   for (let i = 1; i <= plazoMeses; i++) {
     const interes = saldo * tasaMensual;
     const capital = cuota - interes;
     saldo -= capital;
-
     const fecha = new Date(fechaInicio);
     fecha.setMonth(fechaInicio.getMonth() + i);
-
     tabla.push({
       numero_pago: i,
       fecha_vencimiento: fecha.toISOString().split('T')[0] as string,
-      cuota: cuota,
-      interes: interes,
-      capital: capital,
+      cuota,
+      interes,
+      capital,
       saldo_restante: Math.max(0, saldo),
       estatus: 'pendiente',
     });
   }
-
   return tabla;
 }
 
-// Mock function to simulate API call
-export async function generarTablaAmortizacion(venta_id: string): Promise<FilaAmortizacion[]> {
-  await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate network delay
+function genId(): string {
+  const g: any = globalThis as any;
+  if (g?.crypto?.randomUUID) return g.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
-  // Mock data generation logic using the calculation function
-  const montoFinanciado = 100000;
-  const tasaAnual = 12; // 12%
-  const plazoMeses = 12;
-
-  return calcularAmortizacion(montoFinanciado, tasaAnual, plazoMeses);
+export async function fetchAmortizacionByVenta(
+  ventaId: string,
+  token?: string,
+): Promise<FilaAmortizacion[]> {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
+      params: {
+        filter: { venta_id: { _eq: ventaId } },
+        sort: ['numero_pago'],
+        limit: -1,
+        fields: [
+          'numero_pago',
+          'fecha_vencimiento',
+          'monto_cuota',
+          'interes',
+          'capital',
+          'saldo_final',
+          'estatus',
+        ],
+      },
+      headers,
+    });
+    const rows = res.data?.data || [];
+    return rows.map((r) => ({
+      numero_pago: Number(r.numero_pago),
+      fecha_vencimiento: String(r.fecha_vencimiento),
+      cuota: Number(r.monto_cuota),
+      interes: Number(r.interes),
+      capital: Number(r.capital),
+      saldo_restante: Number(r.saldo_final),
+      estatus: r.estatus,
+    })) as FilaAmortizacion[];
+  } catch (error) {
+    handleAxiosError(error, 'fetchAmortizacionByVenta');
+    return [];
+  }
 }
 
 export async function fetchPagos(params: any = {}, token?: string): Promise<Pago[]> {
@@ -71,6 +99,25 @@ export async function fetchPagos(params: any = {}, token?: string): Promise<Pago
     return response.data.data;
   } catch (error) {
     handleAxiosError(error, 'fetchPagos');
+    return [];
+  }
+}
+
+export async function fetchMovimientos(
+  params: any = {},
+  token?: string,
+): Promise<MovimientoPago[]> {
+  try {
+    const response = await directusClient.get<DirectusResponse<MovimientoPago[]>>(
+      '/items/pagos_movimientos',
+      {
+        params: { limit: params.limit || -1, sort: params.sort || ['-fecha_movimiento'], ...params },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      },
+    );
+    return response.data.data;
+  } catch (error) {
+    handleAxiosError(error, 'fetchMovimientos');
     return [];
   }
 }
@@ -128,140 +175,60 @@ export async function registrarPagoManual(
 ) {
   try {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const useExtension = process.env.NEXT_PUBLIC_USE_PAGOS_ENDPOINT === 'true';
-
-    if (useExtension) {
-      // Validar venta y existencia de cuotas en amortizacion
-      if (!data.venta_id) {
-        throw new Error('venta_id es obligatorio para registrar pago manual');
-      }
-      const ventaId = String(data.venta_id);
-
-      // Verificar que la venta existe
-      await directusClient.get<DirectusResponse<any>>(`/items/ventas/${ventaId}`, { headers });
-
-      // Verificar que existen cuotas
-      const cuotasRes = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
-        params: { filter: { venta_id: { _eq: ventaId } }, limit: 1, fields: ['numero_pago'] },
-        headers,
-      });
-      const tieneCuotas = Array.isArray(cuotasRes.data?.data) && cuotasRes.data.data.length > 0;
-      if (!tieneCuotas) {
-        throw new Error('No existen cuotas de amortización para esta venta');
-      }
-
-      // Determinar la próxima cuota pendiente
-      const nextRes = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
-        params: {
-          filter: { venta_id: { _eq: ventaId }, estatus: { _in: ['pendiente', 'parcial'] } },
-          sort: ['numero_pago'],
-          limit: 1,
-          fields: ['numero_pago'],
-        },
-        headers,
-      });
-      const nextCuota = nextRes.data?.data?.[0];
-      if (!nextCuota?.numero_pago && !data.pago_id) {
-        throw new Error('No hay cuotas pendientes para esta venta');
-      }
-
-      const payload = {
+    if (!data.venta_id) throw new Error('venta_id es obligatorio para registrar pago manual');
+    const ventaId = String(data.venta_id);
+    try {
+      const body = {
         venta_id: ventaId,
-        numero_pago: nextCuota?.numero_pago ?? 1,
         monto: Number(data.monto),
-        fecha_movimiento: data.fecha_pago,
-        tipo: 'abono',
-        estatus: 'aplicado',
-        metodo_pago_detalle: { metodo: data.metodo_pago, referencia: data.referencia },
-        notas: data.notas,
-        pago_id: data.pago_id ?? null,
+        metodo_pago: data.metodo_pago,
+        fecha_pago: data.fecha_pago,
+        concepto: data.notas || undefined,
       };
-
-      const response = await directusClient.post('/items/pagos_movimientos', payload, { headers });
+      const response = await directusClient.post('/pagos/registrar-manual', body, { headers });
       return response.data;
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status !== 404) throw e;
     }
-    // Si no usamos la extensión, forzamos el flujo fallback directo
-    throw {
-      response: {
-        status: 404,
-        data: { errors: [{ extensions: { code: 'ROUTE_NOT_FOUND' } }] },
+    const cuotasRes = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
+      params: { filter: { venta_id: { _eq: ventaId } }, limit: 1, fields: ['numero_pago'] },
+      headers,
+    });
+    const tieneCuotas = Array.isArray(cuotasRes.data?.data) && cuotasRes.data.data.length > 0;
+    if (!tieneCuotas) throw new Error('No existen cuotas de amortización para esta venta');
+    const nextRes = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
+      params: {
+        filter: { venta_id: { _eq: ventaId }, estatus: { _in: ['pendiente', 'parcial'] } },
+        sort: ['numero_pago'],
+        limit: 1,
+        fields: ['numero_pago'],
       },
-    };
-  } catch (error) {
-    const axiosErr = error as any;
-    const status = axiosErr?.response?.status;
-    const code = axiosErr?.response?.data?.errors?.[0]?.extensions?.code;
-    if (status === 404) {
-      try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-        // Resolver el pago objetivo
-        let pagoObjetivo: Pago | null = null;
-        if (data.pago_id) {
-          pagoObjetivo = await getPagoById(String(data.pago_id), token);
-        } else if (data.venta_id) {
-          // Validar venta existe
-          await directusClient.get<DirectusResponse<any>>(
-            `/items/ventas/${String(data.venta_id)}`,
-            { headers },
-          );
-
-          // Verificar cuotas en amortizacion
-          const cuotasRes = await directusClient.get<DirectusResponse<any[]>>(
-            '/items/amortizacion',
-            {
-              params: { filter: { venta_id: { _eq: String(data.venta_id) } }, limit: 1 },
-              headers,
-            },
-          );
-          if (!cuotasRes.data?.data?.length) {
-            throw new Error('Venta no encontrada o sin cuotas en amortización');
-          }
-        }
-
-        // Insertar movimiento al ledger directamente
-        const nextRes = await directusClient.get<DirectusResponse<any[]>>('/items/amortizacion', {
-          params: {
-            filter: {
-              venta_id: { _eq: String(data.venta_id) },
-              estatus: { _in: ['pendiente', 'parcial'] },
-            },
-            sort: ['numero_pago'],
-            limit: 1,
-            fields: ['numero_pago'],
-          },
-          headers,
-        });
-        const nextCuota = nextRes.data?.data?.[0];
-        if (!nextCuota?.numero_pago && !pagoObjetivo) {
-          throw new Error('No hay cuotas pendientes para esta venta');
-        }
-
-        const movimiento = {
-          venta_id: String(data.venta_id),
-          numero_pago: nextCuota?.numero_pago ?? 1,
-          monto: Number(data.monto),
-          fecha_movimiento: data.fecha_pago,
-          tipo: 'abono',
-          estatus: 'aplicado',
-          metodo_pago_detalle: { metodo: data.metodo_pago, referencia: data.referencia },
-          notas: data.notas,
-          pago_id: data.pago_id ?? null,
-        };
-
-        const mvRes = await directusClient.post<DirectusResponse<any>>(
-          '/items/pagos_movimientos',
-          movimiento,
-          { headers },
-        );
-
-        return { data: mvRes.data.data };
-      } catch (fallbackErr) {
-        handleAxiosError(fallbackErr, 'registrarPagoManual:fallback');
-        throw fallbackErr;
-      }
+      headers,
+    });
+    const nextCuota = nextRes.data?.data?.[0];
+    if (!nextCuota?.numero_pago && !data.pago_id) {
+      throw new Error('No hay cuotas pendientes para esta venta');
     }
-
+    const movimiento = {
+      id: genId(),
+      venta_id: ventaId,
+      numero_pago: nextCuota?.numero_pago ?? 1,
+      monto: Number(data.monto),
+      fecha_movimiento: data.fecha_pago,
+      tipo: 'abono',
+      estatus: 'aplicado',
+      metodo_pago_detalle: { metodo: data.metodo_pago, referencia: data.referencia },
+      notas: data.notas,
+      pago_id: data.pago_id ?? null,
+    };
+    const mvRes = await directusClient.post<DirectusResponse<any>>(
+      '/items/pagos_movimientos',
+      movimiento,
+      { headers },
+    );
+    return { data: mvRes.data.data };
+  } catch (error) {
     handleAxiosError(error, 'registrarPagoManual');
     throw error;
   }

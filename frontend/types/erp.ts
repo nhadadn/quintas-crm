@@ -22,6 +22,8 @@ export interface Vendedor {
   nombre: string;
   apellido_paterno: string;
   email: string;
+  created_at?: string;
+  date_created?: string;
 }
 
 export interface Lote {
@@ -74,6 +76,19 @@ export interface FilaAmortizacion {
   capital: number;
   saldo_restante: number;
   estatus: EstatusPago;
+}
+
+export interface MovimientoPago {
+  id: string | number;
+  venta_id: string | number;
+  numero_pago: number;
+  fecha_movimiento: string;
+  monto: number;
+  tipo: string;
+  estatus: string;
+  metodo_pago_detalle?: any;
+  notas?: string;
+  created_at?: string;
 }
 
 export interface Comision {

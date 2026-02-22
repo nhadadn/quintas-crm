@@ -190,77 +190,15 @@ export default function DetalleVendedorPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Contenido Comisiones */}
+      {/* MIGRADO A /dashboard/comisiones — pendiente de eliminar en cleanup */}
       {activeTab === 'comisiones' && (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Venta
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Monto
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estatus
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fecha Programada
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {comisiones.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                    No hay comisiones registradas
-                  </td>
-                </tr>
-              ) : (
-                comisiones.map((comision) => (
-                  <tr key={comision.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">
-                      {comision.venta_id ? (
-                        <Link
-                          href={`/ventas/${typeof comision.venta_id === 'object' ? comision.venta_id.id : comision.venta_id}`}
-                        >
-                          {typeof comision.venta_id === 'object'
-                            ? String(comision.venta_id.id).substring(0, 8)
-                            : 'Ver Venta'}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-400">Sin venta asignada</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                      {comision.tipo_comision} ({comision.porcentaje}%)
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatCurrency(comision.monto_comision)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          comision.estatus === 'pagada'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {comision.estatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(comision.fecha_pago_programada)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="bg-white shadow rounded-lg p-6 text-center">
+          <p className="text-gray-800 text-sm font-medium mb-2">
+            La vista detallada de comisiones fue migrada al módulo dedicado.
+          </p>
+          <Link href="/dashboard/comisiones" className="text-primary text-sm font-medium hover:underline">
+            Ir al dashboard de comisiones
+          </Link>
         </div>
       )}
     </div>
